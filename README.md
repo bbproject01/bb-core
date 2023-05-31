@@ -23,5 +23,3 @@ This blockchain base project provides a basic and solid infrastructure for devel
 | Hardhat Contract Sizer | 0.4.0 | `yarn add --dev @jdutton/hardhat-contract-sizer` |
 | Prettier | 2.4.1 | `yarn add --dev prettier` |
 | Prettier Plugin Solidity | 1.1.0 | `yarn add --dev prettier-plugin-solidity` |
-
-git config --global user.email "robert.garcias@hotmail.com"
