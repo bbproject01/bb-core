@@ -12,7 +12,7 @@ describe('FNFT', function() {
   beforeEach(async function() {
     [dev, alice, bob] = await ethers.getSigners();
 
-    ERC20 = await ethers.getContractFactory('ERC20');
+    ERC20 = await ethers.getContractFactory('IERC20');
     erc20 = await ERC20.connect(dev).deploy(alice.getAddress(), ethers.utils.parseEther('10000'));
     await erc20.deployed();
 

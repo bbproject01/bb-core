@@ -18,28 +18,27 @@ if (process.env.DEPLOYER_KEY) {
     process.env.OWNER_KEY || process.env.DEPLOYER_KEY,
   ]
 }
+
+const { RCP_URL_API_KEY, PRIVATE_KEY } = process.env;
+console.log("🚀 ~ file: hardhat.config.ts:23 ~  RCP_URL_API_KEY, PRIVATE_KEY:",  RCP_URL_API_KEY, PRIVATE_KEY)
+
+
+
+
 const config: HardhatUserConfig = {
+  defaultNetwork: "mumbai",
   networks: {    
     localhost: {
       url: 'http://127.0.0.1:8545',            
     },
-    rinkeby: {
-      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,      
-      chainId: 4,      
-    },
-    ropsten: {
-      url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,      
-      chainId: 3,      
+    mumbai: {
+      url: RCP_URL_API_KEY,
+      accounts: [`0x${PRIVATE_KEY}`]
     },
     goerli: {
       url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,      
       chainId: 5,      
-    },
-    mainnet: {
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,      
-      chainId: 1,
-      accounts: real_accounts,
-    },
+    },    
   },
   mocha: {},
   solidity: {

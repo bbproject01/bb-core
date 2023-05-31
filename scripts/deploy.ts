@@ -1,7 +1,10 @@
 import { ethers } from "hardhat";
+import dotenv from 'dotenv'
+
+dotenv.config({ debug: false })
 
 async function main() {
-    const ERC20Address = 'CONTRACT_ADDRESS';  // <-- Reemplaza esto con la dirección del ERC20
+    const ERC20Address = process.env.ERC20_ADDRESS;  // <-- Reemplaza esto con la dirección del ERC20
     const FNFT = await ethers.getContractFactory("FNFT");
     const instance = await FNFT.deploy(ERC20Address);
 

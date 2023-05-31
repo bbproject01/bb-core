@@ -23,3 +23,24 @@ This blockchain base project provides a basic and solid infrastructure for devel
 | Hardhat Contract Sizer | 0.4.0 | `yarn add --dev @jdutton/hardhat-contract-sizer` |
 | Prettier | 2.4.1 | `yarn add --dev prettier` |
 | Prettier Plugin Solidity | 1.1.0 | `yarn add --dev prettier-plugin-solidity` |
+## Prerequisitos
+
+Necesitarás tener instalado Node.js y Yarn (o npm) en tu máquina. Además, necesitarás tener una clave privada y una URL de nodo compatible con Ethereum (por ejemplo, a través de QuickNode o Alchemy) para desplegar el contrato.
+
+## Instalación
+
+1. Clona el repositorio en tu máquina local:
+
+```bash
+git clone https://github.com/bbproject01/bb-core.git
+```
+## Compilación
+Para compilar el contrato, ejecuta el siguiente comando en tu terminal:
+
+yarn hardhat compile
+
+## Deploy
+npx hardhat run scripts/deploy.ts --network mumbai 
+
+## Pruebas
+yarn hardhat test
