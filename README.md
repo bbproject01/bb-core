@@ -29,18 +29,22 @@ Necesitarás tener instalado Node.js y Yarn (o npm) en tu máquina. Además, nec
 
 ## Instalación
 
-1. Clona el repositorio en tu máquina local:
+Clona el repositorio en tu máquina local:
 
 ```bash
 git clone https://github.com/bbproject01/bb-core.git
+cd bb-core
 ```
 ## Compilación
 Para compilar el contrato, ejecuta el siguiente comando en tu terminal:
-
+```bash
 yarn hardhat compile
-
+```
 ## Deploy
+```bash
 npx hardhat run scripts/deploy.ts --network mumbai 
-
+```
 ## Pruebas
+```bash
 yarn hardhat test
+```

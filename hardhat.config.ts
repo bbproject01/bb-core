@@ -1,13 +1,13 @@
+import { HardhatUserConfig } from 'hardhat/config'
+import dotenv from 'dotenv'
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-solhint'
 import '@nomiclabs/hardhat-truffle5'
 import '@nomiclabs/hardhat-waffle'
-import dotenv from 'dotenv'
-import 'hardhat-abi-exporter'
+require('hardhat-abi-exporter');
 import 'hardhat-contract-sizer'
 import 'hardhat-deploy'
 import 'hardhat-gas-reporter'
-import { HardhatUserConfig } from 'hardhat/config'
 
 dotenv.config({ debug: false })
 
@@ -22,10 +22,20 @@ if (process.env.DEPLOYER_KEY) {
 const { RCP_URL_API_KEY, PRIVATE_KEY } = process.env;
 console.log("🚀 ~ file: hardhat.config.ts:23 ~  RCP_URL_API_KEY, PRIVATE_KEY:",  RCP_URL_API_KEY, PRIVATE_KEY)
 
+// trucaso
+interface ExtendedHardhatUserConfig extends HardhatUserConfig {
+  abiExporter?: {
+    path: string;
+    clear?: boolean;
+    flat?: boolean;
+    only?: boolean;
+    spacing?: number;
+    runOnCompile?: boolean
+  };
+}
 
 
-
-const config: HardhatUserConfig = {
+const config: ExtendedHardhatUserConfig = {
   defaultNetwork: "mumbai",
   networks: {    
     localhost: {
@@ -53,7 +63,13 @@ const config: HardhatUserConfig = {
         },
       },            
     ],
-  }
+  },
+  abiExporter: {
+    path: './data/abi',  // ruta de exportación para los ABI
+    clear: true,        // borrar la carpeta existente antes de generar nuevos ABI
+    flat: true,         // poner todos los ABI en la misma carpeta, sin importar el nombre del contrato
+    runOnCompile: true
+  },
 };
 
 export default config;
