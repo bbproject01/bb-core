@@ -20,9 +20,8 @@ if (process.env.DEPLOYER_KEY) {
 }
 
 const { RCP_URL_API_KEY, PRIVATE_KEY } = process.env;
-console.log("🚀 ~ file: hardhat.config.ts:23 ~  RCP_URL_API_KEY, PRIVATE_KEY:",  RCP_URL_API_KEY, PRIVATE_KEY)
 
-// trucaso
+// hack
 interface ExtendedHardhatUserConfig extends HardhatUserConfig {
   abiExporter?: {
     path: string;
@@ -36,10 +35,14 @@ interface ExtendedHardhatUserConfig extends HardhatUserConfig {
 
 
 const config: ExtendedHardhatUserConfig = {
-  defaultNetwork: "mumbai",
+  defaultNetwork: "localhost",
   networks: {    
+    hardhat: {
+      gas: 100000000, // Ajusta el límite de gas según sea necesario
+    },
     localhost: {
-      url: 'http://127.0.0.1:8545',            
+      url: 'http://127.0.0.1:8545',   
+      chainId: 31337
     },
     mumbai: {
       url: RCP_URL_API_KEY,
@@ -49,6 +52,10 @@ const config: ExtendedHardhatUserConfig = {
       url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,      
       chainId: 5,      
     },    
+    ganache: {
+      url: 'http://127.0.0.1:7545',   
+      chainId: 5777
+    }
   },
   mocha: {},
   solidity: {
