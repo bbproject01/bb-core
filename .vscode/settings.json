@@ -5,6 +5,7 @@
     "titleBar.activeForeground": "#F5FDE5"
   },
   "conventionalCommits.scopes": [
-    "ERC1155"
+    "ERC1155",
+    "ERC20"
   ]
 }
