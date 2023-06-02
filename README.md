@@ -40,11 +40,13 @@ Para compilar el contrato, ejecuta el siguiente comando en tu terminal:
 ```bash
 yarn hardhat compile
 ```
-## Deploy
+## Deploy 
 ```bash
-npx hardhat run scripts/deploy.ts --network mumbai 
+yarn hardhat run scripts/deploy.ts --network mumbai 
 ```
 ## Pruebas
 ```bash
+npx hardhat node --network hardhat  
+# in another shell
 yarn hardhat test
 ```

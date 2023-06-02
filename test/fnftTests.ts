@@ -1,39 +1,83 @@
-import { ethers } from 'hardhat';
-import { Signer, Contract } from "ethers";
-import { expect } from 'chai';
+import { expect } from "chai";
+import { ethers, waffle } from "hardhat";
+import { Contract, Signer } from "ethers";
 
-describe('FNFT', function() {
+const { provider } = waffle;
+import type { BBTOKEN } from "./typechain-types";
 
-  let FNFT, ERC20;
-  let erc20: Contract;
-  let fnft: Contract;
-  let dev: Signer, alice: Signer, bob: Signer;
+describe("FNFT Contract", function () {
+  let FNFT: Contract;
+  let myToken: BBTOKEN;
 
-  beforeEach(async function() {
-    [dev, alice, bob] = await ethers.getSigners();
+  const NAME = 'B&B';
+  const SYMBOL = 'B&B';
+  const DECIMALS = 18  
+  const MILLON = Math.pow(10, 6);
+  const BILLON = Math.pow(10, 12);
+  const URI = '';
 
-    ERC20 = await ethers.getContractFactory('IERC20');
-    erc20 = await ERC20.connect(dev).deploy(alice.getAddress(), ethers.utils.parseEther('10000'));
-    await erc20.deployed();
+  beforeEach(async function () {
+    
+    const [owner] = await ethers.getSigners();
+    
+    // ERC20 
+    const MyToken = await ethers.getContractFactory("BBTOKEN");
+    myToken = await MyToken.deploy(NAME, SYMBOL, DECIMALS, MILLON, BILLON);
+    await myToken.deployed();
+    await myToken.mint(await owner.getAddress(), ethers.utils.parseEther("1000"));
 
-    FNFT = await ethers.getContractFactory('FNFT');
-    fnft = await FNFT.connect(dev).deploy(erc20.address);
-    await fnft.deployed();
+    // ERC1155
+    const FNFTFactory = await ethers.getContractFactory("FNFT");    
+    FNFT = await FNFTFactory.deploy(URI, myToken.address);
+    await FNFT.deployed();
+
   });
 
-  it('Se debería poder acuñar FNFTs si el balance ERC20 es suficiente', async function() {
-    await erc20.connect(alice).transfer(bob.getAddress(), ethers.utils.parseEther('1000'));
-    await fnft.connect(bob).mint(1, 10, 0.25);
-    expect(await fnft.balanceOf(bob.getAddress(), 0)).to.equal(1);
+  describe("mint()", function () {
+
+    it("should mint a new FNFT token", async function () {
+      const TIEMPO_MESES = 4;       // el plazo
+      const REDUCION_MAXIMA = 25;   // el pct de reduccion
+      const PRICE = ethers.utils.parseUnits("100", 18) // 100 tokens BBToken
+
+      const [owner] = await ethers.getSigners();
+      await FNFT.mint(TIEMPO_MESES, REDUCION_MAXIMA, PRICE);      
+      expect((await FNFT.balanceOf(await owner.getAddress(), 1)).eq(PRICE)).to.be.true;
+    });
   });
 
-  it('No se debería poder acuñar FNFTs si el balance ERC20 es insuficiente', async function() {
-    await expect(fnft.connect(bob).mint(1, 10, 0.25)).to.be.rejectedWith('ERC20 balance too low');
+  describe("setMinimumErc20Balance()", function () {
+
+    it("should update the minimum ERC20 balance required to mint", async function () {
+      const newMinimumBalance = ethers.utils.parseEther("2");
+      await FNFT.setMinimumErc20Balance(newMinimumBalance);
+      const minimumBalance = await FNFT.minimumErc20Balance();
+      expect(minimumBalance).to.equal(newMinimumBalance);
+    });
+
   });
 
-  it('El período de devolución revisado debería ser menor que el plazo original después de un tiempo', async function() {
-    await fnft.connect(alice).mint(1, 10, 0.25);
-    await fnft.connect(alice).updateTimePassed(0, 1);
-    expect(await fnft.revisedReturnPeriod(0)).to.be.lessThan(10);
+  describe("safeTransferFrom()", function () {
+    it("should transfer FNFT tokens from one account to another", async function () {4
+
+      const [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
+
+      // Asegúrate de que el propietario tiene tokens FNFT para transferir
+      await FNFT.mint(12, 25, ethers.utils.parseEther("1"));
+  
+      const initialBalanceOwner = await FNFT.balanceOf(await owner.getAddress(), 0);
+      const initialBalanceAddr1 = await FNFT.balanceOf(await addr1.getAddress(), 0);
+      expect(initialBalanceOwner).to.equal(1);
+      expect(initialBalanceAddr1).to.equal(0);
+  
+      // Transfiere tokens del propietario a addr1
+      await FNFT.connect(owner).safeTransferFrom(await owner.getAddress(), await addr1.getAddress(), 0, 1, "0x0");
+  
+      const finalBalanceOwner = await FNFT.balanceOf(await owner.getAddress(), 0);
+      const finalBalanceAddr1 = await FNFT.balanceOf(await addr1.getAddress(), 0);
+      expect(finalBalanceOwner).to.equal(0);
+      expect(finalBalanceAddr1).to.equal(1);
+    });
   });
+  
 });

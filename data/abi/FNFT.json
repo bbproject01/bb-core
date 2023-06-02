@@ -2,8 +2,13 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_erc20Address",
+        "internalType": "string",
+        "name": "_uri",
+        "type": "string"
+      },
+      {
+        "internalType": "contract IERC20",
+        "name": "_erc20Token",
         "type": "address"
       }
     ],
@@ -33,6 +38,37 @@
       }
     ],
     "name": "ApprovalForAll",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "originalTerm",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "maximumReduction",
+        "type": "uint256"
+      }
+    ],
+    "name": "FNFTMinted",
     "type": "event"
   },
   {
@@ -197,7 +233,7 @@
         "type": "uint256"
       }
     ],
-    "name": "fnftMetadata",
+    "name": "idToFNFTMetadata",
     "outputs": [
       {
         "internalType": "uint256",
@@ -243,37 +279,50 @@
     "type": "function"
   },
   {
-    "inputs": [
+    "inputs": [],
+    "name": "minimumErc20Balance",
+    "outputs": [
       {
         "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "originalTerm",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "maximumReduction",
+        "name": "",
         "type": "uint256"
       }
     ],
-    "name": "mint",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "_originalTerm",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_maximumReduction",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_price",
         "type": "uint256"
       }
     ],
-    "name": "revisedReturnPeriod",
+    "name": "mint",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "nextTokenId",
     "outputs": [
       {
         "internalType": "uint256",
@@ -371,6 +420,45 @@
   {
     "inputs": [
       {
+        "internalType": "contract IERC20",
+        "name": "_erc20Token",
+        "type": "address"
+      }
+    ],
+    "name": "setERC20Token",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_minimumErc20Balance",
+        "type": "uint256"
+      }
+    ],
+    "name": "setMinimumErc20Balance",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_newURI",
+        "type": "string"
+      }
+    ],
+    "name": "setURI",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes4",
         "name": "interfaceId",
         "type": "bytes4"
@@ -385,37 +473,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "tokenIdCounter",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "time",
-        "type": "uint256"
-      }
-    ],
-    "name": "updateTimePassed",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

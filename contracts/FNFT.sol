@@ -1,80 +1,68 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import '@openzeppelin/contracts/token/ERC1155/ERC1155.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
-/**
- * @title Contrato de Fungible Non-Fungible Tokens (FNFT)
- * @author Su nombre
- * @notice Este contrato permite a los usuarios emitir FNFTs que representan diferentes productos o activos financieros.
- */
+/// @title Contrato FNFT
+/// @notice Contrato inteligente de FNFT basado en ERC1155
 contract FNFT is ERC1155 {
-    using SafeMath for uint256;
+  IERC20 public erc20Token;
+  uint256 public nextTokenId;
+  uint256 public minimumErc20Balance = 1 * 10 ** 18; // costo minimo del FNFT
+  address private _owner;
 
-    IERC20 public erc20Token;  // El token ERC20 que se requiere para interactuar con este contrato
-    uint256 public tokenIdCounter; // Contador para generar ID de tokens únicos
+  mapping(uint256 => FNFTMetadata) public idToFNFTMetadata;
 
-    struct FNFTMetadata {
-        uint256 originalTerm;
-        uint256 timePassed;
-        uint256 maximumReduction;
-    }
+  struct FNFTMetadata {
+    uint256 originalTerm; // El plazo original en meses para el FNFT
+    uint256 timePassed; // El tiempo que ha pasado desde la acuñación del FNFT, en meses
+    uint256 maximumReduction; // La reducción máxima permitida en el plazo original, representada como una fracción (ej. 25 para 25%)
+  }
 
-    mapping (uint256 => FNFTMetadata) public fnftMetadata;
+  constructor(string memory _uri, IERC20 _erc20Token) ERC1155(_uri) {
+    erc20Token = _erc20Token;
+    _owner = msg.sender;
+  }
 
-    /**
-     * @notice Constructor del contrato FNFT.
-     * @param _erc20Address La dirección del token ERC20 que se requiere para interactuar con este contrato.
-     */
-    constructor(address _erc20Address) ERC1155("https://token-uri.com/") {
-        erc20Token = IERC20(_erc20Address);
-        tokenIdCounter = 0;
-    }
+  event FNFTMinted(address indexed to, uint256 id, uint256 originalTerm, uint256 maximumReduction);
 
-    /**
-     * @notice Permite a un usuario acuñar un nuevo FNFT.
-     * @param amount La cantidad del FNFT que se acuñará.
-     * @param originalTerm El plazo original del FNFT.
-     * @param maximumReduction La reducción máxima del plazo original.
-     */
-    function mint(uint256 amount, uint256 originalTerm, uint256 maximumReduction) external {
-        require(erc20Token.balanceOf(msg.sender) >= 1000, "ERC20 balance too low");
+  /// @notice Función para acuñar un nuevo FNFT.
+  /// @dev Esta función crea un nuevo FNFT con un ID único y lo asigna al remitente.
+  /// @param _originalTerm El plazo original del FNFT.
+  /// @param _maximumReduction La reducción máxima permitida del plazo del FNFT.
+  /// @param _price The price in ERC20 tokens
+  function mint(uint256 _originalTerm, uint256 _maximumReduction, uint256 _price) public returns (uint256 id) {
+    require(erc20Token.balanceOf(msg.sender) >= minimumErc20Balance, 'FNFT: Saldo insuficiente de ERC20 para la forja');
+    require(erc20Token.balanceOf(msg.sender) > _price, 'FNFT: Saldo insuficiente de ERC20 para la forja');
+    // require(erc20Token.transferFrom(msg.sender, address(this), _price), 'ERC20 transfer failed');
 
-        uint256 newTokenId = tokenIdCounter;
-        tokenIdCounter = tokenIdCounter.add(1);
+    uint256 newTokenId = nextTokenId;
+    nextTokenId++;
 
-        _mint(msg.sender, newTokenId, amount, "");
+    idToFNFTMetadata[newTokenId] = FNFTMetadata(_originalTerm, 0, _maximumReduction);
+    _mint(msg.sender, newTokenId, _price, '');
+    return newTokenId;
+  }
 
-        FNFTMetadata memory newMetadata = FNFTMetadata({
-            originalTerm: originalTerm,
-            timePassed: 0,
-            maximumReduction: maximumReduction
-        });
+  /// @notice Cambia el token ERC20 asociado a este contrato.
+  /// @param _erc20Token La dirección del nuevo token ERC20.
+  function setERC20Token(IERC20 _erc20Token) public {
+    require(msg.sender == _owner, 'FNFT: No eres el owner');
+    erc20Token = _erc20Token;
+  }
 
-        fnftMetadata[newTokenId] = newMetadata;
-    }
+  /// @notice Cambia el saldo mínimo de ERC20 necesario para acuñar.
+  /// @param _minimumErc20Balance El nuevo saldo mínimo.
+  function setMinimumErc20Balance(uint256 _minimumErc20Balance) public {
+    require(msg.sender == _owner, 'FNFT: No eres el owner');
+    minimumErc20Balance = _minimumErc20Balance;
+  }
 
-    /**
-     * @notice Permite a un usuario actualizar el tiempo transcurrido de su FNFT.
-     * @param tokenId El ID del FNFT.
-     * @param time El nuevo tiempo transcurrido.
-     */
-    function updateTimePassed(uint256 tokenId, uint256 time) external {
-        require(balanceOf(msg.sender, tokenId) > 0, "Sender does not own this token");
-
-        fnftMetadata[tokenId].timePassed = time;
-    }
-
-    /**
-     * @notice Calcula y devuelve el período de devolución revisado de un FNFT.
-     * @param tokenId El ID del FNFT.
-     * @return El período de devolución revisado.
-     */
-    function revisedReturnPeriod(uint256 tokenId) public view returns (uint256) {
-        FNFTMetadata memory metadata = fnftMetadata[tokenId];
-
-        return (metadata.originalTerm - metadata.timePassed) * (1 - metadata.maximumReduction);
-    }
+  /// @notice Cambia la URI base para los tokens ERC1155.
+  /// @param _newURI La nueva URI base.
+  function setURI(string memory _newURI) public {
+    require(msg.sender == _owner, 'FNFT: No eres el owner');
+    _setURI(_newURI);
+  }
 }
