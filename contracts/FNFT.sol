@@ -32,17 +32,16 @@ contract FNFT is ERC1155 {
   /// @param _originalTerm El plazo original del FNFT.
   /// @param _maximumReduction La reducción máxima permitida del plazo del FNFT.
   /// @param _price The price in ERC20 tokens
-  function mint(uint256 _originalTerm, uint256 _maximumReduction, uint256 _price) public returns (uint256 id) {
-    require(erc20Token.balanceOf(msg.sender) >= minimumErc20Balance, 'FNFT: Saldo insuficiente de ERC20 para la forja');
-    require(erc20Token.balanceOf(msg.sender) > _price, 'FNFT: Saldo insuficiente de ERC20 para la forja');
+  function mint(uint256 _originalTerm, uint256 _maximumReduction, uint256 _price) public {
+    // require(erc20Token.balanceOf(msg.sender) >= minimumErc20Balance, 'FNFT: Saldo insuficiente de ERC20 para el minteo');
+    // require(erc20Token.balanceOf(msg.sender) > _price, 'FNFT: Saldo insuficiente de ERC20 para el minteo');
     // require(erc20Token.transferFrom(msg.sender, address(this), _price), 'ERC20 transfer failed');
 
-    uint256 newTokenId = nextTokenId;
     nextTokenId++;
+    uint256 newTokenId = nextTokenId;
 
     idToFNFTMetadata[newTokenId] = FNFTMetadata(_originalTerm, 0, _maximumReduction);
     _mint(msg.sender, newTokenId, _price, '');
-    return newTokenId;
   }
 
   /// @notice Cambia el token ERC20 asociado a este contrato.
