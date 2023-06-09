@@ -6,6 +6,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 import type { BBTOKEN } from "./typechain-types";
+import { BigNumber } from "ethers";
 
 describe("BBTOKEN", function () {
   let myToken: BBTOKEN;
@@ -235,25 +236,31 @@ describe("BBTOKEN", function () {
     
         expect((await myToken.totalSupply()).eq(totalSupplyInicial.sub(cantidadQuemar))).to.be.true;
         expect((await myToken.balanceOf(account.address)).eq(balanceInicialCuenta.sub(cantidadQuemar))).to.be.true;
-        expect((await myToken.allowance(account.address, spender.address)).eq(0)).to.be.true;
+        
+        // se realizar la resta del balance - la cantidad de tokens eliminados
+        const allowance = BigNumber.from(balanceInicialCuenta).sub(cantidadQuemar);
+        expect((await myToken.connect(account).allowance(account.address, spender.address)).eq(allowance)).to.be.true;
       });
 
       it("debería revertir si la cuenta tiene un saldo insuficiente", async function () {
         const [,,, account, spender] = await ethers.getSigners();
         const balanceInicialCuenta = await myToken.balanceOf(account.address);
         const cantidadQuemar = balanceInicialCuenta.add(1);
-        await myToken.connect(account).approve(spender.address, balanceInicialCuenta);
+        await myToken.connect(account).approve(spender.address, cantidadQuemar); // aprobamos la cantidad a eliminar para no obtener el revert de
     
         await expect(myToken.connect(spender).burnFrom(account.address, cantidadQuemar)).to.be.rejectedWith("ERC20: insufficient balance for burning");
       });
 
       it("debería revertir si el gastador tiene una asignación insuficiente", async function () {
         const [owner, account, spender] = await ethers.getSigners();
-        const balanceInicialCuenta = await myToken.balanceOf(account.address);
-        const cantidadQuemar = ethers.utils.parseUnits("500", 18);
-        await myToken.connect(account).approve(spender.address, balanceInicialCuenta.sub(cantidadQuemar));
+
+        await myToken.connect(owner).mint(account.address, ethers.utils.parseUnits("10", 18));
+        // const balanceInicialCuenta = await myToken.balanceOf(account.address);
+        const cantidadQuemar = ethers.utils.parseUnits("10", 18);
+        const cantidadAprobada = ethers.utils.parseUnits("5", 18);
+        await myToken.connect(account).approve(spender.address, cantidadAprobada);
     
-        await expect(myToken.connect(spender).burnFrom(account.address, cantidadQuemar)).to.be.rejectedWith("ERC20: insufficient balance for burning");
+        await expect(myToken.connect(spender).burnFrom(account.address, cantidadQuemar)).to.be.rejectedWith("ERC20: burn amount exceeds allowance");
       });
     });
   });
