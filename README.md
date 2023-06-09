@@ -50,3 +50,7 @@ npx hardhat node --network hardhat
 # in another shell
 yarn hardhat test
 ```
+
+## Address SmartContracts
+BBTOKEN: 0x62ba02826ef23F4ce9Ac11B72CB31Aadb85878F9
+FNFT:    0xf79f64f4b4C55083f8cec130D3d0FB9A94c95727

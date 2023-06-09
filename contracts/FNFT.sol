@@ -14,7 +14,7 @@ contract FNFT is ERC1155 {
 
   mapping(uint256 => FNFTMetadata) public idToFNFTMetadata;
   mapping (address => uint256[]) private _ownedTokens;
-  mapping (uint256 => address) private _tokenOwners;  
+  mapping (uint256 => address) private _tokenOwners;
 
   struct FNFTMetadata {
     uint256 originalTerm;           // El plazo original en meses para el FNFT
@@ -42,14 +42,11 @@ contract FNFT is ERC1155 {
     nextTokenId++;
     uint256 id = nextTokenId;
 
+    _mint(msg.sender, id, _amount, '');
     idToFNFTMetadata[id] = FNFTMetadata(_originalTerm, 0, _maximumReduction);
     _ownedTokens[msg.sender].push(id);
     _tokenOwners[id] = msg.sender;
-    _mint(msg.sender, id, _amount, '');
-  }
-
-  function ownedTokens(address account) public view returns (uint256[] memory) {
-      return _ownedTokens[account];
+    
   }
 
   /// @notice Cambia el token ERC20 asociado a este contrato.
@@ -71,5 +68,16 @@ contract FNFT is ERC1155 {
   function setURI(string memory _newURI) public {
     require(msg.sender == _owner, 'FNFT: No eres el owner');
     _setURI(_newURI);
+  }
+
+  /// @notice Obtiene todos los FNFT's creados
+  function getTokensOwner() public view returns (uint256[] memory) {
+    return _listTokensByAddress[msg.sender];
+  }
+
+  /// @notice Obtiene la informacion del FNFT enviado por parametro
+  /// @param _id del FNFT a consultar
+  function getInfoFNFTMetadata( uint256 _id) public view returns (FNFTMetadata memory){
+    return idToFNFTMetadata[_id];
   }
 }

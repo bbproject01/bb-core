@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
-import { Contract, Signer } from "ethers";
+import { BigNumber, Contract, Signer } from "ethers";
 
 const { provider } = waffle;
 import type { BBTOKEN } from "./typechain-types";
@@ -42,7 +42,7 @@ describe("FNFT Contract", function () {
 
       const [owner] = await ethers.getSigners();
       await FNFT.mint(TIEMPO_MESES, REDUCION_MAXIMA, PRICE);      
-      expect((await FNFT.balanceOf(await owner.getAddress(), 1)).eq(PRICE)).to.be.true;
+      expect((await FNFT.balanceOf(await owner.getAddress(), 0)).eq(PRICE)).to.be.true;
     });
   });
 
@@ -67,16 +67,117 @@ describe("FNFT Contract", function () {
   
       const initialBalanceOwner = await FNFT.balanceOf(await owner.getAddress(), 0);
       const initialBalanceAddr1 = await FNFT.balanceOf(await addr1.getAddress(), 0);
-      expect(initialBalanceOwner).to.equal(1);
-      expect(initialBalanceAddr1).to.equal(0);
+
+      expect(initialBalanceOwner).to.equal(ethers.utils.parseEther("1"));
+      expect(initialBalanceAddr1).to.equal(BigNumber.from(0));
   
       // Transfiere tokens del propietario a addr1
-      await FNFT.connect(owner).safeTransferFrom(await owner.getAddress(), await addr1.getAddress(), 0, 1, "0x0");
+      await FNFT.connect(owner).safeTransferFrom(await owner.getAddress(), await addr1.getAddress(), 0, ethers.utils.parseEther("1"), "0x0123456789abcdef");
   
       const finalBalanceOwner = await FNFT.balanceOf(await owner.getAddress(), 0);
       const finalBalanceAddr1 = await FNFT.balanceOf(await addr1.getAddress(), 0);
-      expect(finalBalanceOwner).to.equal(0);
-      expect(finalBalanceAddr1).to.equal(1);
+
+      expect(finalBalanceOwner).to.equal(BigNumber.from(0));
+      expect(finalBalanceAddr1).to.equal(ethers.utils.parseEther("1"));
+    });
+  });
+
+  describe("getTokensOwner()", function () {
+    it("deberia obtener un array con N cantidad de FNFT´s", async function () {4
+
+      const [owner, account] = await ethers.getSigners();
+
+      // Creamos los FNFT's desde owner
+      await FNFT.connect(owner).mint(12, 25, ethers.utils.parseEther("1"));
+      await FNFT.connect(owner).mint(10, 25, ethers.utils.parseEther("1"));
+      await FNFT.connect(owner).mint(20, 25, ethers.utils.parseEther("1"));
+
+      // agregamos tokens BNB a account
+      await myToken.mint(await account.getAddress(), ethers.utils.parseEther("1000"));
+
+      // Creamos los FNFT's de account
+      await FNFT.connect(account).mint(10, 25, ethers.utils.parseEther("1"));
+      await FNFT.connect(account).mint(10, 25, ethers.utils.parseEther("1"));
+  
+      const listTokensOwner = await FNFT.getTokensOwner();
+      const listTokensAccount = await FNFT.connect(account).getTokensOwner();
+      
+      // validamos que sea la longitud esperada
+      expect(listTokensOwner.length).to.equal(3);
+      expect(listTokensAccount.length).to.equal(2);
+    });
+
+    it("deberia obtener un arreglo vacion si la cuenta no tiene FNFT's", async function () {4
+
+      const [owner, account] = await ethers.getSigners();
+
+      // Creamos los FNFT's desde owner
+      await FNFT.connect(owner).mint(12, 25, ethers.utils.parseEther("1"));
+      await FNFT.connect(owner).mint(10, 25, ethers.utils.parseEther("1"));
+      await FNFT.connect(owner).mint(20, 25, ethers.utils.parseEther("1"));
+
+      // agregamos tokens BNB a account
+      await myToken.mint(await account.getAddress(), ethers.utils.parseEther("1000"));
+  
+      const listTokensAccount = await FNFT.connect(account).getTokensOwner();
+      
+      // validamos que sea la longitud esperada
+      expect(listTokensAccount.length).to.equal(0);
+    });
+  });
+
+  describe("getInfoFNFTMetadata()", function () {
+    it("deberia obtener la información del FNFT consultado", async function () {4
+      const [owner] = await ethers.getSigners();
+      const originalTerm = 12;
+      const timePassed = 0;
+      const maximumReduction = 25;
+
+      // Creamos los FNFT's desde owner
+      await FNFT.connect(owner).mint(originalTerm, maximumReduction, ethers.utils.parseEther("1"));
+
+      const infoFNFTMetadata = await FNFT.getInfoFNFTMetadata(0);
+
+      // validamos que sea la longitud esperada
+      expect(infoFNFTMetadata.originalTerm).to.equal(originalTerm);
+      expect(infoFNFTMetadata.timePassed).to.equal(timePassed);
+      expect(infoFNFTMetadata.maximumReduction).to.equal(maximumReduction);
+    });
+
+    it("deberia obtener ceros si el id del FNFT enviado no existe", async function () {4
+      const [owner] = await ethers.getSigners();
+      const originalTerm = 12;
+      const timePassed = 0;
+      const maximumReduction = 25;
+      const id = 1;
+
+      // Creamos los FNFT's desde owner
+      await FNFT.connect(owner).mint(originalTerm, maximumReduction, ethers.utils.parseEther("1"));
+
+      const infoFNFTMetadata = await FNFT.getInfoFNFTMetadata(id);
+
+      // validamos que sea la longitud esperada
+      expect(infoFNFTMetadata.originalTerm).to.equal(0);
+      expect(infoFNFTMetadata.timePassed).to.equal(0);
+      expect(infoFNFTMetadata.maximumReduction).to.equal(0);
+    });
+
+    it("deberia ver la informacion account de un FNFT de owner", async function () {4
+      const [owner, account] = await ethers.getSigners();
+      const originalTerm = 12;
+      const timePassed = 0;
+      const maximumReduction = 25;
+      const id = 0;
+
+      // Creamos los FNFT's desde owner
+      await FNFT.connect(owner).mint(originalTerm, maximumReduction, ethers.utils.parseEther("1"));
+
+      const infoFNFTMetadata = await FNFT.connect(account).getInfoFNFTMetadata(id);
+
+      // validamos que sea la longitud esperada
+      expect(infoFNFTMetadata.originalTerm).to.equal(originalTerm);
+      expect(infoFNFTMetadata.timePassed).to.equal(timePassed);
+      expect(infoFNFTMetadata.maximumReduction).to.equal(maximumReduction);
     });
   });
   
