@@ -13,12 +13,13 @@ contract FNFT is ERC1155 {
   address private _owner;
 
   mapping(uint256 => FNFTMetadata) public idToFNFTMetadata;
-  mapping(address => uint256[]) private _listTokensByAddress;
+  mapping (address => uint256[]) private _ownedTokens;
+  mapping (uint256 => address) private _tokenOwners;
 
   struct FNFTMetadata {
-    uint256 originalTerm; // El plazo original en meses para el FNFT
-    uint256 timePassed; // El tiempo que ha pasado desde la acuñación del FNFT, en meses
-    uint256 maximumReduction; // La reducción máxima permitida en el plazo original, representada como una fracción (ej. 25 para 25%)
+    uint256 originalTerm;           // El plazo original en meses para el FNFT
+    uint256 timePassed;             // El tiempo que ha pasado desde la acuñación del FNFT, en meses
+    uint256 maximumReduction;       // La reducción máxima permitida en el plazo original, representada como una fracción (ej. 25 para 25%)
   }
 
   constructor(string memory _uri, IERC20 _erc20Token) ERC1155(_uri) {
@@ -30,21 +31,22 @@ contract FNFT is ERC1155 {
 
   /// @notice Función para acuñar un nuevo FNFT.
   /// @dev Esta función crea un nuevo FNFT con un ID único y lo asigna al remitente.
-  /// @param _originalTerm El plazo original del FNFT.
+  /// @param _originalTerm  El plazo original del FNFT.
   /// @param _maximumReduction La reducción máxima permitida del plazo del FNFT.
-  /// @param _price The price in ERC20 tokens
-  function mint(uint256 _originalTerm, uint256 _maximumReduction, uint256 _price) public returns (uint256 id) {
-    require(erc20Token.balanceOf(msg.sender) >= minimumErc20Balance, 'FNFT: Saldo insuficiente de ERC20 para la forja');
-    require(erc20Token.balanceOf(msg.sender) > _price, 'FNFT: Saldo insuficiente de ERC20 para la forja');
-    // require(erc20Token.transferFrom(msg.sender, address(this), _price), 'ERC20 transfer failed');
+  /// @param _amount The price in ERC20 tokens
+  function mint(uint256 _originalTerm, uint256 _maximumReduction, uint256 _amount) public {
+    require(erc20Token.balanceOf(msg.sender) >= minimumErc20Balance, 'FNFT: Saldo insuficiente de ERC20 para el minteo');
+    require(erc20Token.balanceOf(msg.sender) > _amount, 'FNFT: Saldo insuficiente de ERC20 para el minteo');
+    require(erc20Token.transferFrom(msg.sender, address(this), _amount), 'ERC20 transfer failed');
 
-    uint256 newTokenId = nextTokenId;
     nextTokenId++;
+    uint256 id = nextTokenId;
 
-    idToFNFTMetadata[newTokenId] = FNFTMetadata(_originalTerm, 0, _maximumReduction);
-    _mint(msg.sender, newTokenId, _price, '');
-    _listTokensByAddress[msg.sender].push(newTokenId);
-    return newTokenId;
+    _mint(msg.sender, id, _amount, '');
+    idToFNFTMetadata[id] = FNFTMetadata(_originalTerm, 0, _maximumReduction);
+    _ownedTokens[msg.sender].push(id);
+    _tokenOwners[id] = msg.sender;
+    
   }
 
   /// @notice Cambia el token ERC20 asociado a este contrato.
