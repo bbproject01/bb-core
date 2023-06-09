@@ -72,4 +72,10 @@ contract FNFT is ERC1155 {
   function getTokensOwner() public view returns (uint256[] memory) {
     return _listTokensByAddress[msg.sender];
   }
+
+  /// @notice Obtiene la informacion del FNFT enviado por parametro
+  /// @param _id del FNFT a consultar
+  function getInfoFNFTMetadata( uint256 _id) public view returns (FNFTMetadata memory){
+    return idToFNFTMetadata[_id];
+  }
 }

@@ -226,6 +226,42 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "getInfoFNFTMetadata",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "originalTerm",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timePassed",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maximumReduction",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct FNFT.FNFTMetadata",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "getTokensOwner",
     "outputs": [
