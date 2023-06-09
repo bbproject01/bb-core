@@ -354,7 +354,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "_price",
+        "name": "_amount",
         "type": "uint256"
       }
     ],
