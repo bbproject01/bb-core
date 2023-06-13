@@ -72,7 +72,7 @@ contract FNFT is ERC1155 {
 
   /// @notice Obtiene todos los FNFT's creados
   function getTokensOwner() public view returns (uint256[] memory) {
-    return _listTokensByAddress[msg.sender];
+    return _ownedTokens[msg.sender];
   }
 
   /// @notice Obtiene la informacion del FNFT enviado por parametro

@@ -41,8 +41,11 @@ describe("FNFT Contract", function () {
       const PRICE = ethers.utils.parseUnits("100", 18) // 100 tokens BBToken
 
       const [owner] = await ethers.getSigners();
-      await FNFT.mint(TIEMPO_MESES, REDUCION_MAXIMA, PRICE);      
-      expect((await FNFT.balanceOf(await owner.getAddress(), 0)).eq(PRICE)).to.be.true;
+      // aprobar que gaste el smart contract nuestros tokens para poder mint FNFT's
+      await myToken.connect(owner).approve(FNFT.address, PRICE);
+      await FNFT.connect(owner).mint(TIEMPO_MESES, REDUCION_MAXIMA, PRICE);
+
+      expect((await FNFT.balanceOf(await owner.getAddress(), 1)).eq(PRICE)).to.be.true;
     });
   });
 
@@ -61,21 +64,25 @@ describe("FNFT Contract", function () {
     it("should transfer FNFT tokens from one account to another", async function () {4
 
       const [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
+      const id = 1;
+
+      // Aprobamos que el smartcontract FNFT pueda gastar tokens de owner
+      await myToken.connect(owner).approve(FNFT.address, ethers.utils.parseEther("10"));
 
       // Asegúrate de que el propietario tiene tokens FNFT para transferir
       await FNFT.mint(12, 25, ethers.utils.parseEther("1"));
   
-      const initialBalanceOwner = await FNFT.balanceOf(await owner.getAddress(), 0);
-      const initialBalanceAddr1 = await FNFT.balanceOf(await addr1.getAddress(), 0);
+      const initialBalanceOwner = await FNFT.balanceOf(await owner.getAddress(), id);
+      const initialBalanceAddr1 = await FNFT.balanceOf(await addr1.getAddress(), id);
 
       expect(initialBalanceOwner).to.equal(ethers.utils.parseEther("1"));
       expect(initialBalanceAddr1).to.equal(BigNumber.from(0));
   
       // Transfiere tokens del propietario a addr1
-      await FNFT.connect(owner).safeTransferFrom(await owner.getAddress(), await addr1.getAddress(), 0, ethers.utils.parseEther("1"), "0x0123456789abcdef");
+      await FNFT.connect(owner).safeTransferFrom(await owner.getAddress(), await addr1.getAddress(), id, ethers.utils.parseEther("1"), "0x0123456789abcdef");
   
-      const finalBalanceOwner = await FNFT.balanceOf(await owner.getAddress(), 0);
-      const finalBalanceAddr1 = await FNFT.balanceOf(await addr1.getAddress(), 0);
+      const finalBalanceOwner = await FNFT.balanceOf(await owner.getAddress(), id);
+      const finalBalanceAddr1 = await FNFT.balanceOf(await addr1.getAddress(), id);
 
       expect(finalBalanceOwner).to.equal(BigNumber.from(0));
       expect(finalBalanceAddr1).to.equal(ethers.utils.parseEther("1"));
@@ -88,12 +95,14 @@ describe("FNFT Contract", function () {
       const [owner, account] = await ethers.getSigners();
 
       // Creamos los FNFT's desde owner
+      await myToken.connect(owner).approve(FNFT.address, ethers.utils.parseEther("3"));
       await FNFT.connect(owner).mint(12, 25, ethers.utils.parseEther("1"));
       await FNFT.connect(owner).mint(10, 25, ethers.utils.parseEther("1"));
       await FNFT.connect(owner).mint(20, 25, ethers.utils.parseEther("1"));
 
       // agregamos tokens BNB a account
       await myToken.mint(await account.getAddress(), ethers.utils.parseEther("1000"));
+      await myToken.connect(account).approve(FNFT.address, ethers.utils.parseEther("3"));
 
       // Creamos los FNFT's de account
       await FNFT.connect(account).mint(10, 25, ethers.utils.parseEther("1"));
@@ -110,6 +119,9 @@ describe("FNFT Contract", function () {
     it("deberia obtener un arreglo vacion si la cuenta no tiene FNFT's", async function () {4
 
       const [owner, account] = await ethers.getSigners();
+
+      // Aprobamos que el smartcontract FNFT pueda gastar tokens de owner
+      await myToken.connect(owner).approve(FNFT.address, ethers.utils.parseEther("10"));
 
       // Creamos los FNFT's desde owner
       await FNFT.connect(owner).mint(12, 25, ethers.utils.parseEther("1"));
@@ -132,11 +144,15 @@ describe("FNFT Contract", function () {
       const originalTerm = 12;
       const timePassed = 0;
       const maximumReduction = 25;
+      const id = 1;
+
+      // Aprobamos que el smartcontract FNFT pueda gastar tokens de owner
+      await myToken.connect(owner).approve(FNFT.address, ethers.utils.parseEther("10"));
 
       // Creamos los FNFT's desde owner
       await FNFT.connect(owner).mint(originalTerm, maximumReduction, ethers.utils.parseEther("1"));
 
-      const infoFNFTMetadata = await FNFT.getInfoFNFTMetadata(0);
+      const infoFNFTMetadata = await FNFT.getInfoFNFTMetadata(id);
 
       // validamos que sea la longitud esperada
       expect(infoFNFTMetadata.originalTerm).to.equal(originalTerm);
@@ -149,7 +165,10 @@ describe("FNFT Contract", function () {
       const originalTerm = 12;
       const timePassed = 0;
       const maximumReduction = 25;
-      const id = 1;
+      const id = 10;
+
+      // Aprobamos que el smartcontract FNFT pueda gastar tokens de owner
+      await myToken.connect(owner).approve(FNFT.address, ethers.utils.parseEther("10"));
 
       // Creamos los FNFT's desde owner
       await FNFT.connect(owner).mint(originalTerm, maximumReduction, ethers.utils.parseEther("1"));
@@ -167,7 +186,10 @@ describe("FNFT Contract", function () {
       const originalTerm = 12;
       const timePassed = 0;
       const maximumReduction = 25;
-      const id = 0;
+      const id = 1;
+
+      // Aprobamos que el smartcontract FNFT pueda gastar tokens de owner
+      await myToken.connect(owner).approve(FNFT.address, ethers.utils.parseEther("10"));
 
       // Creamos los FNFT's desde owner
       await FNFT.connect(owner).mint(originalTerm, maximumReduction, ethers.utils.parseEther("1"));
