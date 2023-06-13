@@ -13,13 +13,21 @@ contract FNFT is ERC1155 {
   address private _owner;
 
   mapping(uint256 => FNFTMetadata) public idToFNFTMetadata;
-  mapping (address => uint256[]) private _ownedTokens;
-  mapping (uint256 => address) private _tokenOwners;
+  mapping(address => uint256[]) private _ownedTokens;
+  mapping(uint256 => address) private _tokenOwners;
+  mapping(uint => Lock) public locks;
 
+  struct Lock {
+    uint endTime;
+    address admin;
+    bool unlocked;
+  }
   struct FNFTMetadata {
-    uint256 originalTerm;           // El plazo original en meses para el FNFT
-    uint256 timePassed;             // El tiempo que ha pasado desde la acuñación del FNFT, en meses
-    uint256 maximumReduction;       // La reducción máxima permitida en el plazo original, representada como una fracción (ej. 25 para 25%)
+    bool blocked; //
+    uint256 blockDate; // Fecha del primer bloqueo
+    uint256 originalTerm; // El plazo original en meses para el FNFT
+    uint256 timePassed; // El tiempo que ha pasado desde la acuñación del FNFT, en meses
+    uint256 maximumReduction; // La reducción máxima permitida en el plazo original, representada como una fracción (ej. 25 para 25%)
   }
 
   constructor(string memory _uri, IERC20 _erc20Token) ERC1155(_uri) {
@@ -35,7 +43,10 @@ contract FNFT is ERC1155 {
   /// @param _maximumReduction La reducción máxima permitida del plazo del FNFT.
   /// @param _amount The price in ERC20 tokens
   function mint(uint256 _originalTerm, uint256 _maximumReduction, uint256 _amount) public {
-    require(erc20Token.balanceOf(msg.sender) >= minimumErc20Balance, 'FNFT: Saldo insuficiente de ERC20 para el minteo');
+    require(
+      erc20Token.balanceOf(msg.sender) >= minimumErc20Balance,
+      'FNFT: Saldo insuficiente de ERC20 para el minteo'
+    );
     require(erc20Token.balanceOf(msg.sender) > _amount, 'FNFT: Saldo insuficiente de ERC20 para el minteo');
     require(erc20Token.transferFrom(msg.sender, address(this), _amount), 'ERC20 transfer failed');
 
@@ -44,10 +55,9 @@ contract FNFT is ERC1155 {
 
     _mint(msg.sender, id, _amount, '');
     // idToFNFTMetadata[id] = FNFTMetadata(_originalTerm, 0, _maximumReduction);
-    idToFNFTMetadata[id] = FNFTMetadata(_originalTerm, block.timestamp, _maximumReduction);
+    idToFNFTMetadata[id] = FNFTMetadata(false, 0, _originalTerm, block.timestamp, _maximumReduction);
     _ownedTokens[msg.sender].push(id);
     _tokenOwners[id] = msg.sender;
-    
   }
 
   /// @notice Cambia el token ERC20 asociado a este contrato.
@@ -75,23 +85,49 @@ contract FNFT is ERC1155 {
   function getTokensOwner() public view returns (uint256[] memory) {
     return _ownedTokens[msg.sender];
   }
+  /// @notice Obtiene el owner del ID
+  function tokensOwners(uint256 _id) public view returns (address) {
+    return _tokenOwners[_id];
+  }
 
   /// @notice Obtiene la informacion del FNFT enviado por parametro
   /// @param _id del FNFT a consultar
-  function getInfoFNFTMetadata( uint256 _id) public view returns (FNFTMetadata memory){
+  function getInfoFNFTMetadata(uint256 _id) public view returns (FNFTMetadata memory) {
     return idToFNFTMetadata[_id];
   }
 
   /// @notice Funcion para retirar el saldo de los FNFT's
   /// @param _id del FNFT a consultar
-  function withDrawFNFT( uint256 _id) public {
-    // require(bandera block,"FNFT: El token que reclama se encuentra bloqueado");// validar que no este bloqueado el FNFT
-    // require(bandera block,"FNFT: ");// validar que no este bloqueado el FNFT
-    require(_tokenOwners[_id] == msg.sender, "FNFT: Solo el propietario del FNFT puede reclamar los tokens");
+  function withDrawFNFT(uint256 _id) public {
+    require(isUnlockable(_id), 'Token is locked');
+    require(_tokenOwners[_id] == msg.sender, 'FNFT: Solo el propietario del FNFT puede reclamar los tokens');
     uint256 balance = balanceOf(_tokenOwners[_id], _id); // Obtenemos el balance inicial
     uint256 acumulate = 0; // Funcion que obtenga los tokens acumulados del FNFT
     uint256 totalTokens = balance + acumulate; // Se realiza la suma del balance inicial mas lo acumulado
     erc20Token.transfer(msg.sender, totalTokens);
     _burn(msg.sender, _id, balance);
+  }
+
+  function createLock(uint _id, uint _endTime) public {
+    require(_tokenOwners[_id] == msg.sender, 'Only the owner can lock the token');
+    require(locks[_id].endTime == 0, 'Lock already exists for this token');
+    locks[_id] = Lock(_endTime, msg.sender, false);
+  }
+
+  function isUnlockable(uint tokenId) public view returns (bool) {
+    return locks[tokenId].unlocked || block.timestamp > locks[tokenId].endTime;
+  }
+
+  function unlock(uint tokenId) public {
+    require(msg.sender == locks[tokenId].admin, 'Only the admin can unlock this token');
+    require(block.timestamp > locks[tokenId].endTime, 'Token cannot be unlocked before the end time');
+    locks[tokenId].unlocked = true;
+  }
+
+  function transfer(address _to, uint256 _id) public {
+    require(_tokenOwners[_id] == msg.sender, 'Only Owner');
+    require(isUnlockable(_id), 'Token is locked');
+
+    super.safeTransferFrom(msg.sender, _to, _id, balanceOf(msg.sender, _id), '');
   }
 }
