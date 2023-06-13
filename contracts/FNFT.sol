@@ -43,7 +43,8 @@ contract FNFT is ERC1155 {
     uint256 id = nextTokenId;
 
     _mint(msg.sender, id, _amount, '');
-    idToFNFTMetadata[id] = FNFTMetadata(_originalTerm, 0, _maximumReduction);
+    // idToFNFTMetadata[id] = FNFTMetadata(_originalTerm, 0, _maximumReduction);
+    idToFNFTMetadata[id] = FNFTMetadata(_originalTerm, block.timestamp, _maximumReduction);
     _ownedTokens[msg.sender].push(id);
     _tokenOwners[id] = msg.sender;
     
@@ -79,5 +80,18 @@ contract FNFT is ERC1155 {
   /// @param _id del FNFT a consultar
   function getInfoFNFTMetadata( uint256 _id) public view returns (FNFTMetadata memory){
     return idToFNFTMetadata[_id];
+  }
+
+  /// @notice Funcion para retirar el saldo de los FNFT's
+  /// @param _id del FNFT a consultar
+  function withDrawFNFT( uint256 _id) public {
+    // require(bandera block,"FNFT: El token que reclama se encuentra bloqueado");// validar que no este bloqueado el FNFT
+    // require(bandera block,"FNFT: ");// validar que no este bloqueado el FNFT
+    require(_tokenOwners[_id] == msg.sender, "FNFT: Solo el propietario del FNFT puede reclamar los tokens");
+    uint256 balance = balanceOf(_tokenOwners[_id], _id); // Obtenemos el balance inicial
+    uint256 acumulate = 0; // Funcion que obtenga los tokens acumulados del FNFT
+    uint256 totalTokens = balance + acumulate; // Se realiza la suma del balance inicial mas lo acumulado
+    erc20Token.transfer(msg.sender, totalTokens);
+    _burn(msg.sender, _id, balance);
   }
 }
