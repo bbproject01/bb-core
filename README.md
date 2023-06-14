@@ -43,6 +43,7 @@ yarn hardhat compile
 ## Deploy 
 ```bash
 yarn hardhat run scripts/deploy.ts --network mumbai 
+yarn hardhat run scripts/FNFT.deploy.ts --network mumbai 
 ```
 ## Pruebas
 ```bash
@@ -53,4 +54,4 @@ yarn hardhat test
 
 ## Address SmartContracts
 BBTOKEN: 0x62ba02826ef23F4ce9Ac11B72CB31Aadb85878F9
-FNFT:    0xf79f64f4b4C55083f8cec130D3d0FB9A94c95727
+FNFT:    0xfA1Cb37FF1B6F9C925Ee1DbEb0C8Fa33B72395BD

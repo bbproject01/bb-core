@@ -14,14 +14,8 @@ contract FNFT is ERC1155 {
 
   mapping(uint256 => FNFTMetadata) public idToFNFTMetadata;
   mapping(address => uint256[]) private _ownedTokens;
-  mapping(uint256 => address) private _tokenOwners;
-  mapping(uint => Lock) public locks;
+  mapping(uint256 => address) private _tokenOwners;  
 
-  struct Lock {
-    uint endTime;
-    address admin;
-    bool locked;
-  }
   struct FNFTMetadata {
     bool blocked; //
     uint256 blockDate; // Fecha del primer bloqueo
@@ -111,27 +105,25 @@ contract FNFT is ERC1155 {
     _burn(msg.sender, _id, balance);
   }
 
-  function createLock(uint _id, uint _endTime) public {
+  function createLock(uint _id) public {
     require(_tokenOwners[_id] == msg.sender, 'Only the owner can lock the token');
-    require(locks[_id].endTime == 0, 'Lock already exists for this token');
-    locks[_id] = Lock(_endTime, msg.sender, true);
+    require(idToFNFTMetadata[_id].blockDate == 0, 'Lock already exists for this token');   
+    
+    idToFNFTMetadata[_id].blockDate = block.timestamp;
     idToFNFTMetadata[_id].blocked = true;
   }
 
   function isLockable(uint tokenId) public view returns (bool) {
-    return idToFNFTMetadata[tokenId].blocked;
+    return idToFNFTMetadata[tokenId].blockDate > 0;
   }
 
-  function unlock(uint tokenId) public {
-    require(msg.sender == locks[tokenId].admin, 'Only the admin can unlock this token');
-    require(block.timestamp < locks[tokenId].endTime, 'Token cannot be unlocked before the end time');
+  function unlock(uint tokenId) public {    
     idToFNFTMetadata[tokenId].blocked = false;
   }
 
   function transfer(address _to, uint256 _id) public {
     require(_tokenOwners[_id] == msg.sender, 'Only Owner');
     require(isLockable(_id), 'Token is locked');
-
     super.safeTransferFrom(msg.sender, _to, _id, balanceOf(msg.sender, _id), '');
   }
 }
