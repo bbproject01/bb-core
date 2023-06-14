@@ -20,12 +20,13 @@ contract FNFT is ERC1155 {
   struct Lock {
     uint endTime;
     address admin;
-    bool unlocked;
+    bool locked;
   }
   struct FNFTMetadata {
     bool blocked; //
     uint256 blockDate; // Fecha del primer bloqueo
     uint256 originalTerm; // El plazo original en meses para el FNFT
+    uint256 createDate; // Fecha de creacion del FNFT
     uint256 timePassed; // El tiempo que ha pasado desde la acuñación del FNFT, en meses
     uint256 maximumReduction; // La reducción máxima permitida en el plazo original, representada como una fracción (ej. 25 para 25%)
   }
@@ -55,7 +56,7 @@ contract FNFT is ERC1155 {
 
     _mint(msg.sender, id, _amount, '');
     // idToFNFTMetadata[id] = FNFTMetadata(_originalTerm, 0, _maximumReduction);
-    idToFNFTMetadata[id] = FNFTMetadata(false, 0, _originalTerm, block.timestamp, _maximumReduction);
+    idToFNFTMetadata[id] = FNFTMetadata(false, 0, _originalTerm, block.timestamp, 0, _maximumReduction);
     _ownedTokens[msg.sender].push(id);
     _tokenOwners[id] = msg.sender;
   }
@@ -99,8 +100,10 @@ contract FNFT is ERC1155 {
   /// @notice Funcion para retirar el saldo de los FNFT's
   /// @param _id del FNFT a consultar
   function withDrawFNFT(uint256 _id) public {
-    require(isUnlockable(_id), 'Token is locked');
+    require(isLockable(_id), 'Token is locked');
     require(_tokenOwners[_id] == msg.sender, 'FNFT: Solo el propietario del FNFT puede reclamar los tokens');
+    uint256 timePass = idToFNFTMetadata[_id].createDate + idToFNFTMetadata[_id].originalTerm * 30 * 24 * 60 * 60; // 30 dias, 24 horas, 60 minutos, 60 segundos
+    require(block.timestamp >= timePass, 'FNFT: Aun no se ha cumplido el tiempo para reclamar sus tokens');
     uint256 balance = balanceOf(_tokenOwners[_id], _id); // Obtenemos el balance inicial
     uint256 acumulate = 0; // Funcion que obtenga los tokens acumulados del FNFT
     uint256 totalTokens = balance + acumulate; // Se realiza la suma del balance inicial mas lo acumulado
@@ -111,22 +114,23 @@ contract FNFT is ERC1155 {
   function createLock(uint _id, uint _endTime) public {
     require(_tokenOwners[_id] == msg.sender, 'Only the owner can lock the token');
     require(locks[_id].endTime == 0, 'Lock already exists for this token');
-    locks[_id] = Lock(_endTime, msg.sender, false);
+    locks[_id] = Lock(_endTime, msg.sender, true);
+    idToFNFTMetadata[_id].blocked = true;
   }
 
-  function isUnlockable(uint tokenId) public view returns (bool) {
-    return locks[tokenId].unlocked || block.timestamp > locks[tokenId].endTime;
+  function isLockable(uint tokenId) public view returns (bool) {
+    return idToFNFTMetadata[tokenId].blocked;
   }
 
   function unlock(uint tokenId) public {
     require(msg.sender == locks[tokenId].admin, 'Only the admin can unlock this token');
     require(block.timestamp > locks[tokenId].endTime, 'Token cannot be unlocked before the end time');
-    locks[tokenId].unlocked = true;
+    idToFNFTMetadata[tokenId].blocked = false;
   }
 
   function transfer(address _to, uint256 _id) public {
     require(_tokenOwners[_id] == msg.sender, 'Only Owner');
-    require(isUnlockable(_id), 'Token is locked');
+    require(isLockable(_id), 'Token is locked');
 
     super.safeTransferFrom(msg.sender, _to, _id, balanceOf(msg.sender, _id), '');
   }
