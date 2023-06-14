@@ -124,7 +124,7 @@ contract FNFT is ERC1155 {
 
   function unlock(uint tokenId) public {
     require(msg.sender == locks[tokenId].admin, 'Only the admin can unlock this token');
-    require(block.timestamp > locks[tokenId].endTime, 'Token cannot be unlocked before the end time');
+    require(block.timestamp < locks[tokenId].endTime, 'Token cannot be unlocked before the end time');
     idToFNFTMetadata[tokenId].blocked = false;
   }
 

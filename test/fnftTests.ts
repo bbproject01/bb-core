@@ -2,6 +2,8 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { ethers, waffle } from "hardhat";
 import { BigNumber, Contract, Signer } from "ethers";
+import { time } from "@nomicfoundation/hardhat-network-helpers";
+
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -277,6 +279,23 @@ describe("FNFT Contract", function () {
   });
 
   describe("unlock()", function () {
+    it("deberia obtener un error cuando aun no se cumple el periodo de bloqueo", async function () {
+      const TIEMPO_MESES = 4;       // el plazo
+      const REDUCION_MAXIMA = 25;   // el pct de reduccion
+      const PRICE = ethers.utils.parseUnits("100", 18) // 100 tokens BBToken
+      const id = 1;
+      const [owner] = await ethers.getSigners();
+
+      const TIEMPO_BLOQUEO = new Date("2029-01-16");
+
+      // aprobar que gaste el smart contract nuestros tokens para poder mint FNFT's
+      await myToken.connect(owner).approve(FNFT.address, PRICE);
+      await FNFT.connect(owner).mint(TIEMPO_MESES, REDUCION_MAXIMA, PRICE);
+      await FNFT.connect(owner).createLock(id, TIEMPO_BLOQUEO.getTime());
+
+      await expect(FNFT.connect(owner).unlock(id)).to.be.rejectedWith("Token cannot be unlocked before the end time");
+    });
+
     it("deberia desbloquear un FNFT", async function () {
       const TIEMPO_MESES = 4;       // el plazo
       const REDUCION_MAXIMA = 25;   // el pct de reduccion
@@ -284,10 +303,37 @@ describe("FNFT Contract", function () {
       const id = 1;
       const [owner] = await ethers.getSigners();
 
+      const TIEMPO_BLOQUEO = new Date("2029-01-15");
+
       // aprobar que gaste el smart contract nuestros tokens para poder mint FNFT's
       await myToken.connect(owner).approve(FNFT.address, PRICE);
       await FNFT.connect(owner).mint(TIEMPO_MESES, REDUCION_MAXIMA, PRICE);
-      await FNFT.connect(owner).createLock(id, 2);
+      
+      // Aumentamos el tiempo
+      const sevenDays = 7 * 24 * 60 * 60;
+      const eigthDays = 7 * 24 * 60 * 60;
+
+      const blockNumBefore = await ethers.provider.getBlockNumber();
+      const blockBefore = await ethers.provider.getBlock(blockNumBefore);
+      const timestampBefore = blockBefore.timestamp;
+      console.log('timestampBefore: ', timestampBefore);
+      console.log('blockNumBefore: ', blockNumBefore);
+      
+      // Tiempo de bloqueo del FNFT
+      await FNFT.connect(owner).createLock(id, timestampBefore + sevenDays);
+      
+      await ethers.provider.send('evm_increaseTime', [eigthDays]);
+      await ethers.provider.send('evm_mine');
+      
+      const blockNumAfter = await ethers.provider.getBlockNumber();
+      const blockAfter = await ethers.provider.getBlock(blockNumAfter);
+      const timestampAfter = blockAfter.timestamp;
+      console.log('timestampAfter: ', timestampAfter);
+      console.log('blockNumAfter: ', blockNumAfter);
+
+      // expect(blockNumAfter).to.be.equal(blockNumBefore + 1);
+      // expect(timestampAfter).to.be.equal(timestampBefore + sevenDays);
+
       await FNFT.connect(owner).unlock(id);
       expect(await FNFT.connect(owner).isLockable(id)).to.be.false;
     });
@@ -304,24 +350,6 @@ describe("FNFT Contract", function () {
       await FNFT.connect(owner).mint(TIEMPO_MESES, REDUCION_MAXIMA, PRICE);
       await FNFT.connect(owner).createLock(id, 2);
       await expect(FNFT.connect(account).unlock(id)).to.be.rejectedWith("Only the admin can unlock this token")
-    });
-
-    it("deberia obtener un error aun no se cumple el periodo de bloqueo", async function () {
-      const TIEMPO_MESES = 4;       // el plazo
-      const REDUCION_MAXIMA = 25;   // el pct de reduccion
-      const PRICE = ethers.utils.parseUnits("100", 18) // 100 tokens BBToken
-      const id = 1;
-      const [owner] = await ethers.getSigners();
-
-      // Incrementa el tiempo en 1 mes (en segundos)
-      await ethers.provider.send('evm_increaseTime', [30 * 24 * 60 * 60]);
-      
-
-      // aprobar que gaste el smart contract nuestros tokens para poder mint FNFT's
-      await myToken.connect(owner).approve(FNFT.address, PRICE);
-      await FNFT.connect(owner).mint(TIEMPO_MESES, REDUCION_MAXIMA, PRICE);
-      await FNFT.connect(owner).createLock(id, 2);
-      await expect(FNFT.connect(owner).unlock(id)).to.be.rejectedWith("Token cannot be unlocked before the end time")
     });
   });
   
