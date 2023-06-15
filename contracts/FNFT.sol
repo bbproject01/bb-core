@@ -15,7 +15,7 @@ contract FNFT is ERC1155 {
   mapping(uint256 => FNFTMetadata) public idToFNFTMetadata;
   mapping(address => uint256[]) private _ownedTokens;
   mapping(uint256 => address) private _tokenOwners;  
-
+  
   struct FNFTMetadata {
     bool blocked; //
     uint256 blockDate; // Fecha del primer bloqueo
@@ -113,17 +113,22 @@ contract FNFT is ERC1155 {
     idToFNFTMetadata[_id].blocked = true;
   }
 
-  function isLockable(uint tokenId) public view returns (bool) {
-    return idToFNFTMetadata[tokenId].blocked;
+  function isLockable(uint _id) public view returns (bool) {
+    return idToFNFTMetadata[_id].blocked;
   }
 
-  function unlock(uint tokenId) public {    
-    idToFNFTMetadata[tokenId].blocked = false;
+  function unlock(uint _id) public {    
+    idToFNFTMetadata[_id].blocked = false;
   }
 
   function transfer(address _to, uint256 _id) public {
+    require(!isLockable(_id), 'Token is locked');
     require(_tokenOwners[_id] == msg.sender, 'Only Owner');
-    require(isLockable(_id), 'Token is locked');
     super.safeTransferFrom(msg.sender, _to, _id, balanceOf(msg.sender, _id), '');
+  }
+
+  function updateDate(uint _id) public {
+    uint256 timePass = idToFNFTMetadata[_id].createDate + idToFNFTMetadata[_id].originalTerm * 30 * 24 * 60 * 60; // 30 dias, 24 horas, 60 minutos, 60 segundos
+    idToFNFTMetadata[_id].createDate = block.timestamp - timePass;
   }
 }
