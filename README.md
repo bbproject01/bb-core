@@ -77,7 +77,14 @@ yarn hardhat run scripts/FNFT.deploy.ts --network mumbai
 ```
 ## Pruebas
 
+### Pruebas locales
+
 Para pruebas locales con ganache-cli y aumento de tiempo en la blockchain
+
+Correr la red local de ganache y no cierre la ventana:
+```bash
+ganache-cli
+```
 
 Ejecutar todas los archivos en la carpeta test
 ```bash
@@ -91,10 +98,24 @@ npx hardhat test test/erc1155Lock.test.ts
 npx hardhat test test/fnftTests.ts
 ```
 
+### Pruebas con redes personalizadas
+
+Tener corriendo la red.
+
 Ejecutar pruebas con alguna red en el archivo de configuracion de Hardhat
 ```bash
 npx hardhat test test/*.ts --network NOMBRE_RED
 ```
+
+Ejecutar archivo por archivo
+```bash
+npx hardhat test test/erc20.ts --network NOMBRE_RED
+npx hardhat test test/erc1155Lock.test.ts --network NOMBRE_RED
+npx hardhat test test/fnftTests.ts --network NOMBRE_RED
+```
+
+### Nota
+Las pruebas que involucren la modificacion del tiempo, solo funcionaran con la red interna de ganache que se ejecuta en la terminal
 
 ## Address SmartContracts
 BBTOKEN: 0x62ba02826ef23F4ce9Ac11B72CB31Aadb85878F9
