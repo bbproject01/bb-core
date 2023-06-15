@@ -94,7 +94,7 @@ contract FNFT is ERC1155 {
   /// @notice Funcion para retirar el saldo de los FNFT's
   /// @param _id del FNFT a consultar
   function withDrawFNFT(uint256 _id) public {
-    require(isLockable(_id), 'Token is locked');
+    require(!isLockable(_id), 'Token is locked');
     require(_tokenOwners[_id] == msg.sender, 'FNFT: Solo el propietario del FNFT puede reclamar los tokens');
     uint256 timePass = idToFNFTMetadata[_id].createDate + idToFNFTMetadata[_id].originalTerm * 30 * 24 * 60 * 60; // 30 dias, 24 horas, 60 minutos, 60 segundos
     require(block.timestamp >= timePass, 'FNFT: Aun no se ha cumplido el tiempo para reclamar sus tokens');
@@ -114,7 +114,7 @@ contract FNFT is ERC1155 {
   }
 
   function isLockable(uint tokenId) public view returns (bool) {
-    return idToFNFTMetadata[tokenId].blockDate > 0;
+    return idToFNFTMetadata[tokenId].blocked;
   }
 
   function unlock(uint tokenId) public {    
