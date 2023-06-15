@@ -128,7 +128,6 @@ contract FNFT is ERC1155 {
   }
 
   function updateDate(uint _id) public {
-    uint256 timePass = idToFNFTMetadata[_id].createDate + idToFNFTMetadata[_id].originalTerm * 30 * 24 * 60 * 60; // 30 dias, 24 horas, 60 minutos, 60 segundos
-    idToFNFTMetadata[_id].createDate = block.timestamp - timePass;
+    idToFNFTMetadata[_id].createDate = 0;
   }
 }

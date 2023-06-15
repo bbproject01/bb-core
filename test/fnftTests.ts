@@ -338,5 +338,69 @@ describe("FNFT Contract", function () {
       
       await expect(FNFT.connect(owner).withDrawFNFT(id)).to.be.rejectedWith("FNFT: Aun no se ha cumplido el tiempo para reclamar sus tokens");
     });
+
+    it("deberia retirar los tokens si el plazo ha finalizado", async function () {
+      const TIEMPO_MESES = 4;       // el plazo
+      const REDUCION_MAXIMA = 25;   // el pct de reduccion
+      const PRICE = ethers.utils.parseUnits("100", 18) // 100 tokens BBToken
+      const id = 1;
+      const [owner] = await ethers.getSigners();
+
+      // aprobar que gaste el smart contract nuestros tokens para poder mint FNFT's
+      await myToken.connect(owner).approve(FNFT.address, PRICE);
+
+      // Obtenemos el balance inicial
+      const balanceInicial:BigNumber = await myToken.connect(owner).balanceOf(await owner.getAddress());
+
+      // Minteamos el FNFT con el precio acordado
+      await FNFT.connect(owner).mint(TIEMPO_MESES, REDUCION_MAXIMA, PRICE);
+
+      // Obtenemos el balance intermedio con la reduccion del precio del FNFT
+      const balanceIntermedio: BigNumber = await myToken.connect(owner).balanceOf(await owner.getAddress());
+
+      // Incrementa el tiempo en el tiempo del FNFT día (en segundos)
+      await ethers.provider.send('evm_increaseTime', [TIEMPO_MESES * 30 * 24 * 60 * 60]);
+
+      // Retiramos los tokens del FNFT
+      await FNFT.connect(owner).withDrawFNFT(id);
+
+      // Obtenemos el balance final despues del retiro
+      const balanceFinal: BigNumber = await myToken.connect(owner).balanceOf(await owner.getAddress());
+      
+      expect((balanceFinal).eq(balanceInicial)).to.be.true;
+      expect((balanceIntermedio).eq(balanceInicial.sub(PRICE))).to.be.true;
+    });
+
+    it("deberia retirar los tokens actualizando la fecha de creación", async function () {
+      const TIEMPO_MESES = 4;       // el plazo
+      const REDUCION_MAXIMA = 25;   // el pct de reduccion
+      const PRICE = ethers.utils.parseUnits("100", 18) // 100 tokens BBToken
+      const id = 1;
+      const [owner] = await ethers.getSigners();
+
+      // aprobar que gaste el smart contract nuestros tokens para poder mint FNFT's
+      await myToken.connect(owner).approve(FNFT.address, PRICE);
+
+      // Obtenemos el balance inicial
+      const balanceInicial:BigNumber = await myToken.connect(owner).balanceOf(await owner.getAddress());
+
+      // Minteamos el FNFT con el precio acordado
+      await FNFT.connect(owner).mint(TIEMPO_MESES, REDUCION_MAXIMA, PRICE);
+
+      // Obtenemos el balance intermedio con la reduccion del precio del FNFT
+      const balanceIntermedio: BigNumber = await myToken.connect(owner).balanceOf(await owner.getAddress());
+
+      // Actualizar la fecha de creacion
+      await FNFT.connect(owner).updateDate(id);
+
+      // Retiramos los tokens del FNFT
+      await FNFT.connect(owner).withDrawFNFT(id);
+
+      // Obtenemos el balance final despues del retiro
+      const balanceFinal: BigNumber = await myToken.connect(owner).balanceOf(await owner.getAddress());
+      
+      expect((balanceFinal).eq(balanceInicial)).to.be.true;
+      expect((balanceIntermedio).eq(balanceInicial.sub(PRICE))).to.be.true;
+    });
   });
 });
