@@ -41,7 +41,7 @@ const config: ExtendedHardhatUserConfig = {
       gas: 100000000, // Ajusta el límite de gas según sea necesario
     },
     localhost: {
-      url: 'http://127.0.0.1:7545',   
+      url: 'http://127.0.0.1:8545',   
       chainId: 1337
     },
     mumbai: {
