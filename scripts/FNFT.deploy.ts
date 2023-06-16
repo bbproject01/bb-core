@@ -10,7 +10,7 @@ async function main() {
     const FNFT = await ethers.getContractFactory("FNFT");
     const instance = await FNFT.deploy( "https://token-uri.com/", ADDRESS_TOKEN_BNB);
 
-    console.log("El contrato FNFT fue desplegado con éxito en la dirección:" + instance.address);
+    console.log("El contrato FNFT fue desplegado con éxito en la dirección: " + instance.address);
 }
 
 main().catch((error) => {

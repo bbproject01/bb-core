@@ -1,6 +1,19 @@
 # bb-base-core
-This blockchain base project provides a basic and solid infrastructure for developers to build blockchain applications more easily. The base project includes a basic setup of the blockchain infrastructure, smart contracts, libraries and dependencies, documentation, and continuous integration tools.
+Proyecto base de contratos inteligentes para una plataforma 
+descentralizada que permita a los usuarios 
+invertir e intercambiar FNFT Platform (Financial Non-Fungible Tokens) 
+que representan diversos productos financieros. La plataforma 
+utilizará su propio token nativo para las transacciones y ofrecerá 
+una propuesta de valor única para los usuarios mediante un mecanismo 
+de distribución de dividendos.
 
+## Prerequisites
+
+---------------
+
+- [Node.js](https://nodejs.org/es/download/)
+- [Yarn](https://classic.yarnpkg.com/en/docs/install#mac-stable)
+- [Ganache](https://trufflesuite.com/ganache/)
 
 ## Intalled Libraries
 
@@ -29,29 +42,81 @@ Necesitarás tener instalado Node.js y Yarn (o npm) en tu máquina. Además, nec
 
 ## Instalación
 
-Clona el repositorio en tu máquina local:
+Clona el repositorio en tu máquina local e instalar las dependencias del proyecto:
 
 ```bash
 git clone https://github.com/bbproject01/bb-core.git
 cd bb-core
+yarn
 ```
+
 ## Compilación
+Cear un archivo de configuración (.env) con las siguientes variables:
+
+- **RCP_URL_API_KEY**=AQUI_VA_EL_URL_DEL_QUICKNODE
+- **PRIVATE_KEY**=AQUI_VA_LA_LLAVE_PRIVADA
+
+
 Para compilar el contrato, ejecuta el siguiente comando en tu terminal:
 ```bash
 yarn hardhat compile
 ```
+
 ## Deploy 
+Para desplegar los contratos inteligentes ERC20 y FNFT ejecute solo el script deploy.ts
 ```bash
-yarn hardhat run scripts/deploy.ts --network mumbai 
+yarn hardhat run scripts/deploy.ts --network mumbai
+```
+
+Para desplegar solo el contrato inteligente FNFT agregar la siguiente variable al archivo de configuración (.env)
+
+- **ADDRESS_TOKEN_BNB**=AQUI_VA_EL_ADDRESS_DEL_SMARTCONTRAC_ERC20
+
+```bash
 yarn hardhat run scripts/FNFT.deploy.ts --network mumbai 
 ```
 ## Pruebas
+
+### Pruebas locales
+
+Para pruebas locales con ganache-cli y aumento de tiempo en la blockchain
+
+Correr la red local de ganache y no cierre la ventana:
 ```bash
-npx hardhat node --network hardhat  
-# in another shell
-yarn hardhat test
+ganache-cli
 ```
+
+Ejecutar todas los archivos en la carpeta test
+```bash
+npx hardhat test test/*.ts
+```
+
+Ejecutar archivo por archivo
+```bash
+npx hardhat test test/erc20.ts
+npx hardhat test test/erc1155Lock.test.ts
+npx hardhat test test/fnftTests.ts
+```
+
+### Pruebas con redes personalizadas
+
+Tener corriendo la red.
+
+Ejecutar pruebas con alguna red en el archivo de configuracion de Hardhat
+```bash
+npx hardhat test test/*.ts --network NOMBRE_RED
+```
+
+Ejecutar archivo por archivo
+```bash
+npx hardhat test test/erc20.ts --network NOMBRE_RED
+npx hardhat test test/erc1155Lock.test.ts --network NOMBRE_RED
+npx hardhat test test/fnftTests.ts --network NOMBRE_RED
+```
+
+### Nota
+Las pruebas que involucren la modificacion del tiempo, solo funcionaran con la red interna de ganache que se ejecuta en la terminal
 
 ## Address SmartContracts
 BBTOKEN: 0x62ba02826ef23F4ce9Ac11B72CB31Aadb85878F9
-FNFT:    0xa30CbC311c492099d564d71439E45EFE1a2001E4
+FNFT:    0xEFFB8345449eDC15Ef791e7AB84440080488A58f
