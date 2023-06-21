@@ -1,5 +1,5 @@
-# bb-base-core
-Proyecto base de contratos inteligentes para una plataforma 
+# Utility Token 
+Proyecto de contratos inteligentes para una plataforma 
 descentralizada que permita a los usuarios 
 invertir e intercambiar FNFT Platform (Financial Non-Fungible Tokens) 
 que representan diversos productos financieros. La plataforma 
@@ -13,7 +13,7 @@ de distribución de dividendos.
 
 - [Node.js](https://nodejs.org/es/download/)
 - [Yarn](https://classic.yarnpkg.com/en/docs/install#mac-stable)
-- [Ganache](https://trufflesuite.com/ganache/)
+- [HardHat](https://hardhat.org/hardhat-runner/docs/getting-started#installation/)
 
 ## Intalled Libraries
 
@@ -79,11 +79,11 @@ yarn hardhat run scripts/FNFT.deploy.ts --network mumbai
 
 ### Pruebas locales
 
-Para pruebas locales con ganache-cli y aumento de tiempo en la blockchain
+Para pruebas locales con HardHat y aumento de tiempo en la blockchain
 
-Correr la red local de ganache y no cierre la ventana:
+Correr la red local y no cierre la ventana:
 ```bash
-ganache-cli
+npx hardhat node --network hardhat
 ```
 
 Ejecutar todas los archivos en la carpeta test
@@ -94,7 +94,6 @@ npx hardhat test test/*.ts
 Ejecutar archivo por archivo
 ```bash
 npx hardhat test test/erc20.ts
-npx hardhat test test/erc1155Lock.test.ts
 npx hardhat test test/fnftTests.ts
 ```
 
@@ -119,4 +118,4 @@ Las pruebas que involucren la modificacion del tiempo, solo funcionaran con la r
 
 ## Address SmartContracts
 BBTOKEN: 0x62ba02826ef23F4ce9Ac11B72CB31Aadb85878F9
-FNFT:    0xEFFB8345449eDC15Ef791e7AB84440080488A58f
+FNFT:    0xe1140DdE4F1Bacdc7aBf0DDf80eb5adbD39989DC
