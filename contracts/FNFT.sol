@@ -165,6 +165,23 @@ contract FNFT is ERC1155 {
     require(!isLockable(_id), 'Token is locked');
     require(_tokenOwners[_id] == msg.sender, 'Only Owner');
     super.safeTransferFrom(msg.sender, _to, _id, balanceOf(msg.sender, _id), '');
+        // Actualiza el propietario del FNFT.
+    _tokenOwners[_id] = _to;
+    
+    // Remueve el FNFT del array del antiguo dueño
+    uint256[] storage ownerTokens = _ownedTokens[msg.sender];
+    for (uint i = 0; i < ownerTokens.length; i++) {
+      if (ownerTokens[i] == _id) {
+        // Mueve el último FNFT al lugar del FNFT que se está eliminando
+        ownerTokens[i] = ownerTokens[ownerTokens.length - 1];
+        // Reduce el tamaño del array en uno
+        ownerTokens.pop();
+        break;
+      }
+    }
+    
+    // Agrega el FNFT al array del nuevo dueño
+    _ownedTokens[_to].push(_id);
   }
 
   /**

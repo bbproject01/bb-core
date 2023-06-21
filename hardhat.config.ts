@@ -8,6 +8,7 @@ require('hardhat-abi-exporter');
 import 'hardhat-contract-sizer'
 import 'hardhat-deploy'
 import 'hardhat-gas-reporter'
+// import 'hardhat-typechain'
 
 dotenv.config({ debug: false })
 
@@ -29,8 +30,12 @@ interface ExtendedHardhatUserConfig extends HardhatUserConfig {
     flat?: boolean;
     only?: boolean;
     spacing?: number;
-    runOnCompile?: boolean
-  };
+    runOnCompile?: boolean;
+  },
+  // typechain: {
+  //   outDir: string;
+  //   target: string;
+  // };
 }
 
 
@@ -42,7 +47,7 @@ const config: ExtendedHardhatUserConfig = {
     },
     localhost: {
       url: 'http://127.0.0.1:8545',   
-      chainId: 1337
+      chainId: 31337
     },
     mumbai: {
       url: RCP_URL_API_KEY,
@@ -76,7 +81,11 @@ const config: ExtendedHardhatUserConfig = {
     clear: true,        // borrar la carpeta existente antes de generar nuevos ABI
     flat: true,         // poner todos los ABI en la misma carpeta, sin importar el nombre del contrato
     runOnCompile: true
-  },
+  }
+  // typechain: {
+  //   outDir: "typechain",
+  //   target: "ethers-v5", // Ajusta esto a tu biblioteca de Ethereum preferida si no estás usando ethers.js
+  // },
 };
 
 export default config;

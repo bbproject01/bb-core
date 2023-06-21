@@ -5,11 +5,10 @@ import chaiAsPromised from "chai-as-promised";
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-import type { BBTOKEN } from "./typechain-types";
-import { BigNumber } from "ethers";
+import { BigNumber, Contract } from "ethers";
 
 describe("BBTOKEN", function () {
-  let myToken: BBTOKEN;
+  let myToken: Contract;
   const NAME = 'B&B';
   const SYMBOL = 'B&B';
   const DECIMALS = 18  
