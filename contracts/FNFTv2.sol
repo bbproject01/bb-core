@@ -6,6 +6,7 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Counters.sol';
 import '@openzeppelin/contracts/utils/Context.sol';
+import './IFNFT.sol';
 
 error NotEnoughERC20Balance();
 error AlreadyLocked();
@@ -14,18 +15,12 @@ error AlreadyLocked();
  * @title FNFT
  * @dev This contract implements the functionality of a Financial NFT (FNFT)
  */
-contract FNFT is ERC1155, Ownable {
+contract FNFT is IFNFT, ERC1155, Ownable {
   using Counters for Counters.Counter;
 
   Counters.Counter private _tokenIdTracker;
   IERC20 public erc20Token; // The address of the ERC20 token required to mint FNFT
   uint256 public minimumErc20Balance; // The minimum balance of ERC20 needed to mint FNFT
-
-  struct FNFTMetadata {
-    uint256 originalTerm; // The original term in months for the FNFT
-    uint256 timePassed; // The time that has passed since the minting of the FNFT, in months
-    uint256 maximumReduction; // The maximum reduction allowed in the original term, represented as a fraction (eg 0.25 for 25%)
-  }
 
   mapping(uint256 => FNFTMetadata) public _fnftMetadata; // Token ID to FNFT metadata mapping
   mapping(uint256 => bool) public _isLocked; // Token ID to lock state mapping
