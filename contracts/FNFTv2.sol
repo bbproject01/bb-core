@@ -59,19 +59,21 @@ contract FNFT is IFNFT, ERC1155, Ownable {
    * @param erc20Amount The amount of ERC20 tokens to exchange for the FNFT
    * @return The ID of the minted FNFT
    */
-  function mint(uint256 originalTerm, uint256 maximumReduction, uint256 erc20Amount) public {
+  function mint(uint256 productType, uint256 fNftLife, uint256 soulBoundTerm, uint256 erc20Amount, uint256 yearsLocked) public {
     if (erc20Token.balanceOf(msg.sender) < minimumErc20Balance) {
       revert NotEnoughERC20Balance();
     }
 
+    // TODO: Update this Formula
+    uint256 interestRate = compounding_frequency * [(final_amount / erc20Amount) ** (1 / (compounding_frequency * yearsLocked)) - 1];
+
     uint256 newTokenId = _tokenIdTracker.current();
     _mint(msg.sender, newTokenId, 1, '');
-    _fnftMetadata[newTokenId] = FNFTMetadata(originalTerm, 0, maximumReduction);
+    // _fnftMetadata[newTokenId] = FNFTMetadata(originalTerm, 0, maximumReduction);
+    _fnftMetadata[newTokenId] = FNFTMetadata(productType, block.timestamp, fNftLife, soulBoundTerm, erc20Amount, interestRate);
     _tokenIdTracker.increment();
 
     emit FNFTMinted(msg.sender, newTokenId, originalTerm, maximumReduction);
-
-    //Save the $$ erc20 to this contract
   }
 
   /**

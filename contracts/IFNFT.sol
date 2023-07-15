@@ -9,7 +9,7 @@ interface IFNFT {
   struct FNFTMetadata {
     Product product; // The type of FNFT Product
     uint256 timeCreated; // The time the FNFT was minted
-    uint256 timeLocked; // The time the FNFT was locked
+    uint256 timeLocked; // The time the FNFT was locked        // *** Chagne to FNFTLife
     bool soulBounded; // Whether the FNFT is soul bounded
     uint256 amount; // The amount of B&B tokens locked
     uint256 interestRate; // The interest rate of the FNFT
