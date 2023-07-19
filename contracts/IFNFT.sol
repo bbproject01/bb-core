@@ -6,7 +6,7 @@ interface IFNFT {
     FNFT
   }
 
-  struct FNFTattributes {
+  struct Attributes {
     Product product; // The type of FNFT Product
     uint256 timeCreated; // The time the FNFT was minted
     uint256 fnftLife; // The time the FNFT was locked        // *** Chagne to FNFTLife
