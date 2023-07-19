@@ -19,6 +19,7 @@ error AlreadyLocked();
  */
 contract FNFT is IFNFT, ERC1155, Ownable {
   using Strings for uint256;
+  using Strings for Product;
   using Counters for Counters.Counter;
 
   /**
@@ -29,9 +30,8 @@ contract FNFT is IFNFT, ERC1155, Ownable {
   IERC20 public erc20Token; // The address of the ERC20 token required to mint FNFT
   uint256 public minimumErc20Balance; // The minimum balance of ERC20 needed to mint FNFT
 
-  Metadata public metadata; // The metadata of the FNFT
-
-  mapping(uint256 => FNFTattributes) public _fnftMetadata; // Token ID to FNFT metadata mapping
+  mapping(uint256 => Metadata) public metadata;
+  mapping(uint256 => Attributes) public attributes; // Token ID to FNFT metadata mapping
   mapping(uint256 => bool) public _isLocked; // Token ID to lock state mapping
   mapping(address => uint256) public _lockedBalance; // Address mapping to blocked ERC20 balance
 
@@ -97,7 +97,7 @@ contract FNFT is IFNFT, ERC1155, Ownable {
     uint256 newTokenId = _tokenIdTracker.current();
     _mint(msg.sender, newTokenId, 1, '');
     // _fnftMetadata[newTokenId] = FNFTMetadata(originalTerm, 0, maximumReduction);
-    _fnftMetadata[newTokenId] = FNFTattributes(productType, block.timestamp, fNftLife, soulBoundTerm, erc20Amount, 0); // WIP: Change last value to interestRate
+    attributes[newTokenId] = Attributes(productType, block.timestamp, fNftLife, soulBoundTerm, erc20Amount, 0); // WIP: Change last value to interestRate
     _tokenIdTracker.increment();
 
     // emit FNFTMinted(msg.sender, newTokenId, originalTerm, maximumReduction);
@@ -117,11 +117,12 @@ contract FNFT is IFNFT, ERC1155, Ownable {
     require(amounts.length == originalTerms.length, 'FNFT: The input parameters do not have the same length');
     require(originalTerms.length == maximumReductions.length, 'FNFT: The input parameters do not have the same length');
 
-    for (uint256 i = 0; i < amounts.length; i++) {
-      for (uint256 j = 0; j < amounts[i]; j++) {
-        mint(originalTerms[i], maximumReductions[i]);
-      }
-    }
+    // TO-DO -> Kurt
+    // for (uint256 i = 0; i < amounts.length; i++) {
+    //   for (uint256 j = 0; j < amounts[i]; j++) {
+    //     mint(originalTerms[i], maximumReductions[i]);
+    //   }
+    // }
   }
 
   /**
@@ -130,7 +131,7 @@ contract FNFT is IFNFT, ERC1155, Ownable {
    */
   function lock(uint256 tokenId) public {
     require(_exists(tokenId), 'FNFT: FNFT does not exist');
-    require(balanceOf(msg.sender, tokenId), 'ERC1155: caller is not owner');
+    require(balanceOf(msg.sender, tokenId) > 0, 'ERC1155: caller is not owner');
     require(!_isLocked[tokenId], 'AlreadyLocked');
 
     uint256 balanceToLock = minimumErc20Balance;
@@ -146,15 +147,15 @@ contract FNFT is IFNFT, ERC1155, Ownable {
     emit FNFTLocked(tokenId, msg.sender, balanceToLock);
   }
 
-  /**
-   * @dev Block multiple FNFTs, transferring the minimum balance of ERC20 to the contract for each FNFT and marking them as blocked.
-   * @param tokenIds The IDs of the FNFTs to block.
-   */
-  function lockBatch(uint256[] memory tokenIds) public {
-    for (uint256 i = 0; i < tokenIds.length; i++) {
-      lock(tokenIds[i]);
-    }
-  }
+  // /**
+  //  * @dev Block multiple FNFTs, transferring the minimum balance of ERC20 to the contract for each FNFT and marking them as blocked.
+  //  * @param tokenIds The IDs of the FNFTs to block.
+  //  */
+  // function lockBatch(uint256[] memory tokenIds) public {
+  //   for (uint256 i = 0; i < tokenIds.length; i++) {
+  //     lock(tokenIds[i]);
+  //   }
+  // }
 
   function unlock(uint256 tokenId) public {
     require(_isLocked[tokenId], 'FNFT: FNFT is not locked');
@@ -176,7 +177,9 @@ contract FNFT is IFNFT, ERC1155, Ownable {
    */
 
   function getImage(uint256 tokenId) public view returns (string memory) {
-    return _fnftMetadata[tokenId].image;
+    bool status = attributes[tokenId].soulBoundTerm > 0;
+    string memory image = status ? metadata[tokenId].image[1] : metadata[tokenId].image[0];
+    return image;
   }
 
   function getAttributes(uint256 tokenId) public view returns (string memory) {
@@ -185,32 +188,32 @@ contract FNFT is IFNFT, ERC1155, Ownable {
         '{',
         '"Product Type":',
         "'",
-        string(_fnftMetadata[tokenId].product),
+        (attributes[tokenId].product),
         "'",
         ',',
         '"Time Created":',
         "'",
-        string(_fnftMetadata[tokenId].timeCreated),
+        (attributes[tokenId].timeCreated),
         "'",
         ',',
         '"FNFT Life":',
         "'",
-        string(_fnftMetadata[tokenId].fNftLife),
+        (attributes[tokenId].fnftLife),
         "'",
         ',',
         '"Soul Bound Term":',
         "'",
-        string(_fnftMetadata[tokenId].soulBoundTerm),
+        (attributes[tokenId].soulBoundTerm),
         "'",
         ',',
         '"B&B Locked":',
         "'",
-        string(_fnftMetadata[tokenId].amount),
+        (attributes[tokenId].amount),
         "'",
         ',',
         '"Interest Rate":',
         "'",
-        string(_fnftMetadata[tokenId].interestRate),
+        (attributes[tokenId].interestRate),
         "'",
         ',',
         ')'
@@ -218,6 +221,34 @@ contract FNFT is IFNFT, ERC1155, Ownable {
     );
 
     return attributes;
+  }
+
+  function getMetadata(uint256 _tokenId) public view returns (string memory) {
+    string memory _metadata = string(
+      abi.encodePacked(
+        '{',
+        "'name':",
+        metadata[_tokenId].name,
+        ' #',
+        _tokenId.toString(),
+        "',",
+        "'",
+        "'description':",
+        "'",
+        metadata[_tokenId].description,
+        "',",
+        "'image':",
+        "'",
+        getImage(_tokenId),
+        "',",
+        "'attributes':",
+        getAttributes(_tokenId),
+        ',',
+        '}'
+      )
+    );
+
+    return _metadata;
   }
 
   /**
@@ -228,7 +259,7 @@ contract FNFT is IFNFT, ERC1155, Ownable {
    * @dev Overrides the `safeTransferFrom` function to prevent the transfer of blocked FNFTs.
    */
   function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes memory data) public override {
-    require(_fnftMetadata[id].soulBoundTerm == 0, 'FNFT: El FNFT esta bloqueado y no se puede transferir');
+    require(attributes[id].soulBoundTerm == 0, 'FNFT: El FNFT esta bloqueado y no se puede transferir');
     super.safeTransferFrom(from, to, id, amount, data);
   }
 
@@ -236,44 +267,22 @@ contract FNFT is IFNFT, ERC1155, Ownable {
    * @dev Overrides the `burn` function to prevent burning of locked FNFTs.
    */
   function burn(uint256 id) public {
-    require(_fnftMetadata[id].soulBoundTerm == 0, 'FNFT: El FNFT esta bloqueado y no se puede quemar');
-    super.burn(id);
+    require(attributes[id].soulBoundTerm == 0, 'FNFT: El FNFT esta bloqueado y no se puede quemar');
+    this.burn(id);
   }
 
   // Override the `burnBatch` function to prevent burning of locked FNFTs
   function burnBatch(address account, uint256[] memory ids, uint256[] memory amounts) public {
     for (uint256 i = 0; i < ids.length; i++) {
-      require(_fnftMetadata[ids[i]].soulBoundTerm == 0, 'FNFT: No se puede quemar un FNFT bloqueado');
+      require(attributes[ids[i]].soulBoundTerm == 0, 'FNFT: No se puede quemar un FNFT bloqueado');
     }
-    super.burnBatch(account, ids, amounts);
+    this.burnBatch(account, ids, amounts);
   }
 
   function uri(uint256 _tokenId) public view virtual override returns (string memory) {
-    string memory _uri = abi
-      .encodePacked(
-        '{',
-        "'name':",
-        metadata.name,
-        ' #',
-        _tokenId.toString(),
-        "',",
-        "'",
-        "'description':",
-        "'",
-        metadata.description,
-        "',",
-        "'image':",
-        "'",
-        metadata.image,
-        "',",
-        "'attributes':",
-        getAttributes(_tokenId),
-        ',',
-        '}'
-      )
-      .toString();
+    bytes memory _metadata = abi.encodePacked(getMetadata(_tokenId));
 
-    return string(abi.encodePacked('data:application/json;base64,', Base64.encode(_uri)));
+    return string(abi.encodePacked('data:application/json;base64,', Base64.encode(_metadata)));
   }
 
   /// @notice Function to check if a FNFT exists.
@@ -281,6 +290,6 @@ contract FNFT is IFNFT, ERC1155, Ownable {
   /// @param _tokenId The FNFT ID to verify.
   /// @return `true` if the FNFT exists, `false` otherwise.
   function _exists(uint256 _tokenId) internal view returns (bool) {
-    return _fnftMetadata[_tokenId].originalTerm != 0;
+    return attributes[_tokenId].fnftLife != 0;
   }
 }
