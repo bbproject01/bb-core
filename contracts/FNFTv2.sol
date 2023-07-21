@@ -40,6 +40,7 @@ contract FNFT is IFNFT, ERC1155, Ownable {
    */
 
   event FNFTMinted(address indexed to, uint256 indexed tokenId, uint256 originalTerm, uint256 maximumReduction);
+  event MetadataSaved(uint256 tokenId, Product productType, uint256 fNftLife,  uint256 soulBoundTerm, uint256 erc20Amount);
   event FNFTLocked(uint256 indexed tokenId, address indexed owner, uint256 balance);
   event FNFTUnlocked(uint256 indexed tokenId, address indexed owner, uint256 balance);
 
@@ -78,6 +79,27 @@ contract FNFT is IFNFT, ERC1155, Ownable {
    * @param productType The type of FNFT product.
    * @param fNftLife The period of time before the FNFT expires.
    * @param soulBoundTerm The period of time before the FNFT can be unlocked/transferrable.
+   * @param erc20Amount The principal amount of B&B Tokens.
+   * @param tokenId The FNFT Token ID that the metadata will be saved on.
+   */
+  function saveMetaData(
+    Product productType,
+    uint256 fNftLife,
+    uint256 soulBoundTerm,
+    uint256 erc20Amount,
+    uint256 tokenId
+  ) public {
+    // TODO: Update this Formula | Waiting for latest formula
+    // uint256 interestRate = compounding_frequency * [(final_amount / erc20Amount) ** (1 / (compounding_frequency * yearsLocked)) - 1];
+    attributes[tokenId] = Attributes(productType, block.timestamp, fNftLife, soulBoundTerm, erc20Amount, 0); // WIP: Change last value to interestRate
+    emit MetadataSaved(tokenId, productType, fNftLife, soulBoundTerm, erc20Amount, interestRate);
+  }
+
+  /**
+   * @dev Coins a new FNFT for the sender.
+   * @param productType The type of FNFT product.
+   * @param fNftLife The period of time before the FNFT expires.
+   * @param soulBoundTerm The period of time before the FNFT can be unlocked/transferrable.
    * @param erc20Amount The principal amount of B&B Tokens
    */
   function mint(
@@ -91,38 +113,36 @@ contract FNFT is IFNFT, ERC1155, Ownable {
       revert NotEnoughERC20Balance();
     }
 
-    // TODO: Update this Formula
-    // uint256 interestRate = compounding_frequency * [(final_amount / erc20Amount) ** (1 / (compounding_frequency * yearsLocked)) - 1];
-
     uint256 newTokenId = _tokenIdTracker.current();
     _mint(msg.sender, newTokenId, 1, '');
-    // _fnftMetadata[newTokenId] = FNFTMetadata(originalTerm, 0, maximumReduction);
-    attributes[newTokenId] = Attributes(productType, block.timestamp, fNftLife, soulBoundTerm, erc20Amount, 0); // WIP: Change last value to interestRate
+    _saveMetaData(productType, fNftLife, soulBoundTerm, erc20Amount, newTokenId);
     _tokenIdTracker.increment();
 
-    // emit FNFTMinted(msg.sender, newTokenId, originalTerm, maximumReduction);
+    emit FNFTMinted(msg.sender, newTokenId, originalTerm, maximumReduction);
   }
 
   /**
    * @dev Mint new FNFTs in batch.
+   * @param productType The type of FNFT product.
    * @param amounts The number of FNFTs to mint for each pair (originalTerm, maximumReduction).
    * @param originalTerms The original deadlines for the FNFT.
    * @param maximumReductions The maximum reductions allowed in the original terms.
    */
   function mintBatch(
+    Product productType,
     uint256[] memory amounts,
     uint256[] memory originalTerms,
-    uint256[] memory maximumReductions
+    uint256[] memory maximumReductions,
+    uint256[] memory erc20Amount
   ) public {
     require(amounts.length == originalTerms.length, 'FNFT: The input parameters do not have the same length');
     require(originalTerms.length == maximumReductions.length, 'FNFT: The input parameters do not have the same length');
 
-    // TO-DO -> Kurt
-    // for (uint256 i = 0; i < amounts.length; i++) {
-    //   for (uint256 j = 0; j < amounts[i]; j++) {
-    //     mint(originalTerms[i], maximumReductions[i]);
-    //   }
-    // }
+    for (uint256 i = 0; i < amounts.length; i++) {
+      for (uint256 j = 0; j < amounts[i]; j++) {
+        mint(productType, originalTerms[i], maximumReductions[i], erc20Amount);
+      }
+    }
   }
 
   /**
