@@ -102,7 +102,7 @@ contract FNFT is IFNFT, ERC1155, Ownable {
    * @param soulBoundTerm The period of time before the FNFT can be unlocked/transferrable.
    * @param erc20Amount The principal amount of B&B Tokens
    */
-  function mint(IFNFT.Attributes memory fnftAttributes) public {
+  function mint(Attributes memory fnftAttributes) public {
     if (erc20Token.balanceOf(msg.sender) < minimumErc20Balance) {
       revert NotEnoughERC20Balance();
     }
@@ -120,7 +120,7 @@ contract FNFT is IFNFT, ERC1155, Ownable {
    * @param fnftAttributes Array of FNFT attributes for each FNFT to mint.
    * @param amounts The number of FNFTs to mint.
    */
-  function mintBatch1(IFNFT.Attributes[] memory fnftAttributes, uint256 amounts) public {
+  function mintBatch1(Attributes[] memory fnftAttributes, uint256 amounts) public {
       for (uint256 i = 0; i < amounts; i++) {
         mint(fnftAttributes[i]);
       }
@@ -134,7 +134,7 @@ contract FNFT is IFNFT, ERC1155, Ownable {
    * @param maximumReductions The maximum reductions allowed in the original terms.
    */
   function mintBatch2(
-        IFNFT.Attributes[] memory fnftAttributes,
+        Attributes[] memory fnftAttributes,
         uint256[] memory amounts,
         uint256[] memory originalTerms,
         uint256[] memory maximumReductions
@@ -144,7 +144,7 @@ contract FNFT is IFNFT, ERC1155, Ownable {
 
         for (uint256 i = 0; i < amounts.length; i++) {
             for (uint256 j = 0; j < amounts[i]; j++) {
-                IFNFT.Attributes memory attributes = IFNFT.Attributes(
+                Attributes(
                     fnftAttributes[i].product, // This Depends on the Input/Choice of the Minter
                     fnftAttributes[i].timeCreated,
                     fnftAttributes[i].fnftLife, // This Depends on the Input/Choice of the Minter
