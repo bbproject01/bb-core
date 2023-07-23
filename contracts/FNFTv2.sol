@@ -102,48 +102,60 @@ contract FNFT is IFNFT, ERC1155, Ownable {
    * @param soulBoundTerm The period of time before the FNFT can be unlocked/transferrable.
    * @param erc20Amount The principal amount of B&B Tokens
    */
-  function mint(
-    Product productType,
-    uint256 fNftLife,
-    uint256 soulBoundTerm,
-    uint256 erc20Amount,
-    uint256 yearsLocked
-  ) public {
+  function mint(IFNFT.Attributes memory fnftAttributes) public {
     if (erc20Token.balanceOf(msg.sender) < minimumErc20Balance) {
       revert NotEnoughERC20Balance();
     }
 
     uint256 newTokenId = _tokenIdTracker.current();
     _mint(msg.sender, newTokenId, 1, '');
-    _saveMetaData(productType, fNftLife, soulBoundTerm, erc20Amount, newTokenId);
+    _saveMetaData(fnftAttributes.product, fnftAttributes.fnftLife, fnftAttributes.soulBoundTerm, fnftAttributes.amount, newTokenId);
     _tokenIdTracker.increment();
 
-    emit FNFTMinted(msg.sender, newTokenId, originalTerm, maximumReduction);
+    emit FNFTMinted(msg.sender, newTokenId, fnftAttributes.fnftLife, fnftAttributes.amount);
   }
 
   /**
    * @dev Mint new FNFTs in batch.
-   * @param productType The type of FNFT product.
+   * @param fnftAttributes Array of FNFT attributes for each FNFT to mint.
+   * @param amounts The number of FNFTs to mint.
+   */
+  function mintBatch1(IFNFT.Attributes[] memory fnftAttributes, uint256 amounts) public {
+      for (uint256 i = 0; i < amounts; i++) {
+        mint(fnftAttributes[i]);
+      }
+  }
+
+  /**
+   * @dev Mint new FNFTs in batch. [Like A Cart]
+   * @param fnftAttributes Array of FNFT attributes for each FNFT to mint.
    * @param amounts The number of FNFTs to mint for each pair (originalTerm, maximumReduction).
    * @param originalTerms The original deadlines for the FNFT.
    * @param maximumReductions The maximum reductions allowed in the original terms.
    */
-  function mintBatch(
-    Product productType,
-    uint256[] memory amounts,
-    uint256[] memory originalTerms,
-    uint256[] memory maximumReductions,
-    uint256[] memory erc20Amount
-  ) public {
-    require(amounts.length == originalTerms.length, 'FNFT: The input parameters do not have the same length');
-    require(originalTerms.length == maximumReductions.length, 'FNFT: The input parameters do not have the same length');
+  function mintBatch2(
+        IFNFT.Attributes[] memory fnftAttributes,
+        uint256[] memory amounts,
+        uint256[] memory originalTerms,
+        uint256[] memory maximumReductions
+    ) public {
+        require(amounts.length == originalTerms.length, 'FNFT: The input parameters do not have the same length');
+        require(originalTerms.length == maximumReductions.length, 'FNFT: The input parameters do not have the same length');
 
-    for (uint256 i = 0; i < amounts.length; i++) {
-      for (uint256 j = 0; j < amounts[i]; j++) {
-        mint(productType, originalTerms[i], maximumReductions[i], erc20Amount);
-      }
+        for (uint256 i = 0; i < amounts.length; i++) {
+            for (uint256 j = 0; j < amounts[i]; j++) {
+                IFNFT.Attributes memory attributes = IFNFT.Attributes(
+                    fnftAttributes[i].product, // This Depends on the Input/Choice of the Minter
+                    fnftAttributes[i].timeCreated,
+                    fnftAttributes[i].fnftLife, // This Depends on the Input/Choice of the Minter
+                    fnftAttributes[i].soulBoundTerm, // This Depends on the Input/Choice of the Minter
+                    fnftAttributes[i].amount, // This Depends on the Input/Choice of the Minter
+                    fnftAttributes[i].interestRate
+                );
+                mint(attributes);
+            }
+        }
     }
-  }
 
   /**
    * @dev Blocks a FNFT, transferring the minimum balance of ERC20 to the contract and marking the FNFT as blocked.
