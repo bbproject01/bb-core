@@ -1,11 +1,5 @@
 # Utility Token 
-Proyecto de contratos inteligentes para una plataforma 
-descentralizada que permita a los usuarios 
-invertir e intercambiar FNFT Platform (Financial Non-Fungible Tokens) 
-que representan diversos productos financieros. La plataforma 
-utilizará su propio token nativo para las transacciones y ofrecerá 
-una propuesta de valor única para los usuarios mediante un mecanismo 
-de distribución de dividendos.
+Smart contract project for a decentralized platform that allows users to invest and trade FNFT Platform (Financial Non-Fungible Tokens) representing various financial products. The platform will use its own native token for transactions and offer a unique value proposition to users through a dividend distribution mechanism.
 
 ## Prerequisites
 
@@ -36,13 +30,13 @@ de distribución de dividendos.
 | Hardhat Contract Sizer | 0.4.0 | `yarn add --dev @jdutton/hardhat-contract-sizer` |
 | Prettier | 2.4.1 | `yarn add --dev prettier` |
 | Prettier Plugin Solidity | 1.1.0 | `yarn add --dev prettier-plugin-solidity` |
-## Prerequisitos
+## Prerequisites
 
-Necesitarás tener instalado Node.js y Yarn (o npm) en tu máquina. Además, necesitarás tener una clave privada y una URL de nodo compatible con Ethereum (por ejemplo, a través de QuickNode o Alchemy) para desplegar el contrato.
+You will need to have Node.js and Yarn (or npm) installed on your machine. Additionally, you will need to have a private key and an Ethereum node URL compatible with Ethereum (for example, through QuickNode or Alchemy) to deploy the contract.
 
-## Instalación
+## Installation
 
-Clona el repositorio en tu máquina local e instalar las dependencias del proyecto:
+Clone the repository to your local machine and install project dependencies:
 
 ```bash
 git clone https://github.com/bbproject01/bb-core.git
@@ -50,71 +44,67 @@ cd bb-core
 yarn
 ```
 
-## Compilación
-Cear un archivo de configuración (.env) con las siguientes variables:
+## Compilation
+Create a configuration file (.env) with the following variables:
 
-- **RCP_URL_API_KEY**=AQUI_VA_EL_URL_DEL_QUICKNODE
-- **PRIVATE_KEY**=AQUI_VA_LA_LLAVE_PRIVADA
-
-
-Para compilar el contrato, ejecuta el siguiente comando en tu terminal:
+RCP_URL_API_KEY=HERE_GOES_THE_QUICKNODE_URL
+PRIVATE_KEY=HERE_GOES_THE_PRIVATE_KEY
+To compile the contract, run the following command in your terminal:
 ```bash
 yarn hardhat compile
 ```
 
 ## Deploy 
-Para desplegar los contratos inteligentes ERC20 y FNFT ejecute solo el script deploy.ts
+To deploy the ERC20 and FNFT smart contracts, run only the deploy.ts script:
 ```bash
 yarn hardhat run scripts/deploy.ts --network mumbai
 ```
 
-Para desplegar solo el contrato inteligente FNFT agregar la siguiente variable al archivo de configuración (.env)
+To deploy only the FNFT smart contract, add the following variable to the configuration file (.env):
 
 - **ADDRESS_TOKEN_BNB**=AQUI_VA_EL_ADDRESS_DEL_SMARTCONTRAC_ERC20
 
 ```bash
 yarn hardhat run scripts/FNFT.deploy.ts --network mumbai 
 ```
-## Pruebas
+## Testing
 
-### Pruebas locales
+### Local Tests
 
-Para pruebas locales con HardHat y aumento de tiempo en la blockchain
-
-Correr la red local y no cierre la ventana:
+For local tests with HardHat and time increase on the blockchain, run the local network and do not close the window:
 ```bash
 npx hardhat node --network hardhat
 ```
 
-Ejecutar todas los archivos en la carpeta test
+Run all files in the test folder:
 ```bash
 npx hardhat test test/*.ts
 ```
 
-Ejecutar archivo por archivo
+Run file by file:
 ```bash
 npx hardhat test test/erc20.ts
 npx hardhat test test/fnftTests.ts
 ```
 
-### Pruebas con redes personalizadas
+### Tests with Custom Networks
 
-Tener corriendo la red.
+Have the network running.
 
-Ejecutar pruebas con alguna red en el archivo de configuracion de Hardhat
+Run tests with a specific network in the Hardhat configuration file:
 ```bash
 npx hardhat test test/*.ts --network NOMBRE_RED
 ```
 
-Ejecutar archivo por archivo
+Run file by file:
 ```bash
 npx hardhat test test/erc20.ts --network NOMBRE_RED
 npx hardhat test test/erc1155Lock.test.ts --network NOMBRE_RED
 npx hardhat test test/fnftTests.ts --network NOMBRE_RED
 ```
 
-### Nota
-Las pruebas que involucren la modificacion del tiempo, solo funcionaran con la red interna de ganache que se ejecuta en la terminal
+### Note
+Tests that involve modifying time will only work with the internal Ganache network that runs in the terminal.
 
 ## Address SmartContracts
 BBTOKEN: 0x62ba02826ef23F4ce9Ac11B72CB31Aadb85878F9
