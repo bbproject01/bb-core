@@ -8,16 +8,16 @@ import '@openzeppelin/contracts/utils/Counters.sol';
 import '@openzeppelin/contracts/utils/Context.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
 import '@openzeppelin/contracts/utils/Base64.sol';
-import './IFNFT.sol';
+import './ICFA.sol';
 
 error NotEnoughERC20Balance();
 error AlreadyLocked();
 
 /**
- * @title FNFTv2
- * @dev This contract implements the functionality of a Financial NFT (FNFT)
+ * @title CFAv2
+ * @dev This contract implements the functionality of a Crypto Financial Assets (CFA)
  */
-contract FNFTv2 is IFNFT, ERC1155, Ownable {
+contract CFAv2 is ICFA, ERC1155, Ownable {
   using Strings for uint256;
   using Strings for Product;
   using Counters for Counters.Counter;
@@ -27,11 +27,11 @@ contract FNFTv2 is IFNFT, ERC1155, Ownable {
    */
 
   Counters.Counter private _tokenIdTracker;
-  IERC20 public erc20Token; // The address of the ERC20 token required to mint FNFT
-  uint256 public minimumErc20Balance; // The minimum balance of ERC20 needed to mint FNFT
+  IERC20 public erc20Token; // The address of the ERC20 token required to mint CFA
+  uint256 public minimumErc20Balance; // The minimum balance of ERC20 needed to mint CFA
 
   mapping(uint256 => Metadata) public metadata;
-  mapping(uint256 => Attributes) public attributes; // Token ID to FNFT metadata mapping
+  mapping(uint256 => Attributes) public attributes; // Token ID to CFA metadata mapping
   mapping(uint256 => bool) public _isLocked; // Token ID to lock state mapping
   mapping(address => uint256) public _lockedBalance; // Address mapping to blocked ERC20 balance
 
@@ -39,10 +39,17 @@ contract FNFTv2 is IFNFT, ERC1155, Ownable {
    * Events
    */
 
-  event FNFTMinted(address indexed to, uint256 indexed tokenId, uint256 originalTerm, uint256 maximumReduction);
-  event MetadataSaved(uint256 tokenId, Product productType, uint256 fNftLife,  uint256 soulBoundTerm, uint256 erc20Amount, uint256 interestRate);
-  event FNFTLocked(uint256 indexed tokenId, address indexed owner, uint256 balance);
-  event FNFTUnlocked(uint256 indexed tokenId, address indexed owner, uint256 balance);
+  event CFAMinted(address indexed to, uint256 indexed tokenId, uint256 originalTerm, uint256 maximumReduction);
+  event MetadataSaved(
+    uint256 tokenId,
+    Product productType,
+    uint256 cfaLife,
+    uint256 soulBoundTerm,
+    uint256 erc20Amount,
+    uint256 interestRate
+  );
+  event CFALocked(uint256 indexed tokenId, address indexed owner, uint256 balance);
+  event CFAUnlocked(uint256 indexed tokenId, address indexed owner, uint256 balance);
 
   /**
    * Constructor
@@ -67,7 +74,7 @@ contract FNFTv2 is IFNFT, ERC1155, Ownable {
   }
 
   /**
-   * @dev Allows the contract owner to change the minimum balance of ERC20 needed to mint FNFT.
+   * @dev Allows the contract owner to change the minimum balance of ERC20 needed to mint CFA.
    * @param _minimumErc20Balance The new ERC20 minimum balance.
    */
   function setMinimumErc20Balance(uint256 _minimumErc20Balance) public onlyOwner {
@@ -75,115 +82,116 @@ contract FNFTv2 is IFNFT, ERC1155, Ownable {
   }
 
   /**
-   * @dev Coins a new FNFT for the sender.
-   * @param fnftAttributes Array of FNFT attributes for each FNFT to mint.
-   * @param tokenId The FNFT Token ID that the metadata will be saved on.
+   * @dev Coins a new CFA for the sender.
+   * @param cfaAttributes Array of CFA attributes for each CFA to mint.
+   * @param tokenId The CFA Token ID that the metadata will be saved on.
    */
-  function saveMetaData(Attributes memory fnftAttributes, uint256 tokenId) public {
+  function saveMetaData(Attributes memory cfaAttributes, uint256 tokenId) public {
     // TODO: Update this Formula | Waiting for latest formula
     // uint256 interestRate = compounding_frequency * [(final_amount / erc20Amount) ** (1 / (compounding_frequency * yearsLocked)) - 1];
     uint256 interestRate = 0;
-    attributes[tokenId] = Attributes(fnftAttributes.product, block.timestamp, fnftAttributes.fnftLife, fnftAttributes.soulBoundTerm, fnftAttributes.amount, interestRate); // WIP: Change last value to interestRate
-    emit MetadataSaved(tokenId, fnftAttributes.product, fnftAttributes.fnftLife, fnftAttributes.soulBoundTerm, fnftAttributes.amount, interestRate);
+    attributes[tokenId] = Attributes(
+      cfaAttributes.product,
+      block.timestamp,
+      cfaAttributes.cfaLife,
+      cfaAttributes.soulBoundTerm,
+      cfaAttributes.amount,
+      interestRate
+    ); // WIP: Change last value to interestRate
+    emit MetadataSaved(
+      tokenId,
+      cfaAttributes.product,
+      cfaAttributes.cfaLife,
+      cfaAttributes.soulBoundTerm,
+      cfaAttributes.amount,
+      interestRate
+    );
   }
 
   /**
-   * @dev Coins a new FNFT for the sender.
-   * @param fnftAttributes Array of FNFT attributes for each FNFT to mint.
+   * @dev Coins a new CFA for the sender.
+   * @param cfaAttributes Array of CFA attributes for each CFA to mint.
    */
-  function mint(Attributes memory fnftAttributes) public {
+  function mint(Attributes memory cfaAttributes) public {
     // if (erc20Token.balanceOf(msg.sender) < minimumErc20Balance) {
     //   revert NotEnoughERC20Balance();
     // }
-    if (erc20Token.balanceOf(msg.sender) < fnftAttributes.amount) {
-      revert("NotEnoughERC20Balance");
+    if (erc20Token.balanceOf(msg.sender) < cfaAttributes.amount) {
+      revert('NotEnoughERC20Balance');
     }
 
     uint256 newTokenId = _tokenIdTracker.current();
     _mint(msg.sender, newTokenId, 1, '');
     _tokenIdTracker.increment();
-    saveMetaData(fnftAttributes, newTokenId);
+    saveMetaData(cfaAttributes, newTokenId);
 
-    emit FNFTMinted(msg.sender, newTokenId, fnftAttributes.fnftLife, fnftAttributes.amount);
+    emit CFAMinted(msg.sender, newTokenId, cfaAttributes.cfaLife, cfaAttributes.amount);
   }
 
   /**
-   * @dev Mint new FNFTs in batch.
-   * @param fnftAttributes Array of FNFT attributes for each FNFT to mint.
-   * @param amounts The number of FNFTs to mint.
+   * @dev Mint new CFAs in batch.
+   * @param cfaAttributes Array of CFA attributes for each CFA to mint.
+   * @param amounts The number of CFAs to mint.
    */
-  function mintBatch1(Attributes[] memory fnftAttributes, uint256 amounts) public {
-      for (uint256 i = 0; i < amounts; i++) {
-        mint(fnftAttributes[i]);
-      }
+  function mintBatch1(Attributes[] memory cfaAttributes, uint256 amounts) public {
+    for (uint256 i = 0; i < amounts; i++) {
+      mint(cfaAttributes[i]);
+    }
   }
 
   /**
-   * @dev Mint new FNFTs in batch. [Like A Cart]
-   * @param fnftAttributes Array of FNFT attributes for each FNFT to mint.
-   * @param amounts The number of FNFTs to mint for each pair (originalTerm, maximumReduction).
+   * @dev Mint new CFAs in batch. [Like A Cart]
+   * @param cfaAttributes Array of CFA attributes for each CFA to mint.
+   * @param amounts The number of CFAs to mint for each pair (originalTerm, maximumReduction).
    */
-  function mintBatch2(
-    Attributes[] memory fnftAttributes,
-    uint256[] memory amounts
-  ) public {
-      if (amounts.length != fnftAttributes.length) {
-        revert("FNFT:NotSameLength");
-      }
+  function mintBatch2(Attributes[] memory cfaAttributes, uint256[] memory amounts) public {
+    if (amounts.length != cfaAttributes.length) {
+      revert('CFA:NotSameLength');
+    }
 
-      for (uint256 i = 0; i < amounts.length; i++) {
-          for (uint256 j = 0; j < amounts[i]; j++) {
-              Attributes memory attributes = Attributes( // Create a local memory variable
-                  fnftAttributes[i].product,
-                  fnftAttributes[i].timeCreated,
-                  fnftAttributes[i].fnftLife,
-                  fnftAttributes[i].soulBoundTerm,
-                  fnftAttributes[i].amount,
-                  fnftAttributes[i].interestRate
-              );
-              mint(attributes); // Pass the memory reference to the mint function
-          }
+    for (uint256 i = 0; i < amounts.length; i++) {
+      for (uint256 j = 0; j < amounts[i]; j++) {
+        Attributes memory attributes = Attributes( // Create a local memory variable
+          cfaAttributes[i].product,
+          cfaAttributes[i].timeCreated,
+          cfaAttributes[i].cfaLife,
+          cfaAttributes[i].soulBoundTerm,
+          cfaAttributes[i].amount,
+          cfaAttributes[i].interestRate
+        );
+        mint(attributes); // Pass the memory reference to the mint function
       }
+    }
   }
 
   /**
-   * @dev Blocks a FNFT, transferring the minimum balance of ERC20 to the contract and marking the FNFT as blocked.
-   * @param tokenId The ID of the FNFT to block.
+   * @dev Blocks a CFA, transferring the minimum balance of ERC20 to the contract and marking the CFA as blocked.
+   * @param tokenId The ID of the CFA to block.
    */
   function lock(uint256 tokenId) public {
-    require(_exists(tokenId), 'FNFT: FNFT does not exist');
+    require(_exists(tokenId), 'CFA: CFA does not exist');
     require(balanceOf(msg.sender, tokenId) > 0, 'ERC1155: caller is not owner');
     require(!_isLocked[tokenId], 'AlreadyLocked');
 
     uint256 balanceToLock = minimumErc20Balance;
-    require(erc20Token.balanceOf(msg.sender) >= balanceToLock, 'FNFT: Insufficient balance of ERC20 to lock');
+    require(erc20Token.balanceOf(msg.sender) >= balanceToLock, 'CFA: Insufficient balance of ERC20 to lock');
 
     // Transfer of the ERC20 balance to the contract
     erc20Token.transferFrom(msg.sender, address(this), balanceToLock);
 
-    // Mark the FNFT as blocked and update the blocked balance
+    // Mark the CFA as blocked and update the blocked balance
     // isLocked[tokenId] = true;
     // lockedBalance[msg.sender] += balanceToLock;
 
-    emit FNFTLocked(tokenId, msg.sender, balanceToLock);
+    emit CFALocked(tokenId, msg.sender, balanceToLock);
   }
 
-  // /**
-  //  * @dev Block multiple FNFTs, transferring the minimum balance of ERC20 to the contract for each FNFT and marking them as blocked.
-  //  * @param tokenIds The IDs of the FNFTs to block.
-  //  */
-  // function lockBatch(uint256[] memory tokenIds) public {
-  //   for (uint256 i = 0; i < tokenIds.length; i++) {
-  //     lock(tokenIds[i]);
-  //   }
-  // }
-
   function unlock(uint256 tokenId) public {
-    require(_isLocked[tokenId], 'FNFT: FNFT is not locked');
+    require(_isLocked[tokenId], 'CFA: CFA is not locked');
 
     _isLocked[tokenId] = false;
 
-    emit FNFTUnlocked(tokenId, msg.sender, minimumErc20Balance);
+    emit CFAUnlocked(tokenId, msg.sender, minimumErc20Balance);
   }
 
   function lockBatch(uint256[] memory tokenIds) public {
@@ -217,9 +225,9 @@ contract FNFTv2 is IFNFT, ERC1155, Ownable {
         (attributes[tokenId].timeCreated),
         "'",
         ',',
-        '"FNFT Life":',
+        '"CFA Life":',
         "'",
-        (attributes[tokenId].fnftLife),
+        (attributes[tokenId].cfaLife),
         "'",
         ',',
         '"Soul Bound Term":',
@@ -277,25 +285,25 @@ contract FNFTv2 is IFNFT, ERC1155, Ownable {
    */
 
   /**
-   * @dev Overrides the `safeTransferFrom` function to prevent the transfer of blocked FNFTs.
+   * @dev Overrides the `safeTransferFrom` function to prevent the transfer of blocked CFAs.
    */
   function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes memory data) public override {
-    require(attributes[id].soulBoundTerm == 0, 'FNFT: El FNFT esta bloqueado y no se puede transferir');
+    require(attributes[id].soulBoundTerm == 0, 'CFA: El CFA esta bloqueado y no se puede transferir');
     super.safeTransferFrom(from, to, id, amount, data);
   }
 
   /**
-   * @dev Overrides the `burn` function to prevent burning of locked FNFTs.
+   * @dev Overrides the `burn` function to prevent burning of locked CFAs.
    */
   function burn(uint256 id) public {
-    require(attributes[id].soulBoundTerm == 0, 'FNFT: El FNFT esta bloqueado y no se puede quemar');
+    require(attributes[id].soulBoundTerm == 0, 'CFA: El CFA esta bloqueado y no se puede quemar');
     this.burn(id);
   }
 
-  // Override the `burnBatch` function to prevent burning of locked FNFTs
+  // Override the `burnBatch` function to prevent burning of locked CFAs
   function burnBatch(address account, uint256[] memory ids, uint256[] memory amounts) public {
     for (uint256 i = 0; i < ids.length; i++) {
-      require(attributes[ids[i]].soulBoundTerm == 0, 'FNFT: No se puede quemar un FNFT bloqueado');
+      require(attributes[ids[i]].soulBoundTerm == 0, 'CFA: No se puede quemar un CFA bloqueado');
     }
     this.burnBatch(account, ids, amounts);
   }
@@ -306,11 +314,11 @@ contract FNFTv2 is IFNFT, ERC1155, Ownable {
     return string(abi.encodePacked('data:application/json;base64,', Base64.encode(_metadata)));
   }
 
-  /// @notice Function to check if a FNFT exists.
-  /// @dev This function returns true if the FNFT with the given ID exists, and false otherwise.
-  /// @param _tokenId The FNFT ID to verify.
-  /// @return `true` if the FNFT exists, `false` otherwise.
+  /// @notice Function to check if a CFA exists.
+  /// @dev This function returns true if the CFA with the given ID exists, and false otherwise.
+  /// @param _tokenId The CFA ID to verify.
+  /// @return `true` if the CFA exists, `false` otherwise.
   function _exists(uint256 _tokenId) internal view returns (bool) {
-    return attributes[_tokenId].fnftLife != 0;
+    return attributes[_tokenId].cfaLife != 0;
   }
 }

@@ -67,7 +67,7 @@
         "type": "uint256"
       }
     ],
-    "name": "FNFTLocked",
+    "name": "CFALocked",
     "type": "event"
   },
   {
@@ -98,7 +98,7 @@
         "type": "uint256"
       }
     ],
-    "name": "FNFTMinted",
+    "name": "CFAMinted",
     "type": "event"
   },
   {
@@ -123,7 +123,7 @@
         "type": "uint256"
       }
     ],
-    "name": "FNFTUnlocked",
+    "name": "CFAUnlocked",
     "type": "event"
   },
   {
@@ -137,14 +137,14 @@
       },
       {
         "indexed": false,
-        "internalType": "enum IFNFT.Product",
+        "internalType": "enum ICFA.Product",
         "name": "productType",
         "type": "uint8"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "fNftLife",
+        "name": "cfaLife",
         "type": "uint256"
       },
       {
@@ -330,7 +330,7 @@
     "name": "attributes",
     "outputs": [
       {
-        "internalType": "enum IFNFT.Product",
+        "internalType": "enum ICFA.Product",
         "name": "product",
         "type": "uint8"
       },
@@ -341,7 +341,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "fnftLife",
+        "name": "cfaLife",
         "type": "uint256"
       },
       {
@@ -609,7 +609,7 @@
       {
         "components": [
           {
-            "internalType": "enum IFNFT.Product",
+            "internalType": "enum ICFA.Product",
             "name": "product",
             "type": "uint8"
           },
@@ -620,7 +620,7 @@
           },
           {
             "internalType": "uint256",
-            "name": "fnftLife",
+            "name": "cfaLife",
             "type": "uint256"
           },
           {
@@ -639,8 +639,8 @@
             "type": "uint256"
           }
         ],
-        "internalType": "struct IFNFT.Attributes",
-        "name": "fnftAttributes",
+        "internalType": "struct ICFA.Attributes",
+        "name": "cfaAttributes",
         "type": "tuple"
       }
     ],
@@ -654,7 +654,7 @@
       {
         "components": [
           {
-            "internalType": "enum IFNFT.Product",
+            "internalType": "enum ICFA.Product",
             "name": "product",
             "type": "uint8"
           },
@@ -665,7 +665,7 @@
           },
           {
             "internalType": "uint256",
-            "name": "fnftLife",
+            "name": "cfaLife",
             "type": "uint256"
           },
           {
@@ -684,8 +684,8 @@
             "type": "uint256"
           }
         ],
-        "internalType": "struct IFNFT.Attributes[]",
-        "name": "fnftAttributes",
+        "internalType": "struct ICFA.Attributes[]",
+        "name": "cfaAttributes",
         "type": "tuple[]"
       },
       {
@@ -704,7 +704,7 @@
       {
         "components": [
           {
-            "internalType": "enum IFNFT.Product",
+            "internalType": "enum ICFA.Product",
             "name": "product",
             "type": "uint8"
           },
@@ -715,7 +715,7 @@
           },
           {
             "internalType": "uint256",
-            "name": "fnftLife",
+            "name": "cfaLife",
             "type": "uint256"
           },
           {
@@ -734,8 +734,8 @@
             "type": "uint256"
           }
         ],
-        "internalType": "struct IFNFT.Attributes[]",
-        "name": "fnftAttributes",
+        "internalType": "struct ICFA.Attributes[]",
+        "name": "cfaAttributes",
         "type": "tuple[]"
       },
       {
@@ -840,7 +840,7 @@
       {
         "components": [
           {
-            "internalType": "enum IFNFT.Product",
+            "internalType": "enum ICFA.Product",
             "name": "product",
             "type": "uint8"
           },
@@ -851,7 +851,7 @@
           },
           {
             "internalType": "uint256",
-            "name": "fnftLife",
+            "name": "cfaLife",
             "type": "uint256"
           },
           {
@@ -870,8 +870,8 @@
             "type": "uint256"
           }
         ],
-        "internalType": "struct IFNFT.Attributes",
-        "name": "fnftAttributes",
+        "internalType": "struct ICFA.Attributes",
+        "name": "cfaAttributes",
         "type": "tuple"
       },
       {
