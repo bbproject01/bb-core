@@ -8,7 +8,7 @@ import '@openzeppelin/contracts/utils/Counters.sol';
 import '@openzeppelin/contracts/utils/Context.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
 import '@openzeppelin/contracts/utils/Base64.sol';
-import './ICFA.sol';
+import './interface/ICFA.sol';
 
 error NotEnoughERC20Balance();
 error AlreadyLocked();
