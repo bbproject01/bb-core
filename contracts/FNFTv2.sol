@@ -14,10 +14,10 @@ error NotEnoughERC20Balance();
 error AlreadyLocked();
 
 /**
- * @title FNFT
+ * @title FNFTv2
  * @dev This contract implements the functionality of a Financial NFT (FNFT)
  */
-contract FNFT is IFNFT, ERC1155, Ownable {
+contract FNFTv2 is IFNFT, ERC1155, Ownable {
   using Strings for uint256;
   using Strings for Product;
   using Counters for Counters.Counter;
@@ -40,6 +40,7 @@ contract FNFT is IFNFT, ERC1155, Ownable {
    */
 
   event FNFTMinted(address indexed to, uint256 indexed tokenId, uint256 originalTerm, uint256 maximumReduction);
+  event MetadataSaved(uint256 tokenId, Product productType, uint256 fNftLife,  uint256 soulBoundTerm, uint256 erc20Amount, uint256 interestRate);
   event FNFTLocked(uint256 indexed tokenId, address indexed owner, uint256 balance);
   event FNFTUnlocked(uint256 indexed tokenId, address indexed owner, uint256 balance);
 
@@ -75,54 +76,74 @@ contract FNFT is IFNFT, ERC1155, Ownable {
 
   /**
    * @dev Coins a new FNFT for the sender.
-   * @param productType The type of FNFT product.
-   * @param fNftLife The period of time before the FNFT expires.
-   * @param soulBoundTerm The period of time before the FNFT can be unlocked/transferrable.
-   * @param erc20Amount The principal amount of B&B Tokens
+   * @param fnftAttributes Array of FNFT attributes for each FNFT to mint.
+   * @param tokenId The FNFT Token ID that the metadata will be saved on.
    */
-  function mint(
-    Product productType,
-    uint256 fNftLife,
-    uint256 soulBoundTerm,
-    uint256 erc20Amount,
-    uint256 yearsLocked
-  ) public {
-    if (erc20Token.balanceOf(msg.sender) < minimumErc20Balance) {
-      revert NotEnoughERC20Balance();
-    }
-
-    // TODO: Update this Formula
+  function saveMetaData(Attributes memory fnftAttributes, uint256 tokenId) public {
+    // TODO: Update this Formula | Waiting for latest formula
     // uint256 interestRate = compounding_frequency * [(final_amount / erc20Amount) ** (1 / (compounding_frequency * yearsLocked)) - 1];
+    uint256 interestRate = 0;
+    attributes[tokenId] = Attributes(fnftAttributes.product, block.timestamp, fnftAttributes.fnftLife, fnftAttributes.soulBoundTerm, fnftAttributes.amount, interestRate); // WIP: Change last value to interestRate
+    emit MetadataSaved(tokenId, fnftAttributes.product, fnftAttributes.fnftLife, fnftAttributes.soulBoundTerm, fnftAttributes.amount, interestRate);
+  }
+
+  /**
+   * @dev Coins a new FNFT for the sender.
+   * @param fnftAttributes Array of FNFT attributes for each FNFT to mint.
+   */
+  function mint(Attributes memory fnftAttributes) public {
+    // if (erc20Token.balanceOf(msg.sender) < minimumErc20Balance) {
+    //   revert NotEnoughERC20Balance();
+    // }
+    if (erc20Token.balanceOf(msg.sender) < fnftAttributes.amount) {
+      revert("NotEnoughERC20Balance");
+    }
 
     uint256 newTokenId = _tokenIdTracker.current();
     _mint(msg.sender, newTokenId, 1, '');
-    // _fnftMetadata[newTokenId] = FNFTMetadata(originalTerm, 0, maximumReduction);
-    attributes[newTokenId] = Attributes(productType, block.timestamp, fNftLife, soulBoundTerm, erc20Amount, 0); // WIP: Change last value to interestRate
     _tokenIdTracker.increment();
+    saveMetaData(fnftAttributes, newTokenId);
 
-    // emit FNFTMinted(msg.sender, newTokenId, originalTerm, maximumReduction);
+    emit FNFTMinted(msg.sender, newTokenId, fnftAttributes.fnftLife, fnftAttributes.amount);
   }
 
   /**
    * @dev Mint new FNFTs in batch.
-   * @param amounts The number of FNFTs to mint for each pair (originalTerm, maximumReduction).
-   * @param originalTerms The original deadlines for the FNFT.
-   * @param maximumReductions The maximum reductions allowed in the original terms.
+   * @param fnftAttributes Array of FNFT attributes for each FNFT to mint.
+   * @param amounts The number of FNFTs to mint.
    */
-  function mintBatch(
-    uint256[] memory amounts,
-    uint256[] memory originalTerms,
-    uint256[] memory maximumReductions
-  ) public {
-    require(amounts.length == originalTerms.length, 'FNFT: The input parameters do not have the same length');
-    require(originalTerms.length == maximumReductions.length, 'FNFT: The input parameters do not have the same length');
+  function mintBatch1(Attributes[] memory fnftAttributes, uint256 amounts) public {
+      for (uint256 i = 0; i < amounts; i++) {
+        mint(fnftAttributes[i]);
+      }
+  }
 
-    // TO-DO -> Kurt
-    // for (uint256 i = 0; i < amounts.length; i++) {
-    //   for (uint256 j = 0; j < amounts[i]; j++) {
-    //     mint(originalTerms[i], maximumReductions[i]);
-    //   }
-    // }
+  /**
+   * @dev Mint new FNFTs in batch. [Like A Cart]
+   * @param fnftAttributes Array of FNFT attributes for each FNFT to mint.
+   * @param amounts The number of FNFTs to mint for each pair (originalTerm, maximumReduction).
+   */
+  function mintBatch2(
+    Attributes[] memory fnftAttributes,
+    uint256[] memory amounts
+  ) public {
+      if (amounts.length != fnftAttributes.length) {
+        revert("FNFT:NotSameLength");
+      }
+
+      for (uint256 i = 0; i < amounts.length; i++) {
+          for (uint256 j = 0; j < amounts[i]; j++) {
+              Attributes memory attributes = Attributes( // Create a local memory variable
+                  fnftAttributes[i].product,
+                  fnftAttributes[i].timeCreated,
+                  fnftAttributes[i].fnftLife,
+                  fnftAttributes[i].soulBoundTerm,
+                  fnftAttributes[i].amount,
+                  fnftAttributes[i].interestRate
+              );
+              mint(attributes); // Pass the memory reference to the mint function
+          }
+      }
   }
 
   /**
