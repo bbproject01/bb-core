@@ -32,8 +32,8 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
 
   mapping(uint256 => Metadata) public metadata;
   mapping(uint256 => Attributes) public attributes; // Token ID to CFA metadata mapping
-  mapping(uint256 => bool) public _isLocked; // Token ID to lock state mapping
-  mapping(address => uint256) public _lockedBalance; // Address mapping to blocked ERC20 balance
+  // mapping(uint256 => bool) public _isLocked; // Token ID to lock state mapping
+  // mapping(address => uint256) public _lockedBalance; // Address mapping to blocked ERC20 balance
 
   /**
    * Events
@@ -84,13 +84,12 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
   /**
    * @dev Coins a new CFA for the sender.
    * @param cfaAttributes Array of CFA attributes for each CFA to mint.
-   * @param tokenId The CFA Token ID that the metadata will be saved on.
    */
-  function saveMetaData(Attributes memory cfaAttributes, uint256 tokenId) public {
+  function saveMetaData(Attributes memory cfaAttributes) public {
     // TODO: Update this Formula | Waiting for latest formula
     // uint256 interestRate = compounding_frequency * [(final_amount / erc20Amount) ** (1 / (compounding_frequency * yearsLocked)) - 1];
     uint256 interestRate = 0;
-    attributes[tokenId] = Attributes(
+    attributes[_tokenIdTracker.current()] = Attributes(
       cfaAttributes.product,
       block.timestamp,
       cfaAttributes.cfaLife,
@@ -99,7 +98,7 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
       interestRate
     ); // WIP: Change last value to interestRate
     emit MetadataSaved(
-      tokenId,
+      _tokenIdTracker.current(),
       cfaAttributes.product,
       cfaAttributes.cfaLife,
       cfaAttributes.soulBoundTerm,
@@ -113,91 +112,61 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
    * @param cfaAttributes Array of CFA attributes for each CFA to mint.
    */
   function mint(Attributes memory cfaAttributes) public {
-    // if (erc20Token.balanceOf(msg.sender) < minimumErc20Balance) {
-    //   revert NotEnoughERC20Balance();
-    // }
     if (erc20Token.balanceOf(msg.sender) < cfaAttributes.amount) {
       revert('NotEnoughERC20Balance');
     }
 
-    uint256 newTokenId = _tokenIdTracker.current();
-    _mint(msg.sender, newTokenId, 1, '');
-    _tokenIdTracker.increment();
-    saveMetaData(cfaAttributes, newTokenId);
+    _mint(msg.sender, _tokenIdTracker.current(), 1, '');
+    saveMetaData(cfaAttributes);
 
-    emit CFAMinted(msg.sender, newTokenId, cfaAttributes.cfaLife, cfaAttributes.amount);
+    emit CFAMinted(msg.sender, _tokenIdTracker.current(), cfaAttributes.cfaLife, cfaAttributes.amount);
+    _tokenIdTracker.increment();
   }
 
   /**
    * @dev Mint new CFAs in batch.
    * @param cfaAttributes Array of CFA attributes for each CFA to mint.
-   * @param amounts The number of CFAs to mint.
+   * @param amounts Array of number of CFAs to mint.
    */
-  function mintBatch1(Attributes[] memory cfaAttributes, uint256 amounts) public {
-    for (uint256 i = 0; i < amounts; i++) {
-      mint(cfaAttributes[i]);
-    }
-  }
-
-  /**
-   * @dev Mint new CFAs in batch. [Like A Cart]
-   * @param cfaAttributes Array of CFA attributes for each CFA to mint.
-   * @param amounts The number of CFAs to mint for each pair (originalTerm, maximumReduction).
-   */
-  function mintBatch2(Attributes[] memory cfaAttributes, uint256[] memory amounts) public {
-    if (amounts.length != cfaAttributes.length) {
-      revert('CFA:NotSameLength');
-    }
-
+  function mintBatch(Attributes[] memory cfaAttributes, uint256[] memory amounts) public {
+    require(amounts.length == cfaAttributes.length, 'CFA: Not same length');
     for (uint256 i = 0; i < amounts.length; i++) {
-      for (uint256 j = 0; j < amounts[i]; j++) {
-        Attributes memory attributes = Attributes( // Create a local memory variable
-          cfaAttributes[i].product,
-          cfaAttributes[i].timeCreated,
-          cfaAttributes[i].cfaLife,
-          cfaAttributes[i].soulBoundTerm,
-          cfaAttributes[i].amount,
-          cfaAttributes[i].interestRate
-        );
-        mint(attributes); // Pass the memory reference to the mint function
+      for (uint256 attrIndex = 0; attrIndex < amounts[i]; attrIndex++) {
+        mint(cfaAttributes[i]);
       }
     }
   }
 
   /**
    * @dev Blocks a CFA, transferring the minimum balance of ERC20 to the contract and marking the CFA as blocked.
-   * @param tokenId The ID of the CFA to block.
+   * @param _tokenId The ID of the CFA to block.
    */
-  function lock(uint256 tokenId) public {
-    require(_exists(tokenId), 'CFA: CFA does not exist');
-    require(balanceOf(msg.sender, tokenId) > 0, 'ERC1155: caller is not owner');
-    require(!_isLocked[tokenId], 'AlreadyLocked');
+  function lock(uint256 _tokenId, uint256 _term) public {
+    require(_exists(_tokenId), 'CFA: CFA does not exist');
+    require(balanceOf(msg.sender, _tokenId) > 0, 'CFA: Not owner of CFA');
+    require(attributes[_tokenId].soulBoundTerm > 0, 'AlreadyLocked');
 
     uint256 balanceToLock = minimumErc20Balance;
     require(erc20Token.balanceOf(msg.sender) >= balanceToLock, 'CFA: Insufficient balance of ERC20 to lock');
 
-    // Transfer of the ERC20 balance to the contract
-    erc20Token.transferFrom(msg.sender, address(this), balanceToLock);
+    attributes[_tokenId].soulBoundTerm = _term;
 
-    // Mark the CFA as blocked and update the blocked balance
-    // isLocked[tokenId] = true;
-    // lockedBalance[msg.sender] += balanceToLock;
-
-    emit CFALocked(tokenId, msg.sender, balanceToLock);
+    emit CFALocked(_tokenId, msg.sender, balanceToLock);
   }
 
   function unlock(uint256 tokenId) public {
-    require(_isLocked[tokenId], 'CFA: CFA is not locked');
+    Attributes memory attribute = attributes[tokenId];
+    require(block.timestamp > (attribute.soulBoundTerm + attribute.timeCreated), 'CFA: CFA is not locked');
 
-    _isLocked[tokenId] = false;
+    attributes[tokenId].soulBoundTerm = 0;
 
-    emit CFAUnlocked(tokenId, msg.sender, minimumErc20Balance);
+    emit CFAUnlocked(tokenId, msg.sender, attribute.amount);
   }
 
-  function lockBatch(uint256[] memory tokenIds) public {
+  function lockBatch(uint256[] memory tokenIds, uint256[] memory _terms) public {
     //TODO: When returning it, return the balance to its owner-
     for (uint256 i = 0; i < tokenIds.length; ++i) {
-      lock(tokenIds[i]);
+      lock(tokenIds[i], _terms[i]);
     }
   }
 
