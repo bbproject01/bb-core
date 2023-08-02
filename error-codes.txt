@@ -1,0 +1,2 @@
+001 = referrer already set
+002 = referrer already removed
