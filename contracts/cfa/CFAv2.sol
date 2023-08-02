@@ -5,7 +5,6 @@ import '@openzeppelin/contracts/token/ERC1155/ERC1155.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Counters.sol';
-import '@openzeppelin/contracts/utils/Context.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
 import '@openzeppelin/contracts/utils/Base64.sol';
 import './interface/ICFA.sol';
@@ -19,7 +18,6 @@ error AlreadyLocked();
  */
 contract CFAv2 is ICFA, ERC1155, Ownable {
   using Strings for uint256;
-  using Strings for Product;
   using Counters for Counters.Counter;
 
   /**
@@ -30,10 +28,8 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
   IERC20 public erc20Token; // The address of the ERC20 token required to mint CFA
   uint256 public minimumErc20Balance; // The minimum balance of ERC20 needed to mint CFA
 
-  mapping(uint256 => Metadata) public metadata;
+  Metadata public metadata;
   mapping(uint256 => Attributes) public attributes; // Token ID to CFA metadata mapping
-  // mapping(uint256 => bool) public _isLocked; // Token ID to lock state mapping
-  // mapping(address => uint256) public _lockedBalance; // Address mapping to blocked ERC20 balance
 
   /**
    * Events
@@ -42,7 +38,6 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
   event CFAMinted(address indexed to, uint256 indexed tokenId, uint256 originalTerm, uint256 maximumReduction);
   event MetadataSaved(
     uint256 tokenId,
-    Product productType,
     uint256 cfaLife,
     uint256 soulBoundTerm,
     uint256 erc20Amount,
@@ -55,10 +50,19 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
    * Constructor
    */
 
-  constructor(address _erc20Token, uint256 _minimumErc20Balance, string memory _uri) ERC1155(_uri) {
+  constructor(address _erc20Token, uint256 _minimumErc20Balance) ERC1155('') {
     erc20Token = IERC20(_erc20Token);
     minimumErc20Balance = _minimumErc20Balance;
     _tokenIdTracker.increment();
+
+    metadata.name = 'CFA';
+    metadata.description = 'Sample Description for CFA';
+    metadata.image[
+        0
+      ] = 'https://magenta-protestant-falcon-171.mypinata.cloud/ipfs/QmdL8nW1NrnmKkvSx7wHC8EBtNyYgHnR24ARaQLXYysnKa';
+    metadata.image[
+        1
+      ] = 'https://magenta-protestant-falcon-171.mypinata.cloud/ipfs/QmeAaJgrpVVxc9Z4EKbJTz5hBipKZhgNB33UEsFv2bLxFc';
   }
 
   /**
@@ -66,40 +70,16 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
    */
 
   /**
-   * @dev Allows the contract owner to change the address of the ERC20 token.
-   * @param _erc20Token The new address of the ERC20 token.
-   */
-  function setERC20Token(address _erc20Token) public onlyOwner {
-    erc20Token = IERC20(_erc20Token);
-  }
-
-  /**
-   * @dev Allows the contract owner to change the minimum balance of ERC20 needed to mint CFA.
-   * @param _minimumErc20Balance The new ERC20 minimum balance.
-   */
-  function setMinimumErc20Balance(uint256 _minimumErc20Balance) public onlyOwner {
-    minimumErc20Balance = _minimumErc20Balance;
-  }
-
-  /**
    * @dev Coins a new CFA for the sender.
    * @param cfaAttributes Array of CFA attributes for each CFA to mint.
    */
-  function saveMetaData(Attributes memory cfaAttributes) public {
+  function saveMetadata(Attributes memory cfaAttributes) public {
     // TODO: Update this Formula | Waiting for latest formula
     // uint256 interestRate = compounding_frequency * [(final_amount / erc20Amount) ** (1 / (compounding_frequency * yearsLocked)) - 1];
     uint256 interestRate = 0;
-    attributes[_tokenIdTracker.current()] = Attributes(
-      cfaAttributes.product,
-      block.timestamp,
-      cfaAttributes.cfaLife,
-      cfaAttributes.soulBoundTerm,
-      cfaAttributes.amount,
-      interestRate
-    ); // WIP: Change last value to interestRate
+    attributes[_tokenIdTracker.current()] = cfaAttributes;
     emit MetadataSaved(
       _tokenIdTracker.current(),
-      cfaAttributes.product,
       cfaAttributes.cfaLife,
       cfaAttributes.soulBoundTerm,
       cfaAttributes.amount,
@@ -117,7 +97,7 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
     }
 
     _mint(msg.sender, _tokenIdTracker.current(), 1, '');
-    saveMetaData(cfaAttributes);
+    saveMetadata(cfaAttributes);
 
     emit CFAMinted(msg.sender, _tokenIdTracker.current(), cfaAttributes.cfaLife, cfaAttributes.amount);
     _tokenIdTracker.increment();
@@ -144,7 +124,7 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
   function lock(uint256 _tokenId, uint256 _term) public {
     require(_exists(_tokenId), 'CFA: CFA does not exist');
     require(balanceOf(msg.sender, _tokenId) > 0, 'CFA: Not owner of CFA');
-    require(attributes[_tokenId].soulBoundTerm > 0, 'AlreadyLocked');
+    require(attributes[_tokenId].soulBoundTerm == 0, 'AlreadyLocked');
 
     uint256 balanceToLock = minimumErc20Balance;
     require(erc20Token.balanceOf(msg.sender) >= balanceToLock, 'CFA: Insufficient balance of ERC20 to lock');
@@ -156,7 +136,8 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
 
   function unlock(uint256 tokenId) public {
     Attributes memory attribute = attributes[tokenId];
-    require(block.timestamp > (attribute.soulBoundTerm + attribute.timeCreated), 'CFA: CFA is not locked');
+    require(attribute.soulBoundTerm != 0, 'CFA: CFA is not locked');
+    require(block.timestamp > (attribute.soulBoundTerm + attribute.timeCreated), 'CFA: CFA is locked');
 
     attributes[tokenId].soulBoundTerm = 0;
 
@@ -171,77 +152,54 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
   }
 
   /**
+   * Setter Functions
+   */
+
+  function setImage(string[2] memory _images) external onlyOwner {
+    metadata.image[0] = _images[0];
+    metadata.image[1] = _images[1];
+  }
+
+  function setMetadata(string memory _name, string memory _desc) external onlyOwner {
+    metadata.name = _name;
+    metadata.description = _desc;
+  }
+
+  function setERC20Token(address _erc20Token) public onlyOwner {
+    erc20Token = IERC20(_erc20Token);
+  }
+
+  function setMinimumErc20Balance(uint256 _minimumErc20Balance) public onlyOwner {
+    minimumErc20Balance = _minimumErc20Balance;
+  }
+
+  /**
    * View Functions
    */
 
   function getImage(uint256 tokenId) public view returns (string memory) {
     bool status = attributes[tokenId].soulBoundTerm > 0;
-    string memory image = status ? metadata[tokenId].image[1] : metadata[tokenId].image[0];
+    string memory image = status ? metadata.image[1] : metadata.image[0];
     return image;
-  }
-
-  function getAttributes(uint256 tokenId) public view returns (string memory) {
-    string memory attributes = string(
-      abi.encodePacked(
-        '{',
-        '"Product Type":',
-        "'",
-        (attributes[tokenId].product),
-        "'",
-        ',',
-        '"Time Created":',
-        "'",
-        (attributes[tokenId].timeCreated),
-        "'",
-        ',',
-        '"CFA Life":',
-        "'",
-        (attributes[tokenId].cfaLife),
-        "'",
-        ',',
-        '"Soul Bound Term":',
-        "'",
-        (attributes[tokenId].soulBoundTerm),
-        "'",
-        ',',
-        '"B&B Locked":',
-        "'",
-        (attributes[tokenId].amount),
-        "'",
-        ',',
-        '"Interest Rate":',
-        "'",
-        (attributes[tokenId].interestRate),
-        "'",
-        ',',
-        ')'
-      )
-    );
-
-    return attributes;
   }
 
   function getMetadata(uint256 _tokenId) public view returns (string memory) {
     string memory _metadata = string(
       abi.encodePacked(
         '{',
-        "'name':",
-        metadata[_tokenId].name,
+        '"name":"',
+        metadata.name,
         ' #',
         _tokenId.toString(),
-        "',",
-        "'",
-        "'description':",
-        "'",
-        metadata[_tokenId].description,
-        "',",
-        "'image':",
-        "'",
+        '",',
+        '"description":',
+        '"',
+        metadata.description,
+        '",',
+        '"image":',
+        '"',
         getImage(_tokenId),
-        "',",
-        "'attributes':",
-        getAttributes(_tokenId),
-        ',',
+        '"',
         '}'
       )
     );
