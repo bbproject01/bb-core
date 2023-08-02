@@ -63,7 +63,7 @@ contract Referral is Ownable {
    * @dev Used to get bracket of a user
    * @param _user address of user that you wanted to check
    */
-  function getBracket(address _user) external view returns (uint256) {
+  function getBracket(address _user) external view returns (uint256 _bracket) {
     uint256 _referralCount = referralCount[_user];
 
     if (_referralCount == 0) {
