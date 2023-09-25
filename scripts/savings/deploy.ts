@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat';
 import { images, interests, trueMarkers } from './data';
-import { REGISTRY_SEPOLIA, SAVINGS_SEPOLIA } from '../addresses';
+import { BBTOKEN_SEPOLIA, REGISTRY_SEPOLIA, SAVINGS_SEPOLIA } from '../addresses';
 
 const markers = trueMarkers();
 
@@ -24,6 +24,11 @@ async function main() {
 
   console.info("\nSetting Up Savings's registry...");
   await savings.setRegsitry(REGISTRY_SEPOLIA);
+  console.info('Done!');
+
+  console.info('\nApproving allowance...');
+  const bbToken = await ethers.getContractAt('BBToken', BBTOKEN_SEPOLIA);
+  await bbToken.approve(savings.address, ethers.constants.MaxUint256);
   console.info('Done!');
 
   // console.info("\nVerifying Savings's source code...");

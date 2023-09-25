@@ -12,7 +12,7 @@ interface ISavings {
     uint256 cfaLife; // The time the CFA was locked        // *** Chagne to CFALife
     uint256 soulBoundTerm; //
     uint256 amount; // The amount of B&B tokens locked
-    uint32 interestRate; // The interest rate of the CFA
+    uint256 interestRate; // The interest rate of the CFA
   }
 
   struct Metadata {

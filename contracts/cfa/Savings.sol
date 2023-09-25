@@ -49,15 +49,14 @@ contract Savings is ISavings, ERC1155, Ownable {
 
   function _saveMetadata(Attributes memory _attributes) internal {
     _attributes.timeCreated = block.timestamp;
-    _attributes.interestRate = 0;
+    // _attributes.interestRate = getInterestRate();
     attributes[idCounter] = _attributes;
   }
 
   function _mintSavings(Attributes memory _attributes) internal {
     IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _attributes.amount);
 
-    attributes[idCounter] = _attributes;
-    _mint(msg.sender, idCounter, idCounter, '');
+    _mint(msg.sender, idCounter, 1, '');
     _saveMetadata(_attributes);
 
     emit SavingsCreated(_attributes);
@@ -206,6 +205,24 @@ contract Savings is ISavings, ERC1155, Ownable {
   }
 
   function getTotalInterest(uint256 _id) public view returns (uint256, uint256) {
+    uint256 principal = attributes[_id].amount;
+    uint256 interest = attributes[_id].interestRate;
+    uint256 month = 30 days;
+    uint256 months = attributes[_id].cfaLife / month;
+    uint256 basisPoint = 100000;
+    uint256 totalInterest = 0;
+
+    for (uint256 index = 0; index < months; index++) {
+      uint256 tempInterest = (principal * interest) / basisPoint;
+      principal += tempInterest;
+      totalInterest += tempInterest;
+    }
+    // uint256 totalInterest = (principal * compoundedInterest) / basisPoint;
+
+    return (principal, totalInterest);
+  }
+
+  function getYieldedInterest(uint256 _id) public view returns (uint256, uint256) {
     uint256 principal = attributes[_id].amount;
     uint256 interest = interests[attributes[_id].cfaLife];
     uint256 months = (block.timestamp - attributes[_id].timeCreated) / 30 days;
