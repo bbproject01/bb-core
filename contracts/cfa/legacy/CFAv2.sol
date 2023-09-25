@@ -7,16 +7,21 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Counters.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
 import '@openzeppelin/contracts/utils/Base64.sol';
-import './interface/ICFA.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import '../interface/ICFA.sol';
+import '../Referral.sol';
+import '../../utils/Registry.sol';
 
 error NotEnoughERC20Balance();
+error BelowMinimumLife();
+error BeyondMaximumLife();
 error AlreadyLocked();
 
 /**
  * @title CFAv2
  * @dev This contract implements the functionality of a Crypto Financial Assets (CFA)
  */
-contract CFAv2 is ICFA, ERC1155, Ownable {
+contract CFAv2 is ICFA, ERC1155, Ownable, ReentrancyGuard {
   using Strings for uint256;
   using Counters for Counters.Counter;
 
@@ -24,12 +29,16 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
    * Local variables
    */
 
-  Counters.Counter private _tokenIdTracker;
+  Counters.Counter public _tokenIdTracker;
+
+  Registry public registry;
+  Life public life;
   IERC20 public erc20Token; // The address of the ERC20 token required to mint CFA
   uint256 public minimumErc20Balance; // The minimum balance of ERC20 needed to mint CFA
 
   Metadata public metadata;
   mapping(uint256 => Attributes) public attributes; // Token ID to CFA metadata mapping
+  mapping(uint256 => uint256) public interests; // Time to interest mapping
 
   /**
    * Events
@@ -45,6 +54,20 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
   );
   event CFALocked(uint256 indexed tokenId, address indexed owner, uint256 balance);
   event CFAUnlocked(uint256 indexed tokenId, address indexed owner, uint256 balance);
+
+  /**
+   * Modifier
+   */
+  modifier checkReferral() {
+    Referral referral = Referral(registry.registry('Referral'));
+
+    _;
+  }
+
+  modifier checkLife(uint256 _life) {
+    require(_life >= life.min && _life <= life.max, 'CFA: Life is not within range');
+    _;
+  }
 
   /**
    * Constructor
@@ -77,6 +100,7 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
     // TODO: Update this Formula | Waiting for latest formula
     // uint256 interestRate = compounding_frequency * [(final_amount / erc20Amount) ** (1 / (compounding_frequency * yearsLocked)) - 1];
     uint256 interestRate = 0;
+    cfaAttributes.timeCreated = block.timestamp;
     attributes[_tokenIdTracker.current()] = cfaAttributes;
     emit MetadataSaved(
       _tokenIdTracker.current(),
@@ -91,11 +115,14 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
    * @dev Coins a new CFA for the sender.
    * @param cfaAttributes Array of CFA attributes for each CFA to mint.
    */
-  function mint(Attributes memory cfaAttributes) public {
-    if (erc20Token.balanceOf(msg.sender) < cfaAttributes.amount) {
-      revert('NotEnoughERC20Balance');
-    }
+  function _mintCFA(Attributes memory cfaAttributes) internal {
+    // require(cfaAttributes.cfaLife >= life.min && cfaAttributes.cfaLife <= life.max, 'CFA: Life is not within range');
+    // require(interests[cfaAttributes.cfaLife] != 0, 'CFA: Interest is not set');
 
+    IERC20 bbToken = IERC20(registry.registry('BbToken'));
+    bbToken.transferFrom(msg.sender, address(this), cfaAttributes.amount);
+
+    cfaAttributes.timeCreated = block.timestamp;
     _mint(msg.sender, _tokenIdTracker.current(), 1, '');
     saveMetadata(cfaAttributes);
 
@@ -103,12 +130,16 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
     _tokenIdTracker.increment();
   }
 
+  function mint(Attributes memory cfaAttributes) public {
+    _mintCFA(cfaAttributes);
+  }
+
   /**
    * @dev Mint new CFAs in batch.
    * @param cfaAttributes Array of CFA attributes for each CFA to mint.
    * @param amounts Array of number of CFAs to mint.
    */
-  function mintBatch(Attributes[] memory cfaAttributes, uint256[] memory amounts) public {
+  function mintBatch(Attributes[] memory cfaAttributes, uint256[] memory amounts) public nonReentrant {
     require(amounts.length == cfaAttributes.length, 'CFA: Not same length');
     for (uint256 i = 0; i < amounts.length; i++) {
       for (uint256 attrIndex = 0; attrIndex < amounts[i]; attrIndex++) {
@@ -173,6 +204,19 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
     minimumErc20Balance = _minimumErc20Balance;
   }
 
+  function setRegistry(Registry _registry) external onlyOwner {
+    registry = _registry;
+  }
+
+  function setInterest(uint256 _time, uint256 _interest) external {
+    interests[_time] = _interest;
+  }
+
+  function setLife(uint256 _min, uint256 _max) external onlyOwner {
+    life.min = _min;
+    life.max = _max;
+  }
+
   /**
    * View Functions
    */
@@ -181,6 +225,26 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
     bool status = attributes[tokenId].soulBoundTerm > 0;
     string memory image = status ? metadata.image[1] : metadata.image[0];
     return image;
+  }
+
+  function getTotalInterest(uint256 _tokenId) public view returns (uint256) {
+    uint256 principal = attributes[_tokenId].amount;
+    uint256 compoundedInterest = interests[attributes[_tokenId].cfaLife];
+    uint256 basisPoint = 1000;
+
+    uint256 totalInterest = (principal * compoundedInterest) / basisPoint;
+
+    return totalInterest;
+  }
+
+  function batchGetImage(uint256[] memory _tokenId) public view returns (string[] memory) {
+    string[] memory images = new string[](_tokenId.length);
+
+    for (uint256 index = 0; index < _tokenId.length; index++) {
+      images[index] = getImage(_tokenId[index]);
+    }
+
+    return images;
   }
 
   function getMetadata(uint256 _tokenId) public view returns (string memory) {
@@ -224,7 +288,7 @@ contract CFAv2 is ICFA, ERC1155, Ownable {
    */
   function burn(uint256 id) public {
     require(attributes[id].soulBoundTerm == 0, 'CFA: El CFA esta bloqueado y no se puede quemar');
-    this.burn(id);
+    _burn(msg.sender, id, 1);
   }
 
   // Override the `burnBatch` function to prevent burning of locked CFAs
