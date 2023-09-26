@@ -11,5 +11,6 @@ interface IInsurance {
   struct Metadata {
     string name;
     string description;
+    string image;
   }
 }

@@ -83,14 +83,16 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     emit SavingsWithdrawn(attributes[_id], block.timestamp);
   }
 
-  function bindSavings(uint256 _id) external {
+  function bindSavings(uint256 _id, uint256 _period) external {
     require(attributes[_id].soulBoundTerm == 0, 'Savings: CFA is already bound');
     require(balanceOf(msg.sender, _id) > 0, 'Savings: CFA is not owned by the caller');
 
-    attributes[_id].soulBoundTerm = block.timestamp;
+    attributes[_id].soulBoundTerm = _period;
 
-    emit SavingsBinded(attributes[_id], block.timestamp);
+    emit SavingsBinded(attributes[_id], _period);
   }
+
+  // TODO: Locking calculation
 
   /**
    * Write Function
