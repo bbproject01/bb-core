@@ -5,10 +5,10 @@ import { BBTOKEN_SEPOLIA, REGISTRY_SEPOLIA, SAVINGS_SEPOLIA } from '../addresses
 const markers = trueMarkers();
 
 async function main() {
-  const Savings = await ethers.getContractFactory('Savings');
-  const savings = await Savings.deploy();
+  // const Savings = await ethers.getContractFactory('Savings');
+  // const savings = await Savings.deploy();
 
-  // const savings = await ethers.getContractAt('Savings', SAVINGS_SEPOLIA);
+  const savings = await ethers.getContractAt('Savings', SAVINGS_SEPOLIA);
 
   console.info('Deploying Savings contract...');
   await savings.deployed();

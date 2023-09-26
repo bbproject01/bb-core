@@ -7,12 +7,11 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/utils/Base64.sol';
-import './interface/ICFA.sol';
 import './interface/ISavings.sol';
 import './Referral.sol';
 import '../utils/Registry.sol';
 
-contract Savings is ISavings, ERC1155, Ownable {
+contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   using Strings for uint256;
 
   /**
@@ -49,7 +48,7 @@ contract Savings is ISavings, ERC1155, Ownable {
 
   function _saveMetadata(Attributes memory _attributes) internal {
     _attributes.timeCreated = block.timestamp;
-    // _attributes.interestRate = getInterestRate();
+    _attributes.interestRate = getInterestRate();
     attributes[idCounter] = _attributes;
   }
 
@@ -62,7 +61,7 @@ contract Savings is ISavings, ERC1155, Ownable {
     emit SavingsCreated(_attributes);
   }
 
-  function mintSavings(Attributes[] memory _attributes) external {
+  function mintSavings(Attributes[] memory _attributes) external nonReentrant {
     for (uint256 i = 0; i < _attributes.length; i++) {
       _mintSavings(_attributes[i]);
       idCounter++;
@@ -191,7 +190,7 @@ contract Savings is ISavings, ERC1155, Ownable {
     uint256 marker = 0;
     for (uint256 index = 0; index < markers.length; index++) {
       if (totalSupply > markers[index] && totalSupply <= markers[index + 1]) {
-        marker = markers[index];
+        marker = index;
       }
     }
 
