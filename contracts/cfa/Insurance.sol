@@ -84,7 +84,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
 
     // TODO: implement interest
     BBToken token = BBToken(registry.registry('BbToken'));
-    token.mint(interest);
+    token.mint(msg.sender, interest);
 
     token.transfer(msg.sender, _amount + interest);
     attributes[_id].principal -= _amount;
@@ -203,7 +203,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
       
       attributes[_id].loan = true;
       loanBalance[_id] = totalLoan;
-      timewhenLoaned[_id] = block.timestamp;
+      timeWhenLoaned[_id] = block.timestamp;
 
       emit LoanCreated(_id, totalLoan);
   }
@@ -212,13 +212,13 @@ function repayLoan(uint256 _id, uint256 _amount) external payable nonReentrant {
     require(attributes[_id].loan, 'Insurance: Loan invalid');
     require(_amount <= loanBalance[_id], 'Insurance: Incorrect loan repayment amount');
 
-    if (_amount < loanBalance[_id]) {
+    if (_amount < loanBalance[_id]) { 
         loanBalance[_id] -= _amount;
     } else {
         attributes[_id].effectiveInterestTime += timeWhenLoaned[_id];
         loanBalance[_id] = 0; 
         attributes[_id].loan = false; 
-        timewhenLoaned[_id] = 0;
+        timeWhenLoaned[_id] = 0;
     }
 
     BBToken token = BBToken(registry.registry('BbToken'));
@@ -236,5 +236,5 @@ function getLoanBalance(uint _id) public view returns (uint) {
    * Override Functions
    */
 
-  /*TODO: CFA Life, Loan affecting CFA Life
+  // TODO: CFA Life, Loan affecting CFA Life
 }
