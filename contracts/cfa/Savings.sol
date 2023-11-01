@@ -83,14 +83,14 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     emit SavingsWithdrawn(attributes[_id], block.timestamp);
   }
 
-  function bindSavings(uint256 _id, uint256 _period) external {
-    require(attributes[_id].soulBoundTerm == 0, 'Savings: CFA is already bound');
-    require(balanceOf(msg.sender, _id) > 0, 'Savings: CFA is not owned by the caller');
+  // function bindSavings(uint256 _id, uint256 _period) external {
+  //   require(attributes[_id].soulBoundTerm == 0, 'Savings: CFA is already bound');
+  //   require(balanceOf(msg.sender, _id) > 0, 'Savings: CFA is not owned by the caller');
 
-    attributes[_id].soulBoundTerm = _period;
+  //   attributes[_id].soulBoundTerm = _period;
 
-    emit SavingsBinded(attributes[_id], _period);
-  }
+  //   emit SavingsBinded(attributes[_id], _period);
+  // }
 
   // TODO: Locking calculation
 
@@ -241,7 +241,8 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   }
 
   function getImage(uint256 tokenId) public view returns (string memory) {
-    bool status = attributes[tokenId].soulBoundTerm > 0;
+    // bool status = attributes[tokenId].soulBoundTerm > 0;
+    bool status = false;
     string memory image = status ? metadata.image[1] : metadata.image[0];
     return image;
   }
@@ -285,7 +286,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
    */
 
   function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes memory data) public override {
-    require(attributes[id].soulBoundTerm == 0, 'CFA: El CFA esta bloqueado y no se puede transferir');
+    // require(attributes[id].soulBoundTerm == 0, 'CFA: El CFA esta bloqueado y no se puede transferir');
     super.safeTransferFrom(from, to, id, amount, data);
   }
 
@@ -293,15 +294,15 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
    * @dev Overrides the `burn` function to prevent burning of locked CFAs.
    */
   function burn(uint256 id) public {
-    require(attributes[id].soulBoundTerm == 0, 'CFA: El CFA esta bloqueado y no se puede quemar');
+    // require(attributes[id].soulBoundTerm == 0, 'CFA: El CFA esta bloqueado y no se puede quemar');
     _burn(msg.sender, id, 1);
   }
 
   // Override the `burnBatch` function to prevent burning of locked CFAs
   function burnBatch(address account, uint256[] memory ids, uint256[] memory amounts) public {
-    for (uint256 i = 0; i < ids.length; i++) {
-      require(attributes[ids[i]].soulBoundTerm == 0, 'CFA: No se puede quemar un CFA bloqueado');
-    }
+    // for (uint256 i = 0; i < ids.length; i++) {
+    //   require(attributes[ids[i]].soulBoundTerm == 0, 'CFA: No se puede quemar un CFA bloqueado');
+    // }
     this.burnBatch(account, ids, amounts);
   }
 

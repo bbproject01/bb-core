@@ -71,8 +71,10 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
   }
 
   function withdraw(uint256 _id, uint256 _amount) external nonReentrant {
+    (uint256 interest, uint256 totalPrincipal) = getInterest(_id);
+
     require(balanceOf(msg.sender, _id) == 1, 'Insurance: invalid id');
-    require(_amount <= attributes[_id].principal, 'Insurance: invalid amount');
+    require(_amount <= (totalPrincipal), 'Insurance: invalid amount');
     require(
       ((block.timestamp - attributes[_id].timeCreated) / attributes[_id].timePeriod) > 0,
       'Insurance: Still not matured'
@@ -80,7 +82,6 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
 
     // TODO: implement interest
     BBToken token = BBToken(registry.registry('BbToken'));
-    (uint256 interest, uint256 totalPrincipal) = getInterest(_id);
     token.mint(interest);
 
     token.transfer(msg.sender, _amount + interest);
@@ -122,14 +123,23 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
     return interestRate[_period];
   }
 
+  function getInsuranceInterest(uint256 _id) external view returns (uint256) {
+    uint256 period = attributes[_id].timePeriod;
+    return getInterestRate(period);
+  }
+
   function getInterest(uint256 _id) public view returns (uint256, uint256) {
     uint256 principal = attributes[_id].principal;
     uint256 interest = getInterestRate(attributes[_id].timePeriod);
     uint256 iterations = (block.timestamp - attributes[_id].timeCreated) / attributes[_id].timePeriod;
     uint256 totalInterest = 0;
 
+    if (iterations == 0) {
+      return (0, principal);
+    }
+
     for (uint256 i = 0; i < iterations; i++) {
-      uint256 tempInterest = (principal * interest) / 100;
+      uint256 tempInterest = (principal * interest) / 10000;
       principal += tempInterest;
       totalInterest += tempInterest;
     }
