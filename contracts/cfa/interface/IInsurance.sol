@@ -6,6 +6,8 @@ interface IInsurance {
     uint256 timeCreated;
     uint256 timePeriod;
     uint256 principal;
+    uint256 effectiveInterestTime;
+    bool loan;
   }
 
   struct Metadata {

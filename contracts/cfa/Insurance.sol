@@ -49,6 +49,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
    */
   function _saveMetadata(Attributes memory _attributes) internal {
     _attributes.timeCreated = block.timestamp;
+    _attributes.timeCreated = _attributes.effectiveInterestTime;
     attributes[idCounter] = _attributes;
   }
 
@@ -79,6 +80,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
       ((block.timestamp - attributes[_id].timeCreated) / attributes[_id].timePeriod) > 0,
       'Insurance: Still not matured'
     );
+    require(attributes[_id].loan, 'Insurance: On Loan');
 
     // TODO: implement interest
     BBToken token = BBToken(registry.registry('BbToken'));
@@ -91,7 +93,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
       _burn(msg.sender, _id, 1);
       emit InsuranceBurned(attributes[_id], block.timestamp);
     } else {
-      attributes[_id].timeCreated = block.timestamp;
+      attributes[_id].effectiveInterestTime = block.timestamp;
     }
 
     emit InsuranceWithdrawn(_id, _amount, block.timestamp);
@@ -131,7 +133,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
   function getInterest(uint256 _id) public view returns (uint256, uint256) {
     uint256 principal = attributes[_id].principal;
     uint256 interest = getInterestRate(attributes[_id].timePeriod);
-    uint256 iterations = (block.timestamp - attributes[_id].timeCreated) / attributes[_id].timePeriod;
+    uint256 iterations = (block.timestamp - attributes[_id].effectiveInterestTime) / attributes[_id].timePeriod;
     uint256 totalInterest = 0;
 
     if (iterations == 0) {
@@ -177,7 +179,62 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
   }
 
   /**
+   * Loan functions
+   */
+    
+    mapping(uint256 => uint256) public loanBalance;
+    mapping(uint256 => uint256) public loanTimeCreated;
+    mapping(uint256 => uint256) public timeWhenLoaned;
+
+    event LoanCreated(uint256 _id, uint256 _totalLoan);
+    event LoanRepayed(uint256 _id);
+
+  function createLoan(uint256 _id) external nonReentrant {
+      require(balanceOf(msg.sender, _id) == 1, 'Insurance: invalid id');
+      require(!attributes[_id].loan, 'Insurance: Loan already created');
+
+      (uint256 interest, uint256 principal) = getInterest(_id);
+      uint256 loanedPrincipal = ((principal + interest) * 25) / 100;
+
+      BBToken token = BBToken(registry.registry('BbToken')); // Change to directly mention ERC20
+      uint256 totalLoan = interest + loanedPrincipal;
+
+      token.mint(msg.sender, totalLoan); 
+      
+      attributes[_id].loan = true;
+      loanBalance[_id] = totalLoan;
+      timewhenLoaned[_id] = block.timestamp;
+
+      emit LoanCreated(_id, totalLoan);
+  }
+
+function repayLoan(uint256 _id, uint256 _amount) external payable nonReentrant {
+    require(attributes[_id].loan, 'Insurance: Loan invalid');
+    require(_amount <= loanBalance[_id], 'Insurance: Incorrect loan repayment amount');
+
+    if (_amount < loanBalance[_id]) {
+        loanBalance[_id] -= _amount;
+    } else {
+        attributes[_id].effectiveInterestTime += timeWhenLoaned[_id];
+        loanBalance[_id] = 0; 
+        attributes[_id].loan = false; 
+        timewhenLoaned[_id] = 0;
+    }
+
+    BBToken token = BBToken(registry.registry('BbToken'));
+    token.burn(_amount);
+
+    emit LoanRepayed(_id);
+}
+
+function getLoanBalance(uint _id) public view returns (uint) {
+    uint _loanBalance = loanBalance[_id];
+    return _loanBalance;
+}
+
+  /**
    * Override Functions
    */
+
+  /*TODO: CFA Life, Loan affecting CFA Life
 }
-// amongus
