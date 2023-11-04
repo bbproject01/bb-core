@@ -7,7 +7,14 @@ interface IInsurance {
     uint256 timePeriod;
     uint256 principal;
     uint256 effectiveInterestTime;
-    bool loan;
+    uint256 cfaLife;
+  }
+
+  struct Loan {
+    bool onLoan;
+    uint256 loanBalance;
+    uint256 loanTimeCreated;
+    uint256 timeWhenLoaned;
   }
 
   struct Metadata {
