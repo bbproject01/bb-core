@@ -24,6 +24,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
   Registry public registry;
 
   uint256 public idCounter;
+
   mapping(uint256 => uint256) public interestRate;
   mapping(uint256 => Attributes) public attributes;
   mapping(uint256 => Loan) public loan;
@@ -227,7 +228,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
     emit LoanRepayed(_id);
   }
 
-  function getLoanBalance(uint _id) public view returns (uint) {
+  function getLoanBalance(uint _id) public view returns (uint256) {
     uint _loanBalance = loan[_id].loanBalance;
     return _loanBalance;
   }
