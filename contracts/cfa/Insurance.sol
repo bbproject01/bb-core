@@ -10,6 +10,7 @@ import '@openzeppelin/contracts/utils/Base64.sol';
 import '../token/BBTOKENv2.sol';
 import '../utils/Registry.sol';
 import './interface/IInsurance.sol';
+import './Referral.sol';
 
 contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
   /**
@@ -22,6 +23,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
    */
   Metadata public metadata;
   Registry public registry;
+  Referral public referral;
 
   uint256 public idCounter;
 
@@ -72,9 +74,8 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
     for (uint256 i = 0; i < _attributes.length; i++) {
       _mintInsurance(_attributes[i]);
       idCounter++;
+      referral.returnReward(msg.sender, _attributes[i].principal); // Returns referral reward for every CFA minted
     }
-
-    // TODO: add referral
   }
 
   function withdraw(uint256 _id, uint256 _amount) external nonReentrant {

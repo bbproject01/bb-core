@@ -17,10 +17,11 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   /**
    * Local variables
    */
+  Referral public referral; // Referral contract
   Registry public registry; // The registry contract
   Life public life; // max and minimum life of Savings CFA
   Metadata public metadata; // The metadata of the Savings CFA
-  
+
   mapping(uint256 => Loan) public loan;
   mapping(uint256 => Attributes) public attributes;
   uint256[] public markers = new uint256[](219);
@@ -51,6 +52,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
 
   function _saveMetadata(Attributes memory _attributes) internal {
     _attributes.timeCreated = block.timestamp;
+    _attributes.effectiveInterestTime = block.timestamp;
     _attributes.interestRate = getInterestRate();
     attributes[idCounter] = _attributes;
   }
@@ -68,9 +70,8 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     for (uint256 i = 0; i < _attributes.length; i++) {
       _mintSavings(_attributes[i]);
       idCounter++;
+      referral.returnReward(msg.sender, _attributes[i].amount); // Returns referral reward for every CFA minted
     }
-
-    // TODO: add referral
   }
 
   function _burnSavings(uint256 _id) internal {
@@ -79,10 +80,22 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     _burn(msg.sender, _id, idCounter);
   }
 
-  function withdrawSavings(uint256 _id) external {
-    require(attributes[_id].timeCreated + attributes[_id].cfaLife < block.timestamp, 'Savings: CFA is not matured');
+  function withdrawSavings(uint256 _id) external nonReentrant {
+    // require(
+    //   attributes[_id].effectiveInterestTime + attributes[_id].cfaLife < block.timestamp,
+    //   'Savings: CFA is not matured'
+    // );
+    require(attributes[_id].cfaLife > 30 days, 'Savings: CFA is not yet matured');
+    require(loan[_id].onLoan, 'Savings: On Loan');
+    require(block.timestamp < attributes[_id].cfaLife, 'Savings: insurance has expired');
+    
+    (uint256 totalAmount,) = getYieldedInterest(_id); // Gets the accrued interest + principal
+
+    BBToken token = BBToken(registry.registry('BbToken'));
+    token.mint(address(this), totalAmount);
+    token.transfer(msg.sender, totalAmount); // why arent we just minting direct to the msg.sender
+
     _burnSavings(_id);
-// TODO transfer funds 
     emit SavingsWithdrawn(attributes[_id], block.timestamp);
   }
 
@@ -229,7 +242,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   function getYieldedInterest(uint256 _id) public view returns (uint256, uint256) {
     uint256 principal = attributes[_id].amount;
     uint256 interest = interests[attributes[_id].cfaLife];
-    uint256 months = (block.timestamp - attributes[_id].timeCreated) / 30 days;
+    uint256 months = (block.timestamp - attributes[_id].effectiveInterestTime) / 30 days;
     uint256 basisPoint = 10000;
     uint256 totalInterest = 0;
 
@@ -284,18 +297,16 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     return _metadata;
   }
 
-    /**
+  /**
    * Loan functions
    */
 
-// In the "Savings" contract
-
-function createLoan(uint256 _id) external nonReentrant {
+  function createLoan(uint256 _id) external nonReentrant {
     require(balanceOf(msg.sender, _id) == 1, 'Savings: invalid id');
     require(!loan[_id].onLoan, 'Savings: Loan already created');
     require(block.timestamp < attributes[_id].cfaLife, 'Savings: insurance has expired');
 
-    (uint256 interest, uint256 totalPrincipal) = getYieldedInterest(_id); // see if totalinterest or yieldedinterest
+    (uint256 totalPrincipal,) = getYieldedInterest(_id); 
     uint256 loanedPrincipal = ((totalPrincipal) * 25) / 100;
     IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), loanedPrincipal);
 
@@ -306,26 +317,26 @@ function createLoan(uint256 _id) external nonReentrant {
     attributes[_id].effectiveInterestTime = block.timestamp; //change
 
     emit LoanCreated(_id, (loanedPrincipal * 25) / 100);
-}
+  }
 
-function repayLoan(uint256 _id, uint256 _amount) external payable nonReentrant {
+  function repayLoan(uint256 _id, uint256 _amount) external payable nonReentrant {
     require(loan[_id].onLoan, 'Savings: Loan invalid');
     require(_amount <= loan[_id].loanBalance, 'Savings: Incorrect loan repayment amount');
 
     if (_amount < loan[_id].loanBalance) {
-        loan[_id].loanBalance -= _amount;
+      loan[_id].loanBalance -= _amount;
     } else {
-        attributes[_id].effectiveInterestTime = block.timestamp;
-        loan[_id].loanBalance = 0;
-        loan[_id].onLoan = false;
-        uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
-        attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
+      attributes[_id].effectiveInterestTime = block.timestamp;
+      loan[_id].loanBalance = 0;
+      loan[_id].onLoan = false;
+      uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
+      attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
     }
 
     IERC20(registry.registry('BbToken')).transfer(msg.sender, _amount);
 
     emit LoanRepayed(_id);
-}
+  }
 
   /**
    * Override Functions
