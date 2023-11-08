@@ -124,7 +124,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     metadata.description = _description;
   }
 
-  function setRegsitry(address _registry) external onlyOwner {
+  function setRegistry(address _registry) external onlyOwner {
     registry = Registry(_registry);
   }
 
