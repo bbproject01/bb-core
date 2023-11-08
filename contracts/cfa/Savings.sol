@@ -202,8 +202,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   //   }
   // }
 
-  // TODO: change public to internal
-  function getMarker() public view returns (uint256) {
+  function getMarker() internal view returns (uint256) {
     uint256 totalSupply = IERC20(registry.registry('BbToken')).totalSupply();
     uint256 marker = 0;
     for (uint256 index = 0; index < markers.length; index++) {
@@ -215,8 +214,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     return marker;
   }
 
-  // TODO: change public to internal
-  function getInterestRate() public view returns (uint256) {
+  function getInterestRate() internal view returns (uint256) {
     uint256 marker = getMarker();
     return interests[marker];
   }
