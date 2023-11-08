@@ -196,7 +196,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
     (uint256 interest, uint256 totalPrincipal) = getInterest(_id);
     uint256 loanedPrincipal = ((totalPrincipal) * 25) / 100;
     BBToken token = BBToken(registry.registry('BbToken')); // Change to directly mention ERC20
-    token.mint(address(this), interest); // Comment out when unneeded
+    token.mint(address(this), interest);
     token.mint(msg.sender, loanedPrincipal);
 
     loan[_id].onLoan = true;
@@ -205,7 +205,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
 
     attributes[_id].effectiveInterestTime = block.timestamp;
 
-    emit LoanCreated(_id, (loanedPrincipal * 25) / 100);
+    emit LoanCreated(_id, loanedPrincipal);
   }
 
   function repayLoan(uint256 _id, uint256 _amount) external payable nonReentrant {

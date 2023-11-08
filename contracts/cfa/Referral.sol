@@ -3,18 +3,22 @@ pragma solidity 0.8.17;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './interface/IReferral.sol';
+import '../token/BBTOKENv2.sol';
+import '../utils/Registry.sol';
 
 contract Referral is Ownable {
   // Local Variables
+  Registry public registry;
   uint256 public minBuys = 5; // minimum number of buys required to be eligible for referral
   uint256[] public bracket = [0, 100, 1_000, 10_000, 100_000, 1_000_000]; // number of referrals required to reach each bracket
-  // uint256[] public
+  uint256[] public returnRates = [7, 10, 15, 20, 25];
   address public defaultReferrer; // default referrer for users who have not been referred
 
   mapping(address => bool) public operators; // address => bool mapping to check if an address is an operator
   mapping(address => address) public referrer; // user => referrer
   mapping(address => uint256) public referralCount; // user => number of referrals
   mapping(address => uint256) public buyCount; // user => total buys of CFA
+  mapping(address => uint256) public userBracket;
 
   // Events
   event ReferralRecorded(address indexed user, address indexed referrer);
@@ -73,22 +77,47 @@ contract Referral is Ownable {
     bracket = _bracket;
   }
 
+  // updates what bracket user is in
+  function updateBracket(uint256 bracketIndex, address _user) internal {
+    userBracket[_user] = bracketIndex;
+  }
+
+  //to be called externally, gets the users bracket and returns amount
+  function returnReward(address _sender, uint256 amount) external onlyOwner {
+    address _referrer = referrer[_sender];
+    uint256 _userBracket = userBracket[_referrer];
+    uint256 returnRate = returnRates[_userBracket];
+
+    uint256 reward = ((amount) * returnRate) / 100;
+
+    BBToken token = BBToken(registry.registry('BbToken'));
+    token.mint(_referrer, reward);
+  }
+
+  // updates rate of return for each bracket
+  function changeRates(uint256[] memory _rates) external onlyOwner {
+    returnRates = _rates;
+  }
+
   // View Functions
   /**
    * @dev Used to get bracket of a user
    * @param _user address of user that you wanted to check
    */
-  function getBracket(address _user) external view returns (uint256 _bracket) {
+function getBracket(address _user) external returns (uint256 _bracket) {
     uint256 _referralCount = referralCount[_user];
 
     if (_referralCount == 0) {
-      return 0;
+        return 0;
     } else {
-      for (uint256 i = 0; i < bracket.length; i++) {
-        if (_referralCount < bracket[i]) {
-          return i;
+        for (uint256 i = 0; i < bracket.length; i++) {
+            if (_referralCount < bracket[i]) {
+                if (userBracket[_user] != i) {
+                    updateBracket(i, _user);
+                }
+                return i;
+            }
         }
-      }
     }
-  }
+}
 }

@@ -20,7 +20,8 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   Registry public registry; // The registry contract
   Life public life; // max and minimum life of Savings CFA
   Metadata public metadata; // The metadata of the Savings CFA
-
+  
+  mapping(uint256 => Loan) public loan;
   mapping(uint256 => Attributes) public attributes;
   uint256[] public markers = new uint256[](219);
   uint256[] public interests = new uint256[](219);
@@ -32,6 +33,8 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   event SavingsCreated(Attributes _attribute);
   event SavingsWithdrawn(Attributes _attribute, uint256 _time);
   event SavingsBinded(Attributes _attribute, uint256 _time);
+  event LoanCreated(uint256 _id, uint256 _totalLoan);
+  event LoanRepayed(uint256 _id);
 
   /**
    * Modifier
@@ -79,7 +82,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   function withdrawSavings(uint256 _id) external {
     require(attributes[_id].timeCreated + attributes[_id].cfaLife < block.timestamp, 'Savings: CFA is not matured');
     _burnSavings(_id);
-
+// TODO transfer funds 
     emit SavingsWithdrawn(attributes[_id], block.timestamp);
   }
 
@@ -280,6 +283,49 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
 
     return _metadata;
   }
+
+    /**
+   * Loan functions
+   */
+
+// In the "Savings" contract
+
+function createLoan(uint256 _id) external nonReentrant {
+    require(balanceOf(msg.sender, _id) == 1, 'Savings: invalid id');
+    require(!loan[_id].onLoan, 'Savings: Loan already created');
+    require(block.timestamp < attributes[_id].cfaLife, 'Savings: insurance has expired');
+
+    (uint256 interest, uint256 totalPrincipal) = getYieldedInterest(_id); // see if totalinterest or yieldedinterest
+    uint256 loanedPrincipal = ((totalPrincipal) * 25) / 100;
+    IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), loanedPrincipal);
+
+    loan[_id].onLoan = true;
+    loan[_id].loanBalance = loanedPrincipal;
+    loan[_id].timeWhenLoaned = block.timestamp;
+
+    attributes[_id].effectiveInterestTime = block.timestamp; //change
+
+    emit LoanCreated(_id, (loanedPrincipal * 25) / 100);
+}
+
+function repayLoan(uint256 _id, uint256 _amount) external payable nonReentrant {
+    require(loan[_id].onLoan, 'Savings: Loan invalid');
+    require(_amount <= loan[_id].loanBalance, 'Savings: Incorrect loan repayment amount');
+
+    if (_amount < loan[_id].loanBalance) {
+        loan[_id].loanBalance -= _amount;
+    } else {
+        attributes[_id].effectiveInterestTime = block.timestamp;
+        loan[_id].loanBalance = 0;
+        loan[_id].onLoan = false;
+        uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
+        attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
+    }
+
+    IERC20(registry.registry('BbToken')).transfer(msg.sender, _amount);
+
+    emit LoanRepayed(_id);
+}
 
   /**
    * Override Functions
