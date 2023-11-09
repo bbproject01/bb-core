@@ -88,8 +88,8 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     require(attributes[_id].cfaLife > 30 days, 'Savings: CFA is not yet matured');
     require(loan[_id].onLoan, 'Savings: On Loan');
     require(block.timestamp < attributes[_id].cfaLife, 'Savings: insurance has expired');
-    
-    (uint256 totalAmount,) = getYieldedInterest(_id); // Gets the accrued interest + principal
+
+    (uint256 totalAmount, ) = getYieldedInterest(_id); // Gets the accrued interest + principal
 
     BBToken token = BBToken(registry.registry('BbToken'));
     token.mint(address(this), totalAmount);
@@ -304,9 +304,8 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     require(!loan[_id].onLoan, 'Savings: Loan already created');
     require(block.timestamp < attributes[_id].cfaLife, 'Savings: insurance has expired');
 
-    (uint256 totalPrincipal,) = getYieldedInterest(_id); 
+    (uint256 totalPrincipal, ) = getYieldedInterest(_id);
     uint256 loanedPrincipal = ((totalPrincipal) * 25) / 100;
-    IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), loanedPrincipal);
 
     loan[_id].onLoan = true;
     loan[_id].loanBalance = loanedPrincipal;
@@ -317,9 +316,11 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     emit LoanCreated(_id, (loanedPrincipal * 25) / 100);
   }
 
-  function repayLoan(uint256 _id, uint256 _amount) external payable nonReentrant {
+  function repayLoan(uint256 _id, uint256 _amount) external nonReentrant {
     require(loan[_id].onLoan, 'Savings: Loan invalid');
     require(_amount <= loan[_id].loanBalance, 'Savings: Incorrect loan repayment amount');
+
+    IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _amount);
 
     if (_amount < loan[_id].loanBalance) {
       loan[_id].loanBalance -= _amount;
@@ -330,8 +331,6 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
       uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
       attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
     }
-
-    IERC20(registry.registry('BbToken')).transfer(msg.sender, _amount);
 
     emit LoanRepayed(_id);
   }

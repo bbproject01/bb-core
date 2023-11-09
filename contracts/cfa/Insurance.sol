@@ -209,9 +209,11 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
     emit LoanCreated(_id, loanedPrincipal);
   }
 
-  function repayLoan(uint256 _id, uint256 _amount) external payable nonReentrant {
+  function repayLoan(uint256 _id, uint256 _amount) external nonReentrant {
     require(loan[_id].onLoan, 'Insurance: Loan invalid');
     require(_amount <= loan[_id].loanBalance, 'Insurance: Incorrect loan repayment amount');
+
+    IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _amount);
 
     if (_amount < loan[_id].loanBalance) {
       loan[_id].loanBalance -= _amount;
