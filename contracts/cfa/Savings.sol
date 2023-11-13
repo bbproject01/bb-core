@@ -50,7 +50,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
    * Main Function
    */
 
-  function _saveMetadata(Attributes memory _attributes) internal {
+  function _saveAttributes(Attributes memory _attributes) internal {
     _attributes.timeCreated = block.timestamp;
     _attributes.effectiveInterestTime = block.timestamp;
     _attributes.interestRate = getInterestRate();
@@ -61,7 +61,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _attributes.amount);
 
     _mint(msg.sender, idCounter, 1, '');
-    _saveMetadata(_attributes);
+    _saveAttributes(_attributes);
 
     emit SavingsCreated(_attributes);
   }
@@ -70,7 +70,8 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     for (uint256 i = 0; i < _attributes.length; i++) {
       _mintSavings(_attributes[i]);
       idCounter++;
-      referral.returnReward(msg.sender, _attributes[i].amount); // Returns referral reward for every CFA minted
+      Referral(registry.registry('Referral')).returnReward(msg.sender, _attributes[i].amount);
+      // Returns referral reward for every CFA minted
     }
   }
 
@@ -114,9 +115,8 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
    * Write Function
    */
 
-  function setImage(string[2] memory _image) external onlyOwner {
-    metadata.image[0] = _image[0];
-    metadata.image[1] = _image[1];
+  function setImage(string memory _image) external onlyOwner {
+    metadata.image = _image;
   }
 
   function setMetadata(string memory _name, string memory _description) external onlyOwner {
@@ -254,22 +254,20 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     return (principal, totalInterest);
   }
 
-  function getImage(uint256 tokenId) public view returns (string memory) {
-    // bool status = attributes[tokenId].soulBoundTerm > 0;
-    bool status = false;
-    string memory image = status ? metadata.image[1] : metadata.image[0];
+  function getImage() public view returns (string memory) {
+    string memory image = metadata.image;
     return image;
   }
 
-  function batchGetImage(uint256[] memory _tokenId) public view returns (string[] memory) {
-    string[] memory images = new string[](_tokenId.length);
+  // function batchGetImage(uint256[] memory _tokenId) public view returns (string[] memory) {
+  //   string[] memory images = new string[](_tokenId.length);
 
-    for (uint256 index = 0; index < _tokenId.length; index++) {
-      images[index] = getImage(_tokenId[index]);
-    }
+  //   for (uint256 index = 0; index < _tokenId.length; index++) {
+  //     images[index] = getImage(_tokenId[index]);
+  //   }
 
-    return images;
-  }
+  //   return images;
+  // }
 
   function getMetadata(uint256 _tokenId) public view returns (string memory) {
     string memory _metadata = string(
@@ -286,7 +284,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
         '",',
         '"image":',
         '"',
-        getImage(_tokenId),
+        getImage(),
         '"',
         '}'
       )

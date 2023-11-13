@@ -15,7 +15,7 @@ interface ISavings {
     uint256 interestRate; // The interest rate of the CFA
   }
 
-    struct Loan {
+  struct Loan {
     bool onLoan;
     uint256 loanBalance;
     uint256 loanTimeCreated;
@@ -25,6 +25,6 @@ interface ISavings {
   struct Metadata {
     string name; // The name of the CFA
     string description; // The description of the CFA
-    string[2] image; // The image of the CFA
+    string image; // The image of the CFA
   }
 }
