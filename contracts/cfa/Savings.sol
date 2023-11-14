@@ -68,6 +68,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
 
   function mintSavings(Attributes[] memory _attributes) external nonReentrant {
     for (uint256 i = 0; i < _attributes.length; i++) {
+      // require(interests[_attributes[i].interestRate] != 0,'Savings: Invalid interest rate');
       _mintSavings(_attributes[i]);
       idCounter++;
       Referral(registry.registry('Referral')).returnReward(msg.sender, _attributes[i].amount);

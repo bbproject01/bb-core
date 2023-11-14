@@ -7,7 +7,6 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/utils/Base64.sol';
-import '../token/BBTOKENv2.sol';
 import '../utils/Registry.sol';
 import './interface/IInsurance.sol';
 import './Referral.sol';
@@ -131,12 +130,11 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
    */
   function getIterations(uint256 _id) public view returns (uint256) {
     uint256 totalIterations = (block.timestamp - attributes[_id].effectiveInterestTime) / attributes[_id].timePeriod;
-    if(block.timestamp > attributes[_id].cfaLife){
+    if (block.timestamp > attributes[_id].cfaLife) {
       totalIterations = (attributes[_id].cfaLife - attributes[_id].effectiveInterestTime) / attributes[_id].timePeriod;
     }
     return totalIterations;
   }
-
 
   function getInterestRate(uint256 _period) public view returns (uint256) {
     require(interestRate[_period] != 0, 'Insurance: invalid period');
