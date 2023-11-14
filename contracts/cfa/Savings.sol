@@ -17,10 +17,12 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   /**
    * Local variables
    */
+  Referral public referral; // Referral contract
   Registry public registry; // The registry contract
   Life public life; // max and minimum life of Savings CFA
   Metadata public metadata; // The metadata of the Savings CFA
 
+  mapping(uint256 => Loan) public loan;
   mapping(uint256 => Attributes) public attributes;
   uint256[] public markers = new uint256[](219);
   uint256[] public interests = new uint256[](219);
@@ -32,6 +34,8 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   event SavingsCreated(Attributes _attribute);
   event SavingsWithdrawn(Attributes _attribute, uint256 _time);
   event SavingsBinded(Attributes _attribute, uint256 _time);
+  event LoanCreated(uint256 _id, uint256 _totalLoan);
+  event LoanRepayed(uint256 _id);
 
   /**
    * Modifier
@@ -46,8 +50,9 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
    * Main Function
    */
 
-  function _saveMetadata(Attributes memory _attributes) internal {
+  function _saveAttributes(Attributes memory _attributes) internal {
     _attributes.timeCreated = block.timestamp;
+    _attributes.effectiveInterestTime = block.timestamp;
     _attributes.interestRate = getInterestRate();
     attributes[idCounter] = _attributes;
   }
@@ -56,18 +61,19 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _attributes.amount);
 
     _mint(msg.sender, idCounter, 1, '');
-    _saveMetadata(_attributes);
+    _saveAttributes(_attributes);
 
     emit SavingsCreated(_attributes);
   }
 
   function mintSavings(Attributes[] memory _attributes) external nonReentrant {
     for (uint256 i = 0; i < _attributes.length; i++) {
+      // require(interests[_attributes[i].interestRate] != 0,'Savings: Invalid interest rate');
       _mintSavings(_attributes[i]);
       idCounter++;
+      Referral(registry.registry('Referral')).returnReward(msg.sender, _attributes[i].amount);
+      // Returns referral reward for every CFA minted
     }
-
-    // TODO: add referral
   }
 
   function _burnSavings(uint256 _id) internal {
@@ -76,10 +82,22 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     _burn(msg.sender, _id, idCounter);
   }
 
-  function withdrawSavings(uint256 _id) external {
-    require(attributes[_id].timeCreated + attributes[_id].cfaLife < block.timestamp, 'Savings: CFA is not matured');
-    _burnSavings(_id);
+  function withdrawSavings(uint256 _id) external nonReentrant {
+    // require(
+    //   attributes[_id].effectiveInterestTime + attributes[_id].cfaLife < block.timestamp,
+    //   'Savings: CFA is not matured'
+    // );
+    require(attributes[_id].cfaLife > 30 days, 'Savings: CFA is not yet matured');
+    require(loan[_id].onLoan, 'Savings: On Loan');
+    require(block.timestamp < attributes[_id].cfaLife, 'Savings: insurance has expired');
 
+    (uint256 totalAmount, ) = getYieldedInterest(_id); // Gets the accrued interest + principal
+
+    BBToken token = BBToken(registry.registry('BbToken'));
+    token.mint(address(this), totalAmount);
+    token.transfer(msg.sender, totalAmount); // why arent we just minting direct to the msg.sender
+
+    _burnSavings(_id);
     emit SavingsWithdrawn(attributes[_id], block.timestamp);
   }
 
@@ -98,9 +116,8 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
    * Write Function
    */
 
-  function setImage(string[2] memory _image) external onlyOwner {
-    metadata.image[0] = _image[0];
-    metadata.image[1] = _image[1];
+  function setImage(string memory _image) external onlyOwner {
+    metadata.image = _image;
   }
 
   function setMetadata(string memory _name, string memory _description) external onlyOwner {
@@ -108,7 +125,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     metadata.description = _description;
   }
 
-  function setRegsitry(address _registry) external onlyOwner {
+  function setRegistry(address _registry) external onlyOwner {
     registry = Registry(_registry);
   }
 
@@ -186,8 +203,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   //   }
   // }
 
-  // TODO: change public to internal
-  function getMarker() public view returns (uint256) {
+  function getMarker() internal view returns (uint256) {
     uint256 totalSupply = IERC20(registry.registry('BbToken')).totalSupply();
     uint256 marker = 0;
     for (uint256 index = 0; index < markers.length; index++) {
@@ -199,8 +215,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     return marker;
   }
 
-  // TODO: change public to internal
-  function getInterestRate() public view returns (uint256) {
+  function getInterestRate() internal view returns (uint256) {
     uint256 marker = getMarker();
     return interests[marker];
   }
@@ -226,7 +241,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   function getYieldedInterest(uint256 _id) public view returns (uint256, uint256) {
     uint256 principal = attributes[_id].amount;
     uint256 interest = interests[attributes[_id].cfaLife];
-    uint256 months = (block.timestamp - attributes[_id].timeCreated) / 30 days;
+    uint256 months = (block.timestamp - attributes[_id].effectiveInterestTime) / 30 days;
     uint256 basisPoint = 10000;
     uint256 totalInterest = 0;
 
@@ -240,22 +255,20 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     return (principal, totalInterest);
   }
 
-  function getImage(uint256 tokenId) public view returns (string memory) {
-    // bool status = attributes[tokenId].soulBoundTerm > 0;
-    bool status = false;
-    string memory image = status ? metadata.image[1] : metadata.image[0];
+  function getImage() public view returns (string memory) {
+    string memory image = metadata.image;
     return image;
   }
 
-  function batchGetImage(uint256[] memory _tokenId) public view returns (string[] memory) {
-    string[] memory images = new string[](_tokenId.length);
+  // function batchGetImage(uint256[] memory _tokenId) public view returns (string[] memory) {
+  //   string[] memory images = new string[](_tokenId.length);
 
-    for (uint256 index = 0; index < _tokenId.length; index++) {
-      images[index] = getImage(_tokenId[index]);
-    }
+  //   for (uint256 index = 0; index < _tokenId.length; index++) {
+  //     images[index] = getImage(_tokenId[index]);
+  //   }
 
-    return images;
-  }
+  //   return images;
+  // }
 
   function getMetadata(uint256 _tokenId) public view returns (string memory) {
     string memory _metadata = string(
@@ -272,13 +285,53 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
         '",',
         '"image":',
         '"',
-        getImage(_tokenId),
+        getImage(),
         '"',
         '}'
       )
     );
 
     return _metadata;
+  }
+
+  /**
+   * Loan functions
+   */
+
+  function createLoan(uint256 _id) external nonReentrant {
+    require(balanceOf(msg.sender, _id) == 1, 'Savings: invalid id');
+    require(!loan[_id].onLoan, 'Savings: Loan already created');
+    require(block.timestamp < attributes[_id].cfaLife, 'Savings: insurance has expired');
+
+    (uint256 totalPrincipal, ) = getYieldedInterest(_id);
+    uint256 loanedPrincipal = ((totalPrincipal) * 25) / 100;
+
+    loan[_id].onLoan = true;
+    loan[_id].loanBalance = loanedPrincipal;
+    loan[_id].timeWhenLoaned = block.timestamp;
+
+    attributes[_id].effectiveInterestTime = block.timestamp; //change
+
+    emit LoanCreated(_id, (loanedPrincipal * 25) / 100);
+  }
+
+  function repayLoan(uint256 _id, uint256 _amount) external nonReentrant {
+    require(loan[_id].onLoan, 'Savings: Loan invalid');
+    require(_amount <= loan[_id].loanBalance, 'Savings: Incorrect loan repayment amount');
+
+    IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _amount);
+
+    if (_amount < loan[_id].loanBalance) {
+      loan[_id].loanBalance -= _amount;
+    } else {
+      attributes[_id].effectiveInterestTime = block.timestamp;
+      loan[_id].loanBalance = 0;
+      loan[_id].onLoan = false;
+      uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
+      attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
+    }
+
+    emit LoanRepayed(_id);
   }
 
   /**

@@ -7,9 +7,9 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/utils/Base64.sol';
-import '../token/BBTOKENv2.sol';
 import '../utils/Registry.sol';
 import './interface/IInsurance.sol';
+import './Referral.sol';
 
 contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
   /**
@@ -22,10 +22,13 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
    */
   Metadata public metadata;
   Registry public registry;
+  Referral public referral;
 
   uint256 public idCounter;
+
   mapping(uint256 => uint256) public interestRate;
   mapping(uint256 => Attributes) public attributes;
+  mapping(uint256 => Loan) public loan;
 
   /**
    * Modifiers
@@ -37,6 +40,9 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
   event InsuranceCreated(Attributes _attributes);
   event InsuranceWithdrawn(uint256 _id, uint256 _amount, uint256 _time);
   event InsuranceBurned(Attributes _attributes, uint256 _time);
+  event LoanCreated(uint256 _id, uint256 _totalLoan);
+  event LoanRepayed(uint256 _id);
+  event expired(uint256 _id);
 
   /**
    * Constructor
@@ -47,8 +53,10 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
   /**
    * Main Functions
    */
-  function _saveMetadata(Attributes memory _attributes) internal {
+  function _saveAttributes(Attributes memory _attributes) internal {
     _attributes.timeCreated = block.timestamp;
+    _attributes.cfaLife = block.timestamp + (30 days * 12 * 30); // 30 Years of CFA Life
+    _attributes.effectiveInterestTime = _attributes.timeCreated;
     attributes[idCounter] = _attributes;
   }
 
@@ -56,42 +64,44 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
     IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _attributes.principal);
 
     _mint(msg.sender, idCounter, 1, '');
-    _saveMetadata(_attributes);
+    _saveAttributes(_attributes);
 
     emit InsuranceCreated(_attributes);
   }
 
   function mintInsurance(Attributes[] memory _attributes) external {
     for (uint256 i = 0; i < _attributes.length; i++) {
+      require(interestRate[_attributes[i].timePeriod] != 0, 'Insurance: invalid time period');
       _mintInsurance(_attributes[i]);
       idCounter++;
+      // Referral(registry.registry('Referral')).returnReward(msg.sender, _attributes[i].principal);
     }
-
-    // TODO: add referral
   }
 
   function withdraw(uint256 _id, uint256 _amount) external nonReentrant {
-    (uint256 interest, uint256 totalPrincipal) = getInterest(_id);
-
+    (uint256 interest, uint256 totalPrincipal) = getInterest(_id); // interest = total yielded interest, totalPrincipal = principal + interest
+    // require(block.timestamp < attributes[_id].cfaLife, 'Insurance: insurance has expired');
     require(balanceOf(msg.sender, _id) == 1, 'Insurance: invalid id');
-    require(_amount <= (totalPrincipal), 'Insurance: invalid amount');
-    require(
-      ((block.timestamp - attributes[_id].timeCreated) / attributes[_id].timePeriod) > 0,
-      'Insurance: Still not matured'
-    );
+    require(_amount <= (totalPrincipal), 'Insurance: invalid amount'); // amount should be less than or equal to totalPrincipal
+    // require(
+    //   ((block.timestamp - attributes[_id].timeCreated) / attributes[_id].timePeriod) > 0,
+    //   'Insurance: Still not matured'
+    // ); With this, withdraw can only happen when interest has ticked
+    require(!loan[_id].onLoan, 'Insurance: On Loan');
 
-    // TODO: implement interest
+    attributes[_id].principal += interest;
+
     BBToken token = BBToken(registry.registry('BbToken'));
-    token.mint(interest);
+    token.mint(address(this), interest);
 
-    token.transfer(msg.sender, _amount + interest);
+    token.transfer(msg.sender, _amount);
     attributes[_id].principal -= _amount;
 
-    if (attributes[_id].principal < 1 ether) {
+    if (attributes[_id].principal < 1000000000000000000) {
       _burn(msg.sender, _id, 1);
       emit InsuranceBurned(attributes[_id], block.timestamp);
     } else {
-      attributes[_id].timeCreated = block.timestamp;
+      attributes[_id].effectiveInterestTime += getIterations(_id) * attributes[_id].timePeriod;
     }
 
     emit InsuranceWithdrawn(_id, _amount, block.timestamp);
@@ -111,13 +121,21 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
   function setInterestRate(uint256[] memory _period, uint256[] memory _interestRate) external onlyOwner {
     require(_period.length == _interestRate.length, 'Insurance: invalid length');
     for (uint256 i = 0; i < _period.length; i++) {
-      interestRate[_period[i]] = interestRate[i];
+      interestRate[_period[i]] = _interestRate[i];
     }
   }
 
   /**
    * Read Functions
    */
+  function getIterations(uint256 _id) public view returns (uint256) {
+    uint256 totalIterations = (block.timestamp - attributes[_id].effectiveInterestTime) / attributes[_id].timePeriod;
+    if (block.timestamp > attributes[_id].cfaLife) {
+      totalIterations = (attributes[_id].cfaLife - attributes[_id].effectiveInterestTime) / attributes[_id].timePeriod;
+    }
+    return totalIterations;
+  }
+
   function getInterestRate(uint256 _period) public view returns (uint256) {
     require(interestRate[_period] != 0, 'Insurance: invalid period');
     return interestRate[_period];
@@ -131,7 +149,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
   function getInterest(uint256 _id) public view returns (uint256, uint256) {
     uint256 principal = attributes[_id].principal;
     uint256 interest = getInterestRate(attributes[_id].timePeriod);
-    uint256 iterations = (block.timestamp - attributes[_id].timeCreated) / attributes[_id].timePeriod;
+    uint256 iterations = getIterations(_id);
     uint256 totalInterest = 0;
 
     if (iterations == 0) {
@@ -174,6 +192,56 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
     );
 
     return _metadata;
+  }
+
+  /**
+   * Loan functions
+   */
+
+  function createLoan(uint256 _id) external nonReentrant {
+    require(balanceOf(msg.sender, _id) == 1, 'Insurance: invalid id');
+    require(!loan[_id].onLoan, 'Insurance: Loan already created');
+    require(block.timestamp < attributes[_id].cfaLife, 'Insurance: insurance has expired');
+
+    (uint256 interest, uint256 totalPrincipal) = getInterest(_id);
+    uint256 loanedPrincipal = ((totalPrincipal) * 25) / 100;
+    BBToken token = BBToken(registry.registry('BbToken'));
+    token.mint(address(this), interest);
+    token.mint(msg.sender, loanedPrincipal);
+
+    loan[_id].onLoan = true;
+    loan[_id].loanBalance = loanedPrincipal;
+    loan[_id].timeWhenLoaned = block.timestamp;
+
+    attributes[_id].effectiveInterestTime = block.timestamp;
+
+    emit LoanCreated(_id, loanedPrincipal);
+  }
+
+  function repayLoan(uint256 _id, uint256 _amount) external nonReentrant {
+    require(loan[_id].onLoan, 'Insurance: Loan invalid');
+    require(_amount <= loan[_id].loanBalance, 'Insurance: Incorrect loan repayment amount');
+
+    IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _amount);
+
+    if (_amount < loan[_id].loanBalance) {
+      loan[_id].loanBalance -= _amount;
+    } else {
+      attributes[_id].effectiveInterestTime = block.timestamp;
+      loan[_id].loanBalance = 0;
+      loan[_id].onLoan = false;
+      uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
+      attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
+    }
+
+    BBToken(registry.registry('BbToken')).burn(_amount);
+
+    emit LoanRepayed(_id);
+  }
+
+  function getLoanBalance(uint _id) public view returns (uint256) {
+    uint _loanBalance = loan[_id].loanBalance;
+    return _loanBalance;
   }
 
   /**
