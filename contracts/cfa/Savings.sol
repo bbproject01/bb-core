@@ -34,7 +34,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
    */
   event SavingsCreated(Attributes _attribute);
   event SavingsWithdrawn(Attributes _attribute, uint256 _time);
-  event SavingsBurned(Attributes _attribute, uint256 _time)
+  event SavingsBurned(Attributes _attribute, uint256 _time);
   event LoanCreated(uint256 _id, uint256 _totalLoan);
   event LoanRepayed(uint256 _id);
 
