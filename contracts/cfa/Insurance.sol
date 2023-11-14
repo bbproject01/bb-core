@@ -24,7 +24,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
   Registry public registry;
   Referral public referral;
 
-  uint256 public idCounter;
+  uint256 public idCounter = 1;
 
   mapping(uint256 => uint256) public interestRate;
   mapping(uint256 => Attributes) public attributes;
