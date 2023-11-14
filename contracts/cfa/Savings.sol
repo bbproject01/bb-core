@@ -27,13 +27,14 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   uint256[] public markers = new uint256[](219);
   uint256[] public interests = new uint256[](219);
   uint256 public idCounter = 1;
-
+  uint256 public markerSize;
+  bool interestsSet;
   /**
    * Events
    */
   event SavingsCreated(Attributes _attribute);
   event SavingsWithdrawn(Attributes _attribute, uint256 _time);
-  event SavingsBinded(Attributes _attribute, uint256 _time);
+  event SavingsBurned(Attributes _attribute, uint256 _time)
   event LoanCreated(uint256 _id, uint256 _totalLoan);
   event LoanRepayed(uint256 _id);
 
@@ -51,9 +52,13 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
    */
 
   function _saveAttributes(Attributes memory _attributes) internal {
+    require(_attributes.cfaLife >= life.min && life.max >= _attributes.cfaLife, 'Savings: Invalid CFA life duration');
     _attributes.timeCreated = block.timestamp;
     _attributes.effectiveInterestTime = block.timestamp;
     _attributes.interestRate = getInterestRate();
+    uint256 originalCfaLife = _attributes.cfaLife;
+    uint256 yearsLeft = (originalCfaLife * 30 days * 12) + block.timestamp;
+    _attributes.cfaLife = yearsLeft;
     attributes[idCounter] = _attributes;
   }
 
@@ -67,19 +72,20 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   }
 
   function mintSavings(Attributes[] memory _attributes) external nonReentrant {
+    require(interestsSet, 'Savings: Interest not yet set');
+
     for (uint256 i = 0; i < _attributes.length; i++) {
-      // require(interests[_attributes[i].interestRate] != 0,'Savings: Invalid interest rate');
       _mintSavings(_attributes[i]);
       idCounter++;
-      Referral(registry.registry('Referral')).returnReward(msg.sender, _attributes[i].amount);
+      // Referral(registry.registry('Referral')).returnReward(msg.sender, _attributes[i].amount);
       // Returns referral reward for every CFA minted
     }
   }
 
   function _burnSavings(uint256 _id) internal {
-    IERC20(registry.registry('BbToken')).transfer(msg.sender, attributes[_id].amount);
+    emit SavingsBurned(attributes[_id], block.timestamp);
     delete attributes[_id];
-    _burn(msg.sender, _id, idCounter);
+    _burn(msg.sender, _id, 1);
   }
 
   function withdrawSavings(uint256 _id) external nonReentrant {
@@ -87,15 +93,15 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     //   attributes[_id].effectiveInterestTime + attributes[_id].cfaLife < block.timestamp,
     //   'Savings: CFA is not matured'
     // );
-    require(attributes[_id].cfaLife > 30 days, 'Savings: CFA is not yet matured');
-    require(loan[_id].onLoan, 'Savings: On Loan');
-    require(block.timestamp < attributes[_id].cfaLife, 'Savings: insurance has expired');
+    require(block.timestamp > attributes[_id].cfaLife, 'Savings: CFA not yet matured');
+    require(!loan[_id].onLoan, 'Savings: On Loan');
+    // require(block.timestamp < attributes[_id].cfaLife, 'Savings: insurance has expired');
 
-    (uint256 totalAmount, ) = getYieldedInterest(_id); // Gets the accrued interest + principal
+    (, uint256 interest) = getTotalInterest(_id); // Gets the accrued interest + principal
 
     BBToken token = BBToken(registry.registry('BbToken'));
-    token.mint(address(this), totalAmount);
-    token.transfer(msg.sender, totalAmount); // why arent we just minting direct to the msg.sender
+    token.transfer(msg.sender, attributes[_id].amount);
+    token.mint(msg.sender, interest);
 
     _burnSavings(_id);
     emit SavingsWithdrawn(attributes[_id], block.timestamp);
@@ -136,9 +142,12 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
 
   function setInterest(uint256[] memory _marker, uint256[] memory _interest) external onlyOwner {
     require(_marker.length == _interest.length, 'Savings: Invalid input');
+    interestsSet = true;
+
     for (uint256 i = 0; i < _marker.length; i++) {
       markers[i] = _marker[i];
       interests[i] = _interest[i];
+      markerSize++;
     }
   }
 
@@ -206,9 +215,15 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   function getMarker() internal view returns (uint256) {
     uint256 totalSupply = IERC20(registry.registry('BbToken')).totalSupply();
     uint256 marker = 0;
-    for (uint256 index = 0; index < markers.length; index++) {
+
+    if (totalSupply > markers[markerSize - 1]) {
+      return markerSize - 1;
+    }
+
+    for (uint256 index = 0; index < markers.length - 1; index++) {
       if (totalSupply > markers[index] && totalSupply <= markers[index + 1]) {
         marker = index;
+        break;
       }
     }
 
@@ -224,7 +239,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     uint256 principal = attributes[_id].amount;
     uint256 interest = attributes[_id].interestRate;
     uint256 month = 30 days;
-    uint256 months = attributes[_id].cfaLife / month;
+    uint256 months = (attributes[_id].cfaLife - attributes[_id].effectiveInterestTime) / month;
     uint256 basisPoint = 100000;
     uint256 totalInterest = 0;
 
@@ -240,7 +255,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
 
   function getYieldedInterest(uint256 _id) public view returns (uint256, uint256) {
     uint256 principal = attributes[_id].amount;
-    uint256 interest = interests[attributes[_id].cfaLife];
+    uint256 interest = attributes[_id].interestRate;
     uint256 months = (block.timestamp - attributes[_id].effectiveInterestTime) / 30 days;
     uint256 basisPoint = 10000;
     uint256 totalInterest = 0;
@@ -309,8 +324,6 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     loan[_id].onLoan = true;
     loan[_id].loanBalance = loanedPrincipal;
     loan[_id].timeWhenLoaned = block.timestamp;
-
-    attributes[_id].effectiveInterestTime = block.timestamp; //change
 
     emit LoanCreated(_id, (loanedPrincipal * 25) / 100);
   }
