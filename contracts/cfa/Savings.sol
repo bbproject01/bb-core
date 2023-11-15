@@ -240,7 +240,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     uint256 interest = attributes[_id].interestRate;
     uint256 month = 30 days;
     uint256 months = (attributes[_id].cfaLife - attributes[_id].effectiveInterestTime) / month;
-    uint256 basisPoint = 100000;
+    uint256 basisPoint = 10000;
     uint256 totalInterest = 0;
 
     for (uint256 index = 0; index < months; index++) {
@@ -309,6 +309,11 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     return _metadata;
   }
 
+  function getLoanBalance(uint _id) external view returns (uint256) {
+    uint _loanBalance = loan[_id].loanBalance;
+    return _loanBalance;
+  }
+
   /**
    * Loan functions
    */
@@ -320,6 +325,8 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
 
     (uint256 totalPrincipal, ) = getYieldedInterest(_id);
     uint256 loanedPrincipal = ((totalPrincipal) * 25) / 100;
+    BBToken token = BBToken(registry.registry('BbToken'));
+    token.mint(address(this), loanedPrincipal);
 
     loan[_id].onLoan = true;
     loan[_id].loanBalance = loanedPrincipal;
@@ -343,6 +350,8 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
       uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
       attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
     }
+
+    BBToken(registry.registry('BbToken')).burn(_amount);
 
     emit LoanRepayed(_id);
   }
