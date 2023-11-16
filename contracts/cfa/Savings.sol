@@ -57,7 +57,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     _attributes.effectiveInterestTime = block.timestamp;
     _attributes.interestRate = getInterestRate();
     uint256 originalCfaLife = _attributes.cfaLife;
-    uint256 yearsLeft = (originalCfaLife * 30 days * 12) + block.timestamp;
+    uint256 yearsLeft = (originalCfaLife * 30 days) + block.timestamp;
     _attributes.cfaLife = yearsLeft;
     attributes[idCounter] = _attributes;
   }
