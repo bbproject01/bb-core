@@ -24,7 +24,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
   Registry public registry;
   Referral public referral;
 
-  uint256 public idCounter;
+  uint256 public idCounter = 1;
 
   mapping(uint256 => uint256) public interestRate;
   mapping(uint256 => Attributes) public attributes;
@@ -98,8 +98,9 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
     attributes[_id].principal -= _amount;
 
     if (attributes[_id].principal < 1000000000000000000) {
-      _burn(msg.sender, _id, 1);
       emit InsuranceBurned(attributes[_id], block.timestamp);
+      delete attributes[_id];
+      _burn(msg.sender, _id, 1);
     } else {
       attributes[_id].effectiveInterestTime += getIterations(_id) * attributes[_id].timePeriod;
     }
@@ -194,6 +195,11 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
     return _metadata;
   }
 
+  function getLoanBalance(uint _id) external view returns (uint256) {
+    uint _loanBalance = loan[_id].loanBalance;
+    return _loanBalance;
+  }
+
   /**
    * Loan functions
    */
@@ -237,11 +243,6 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
     BBToken(registry.registry('BbToken')).burn(_amount);
 
     emit LoanRepayed(_id);
-  }
-
-  function getLoanBalance(uint _id) public view returns (uint256) {
-    uint _loanBalance = loan[_id].loanBalance;
-    return _loanBalance;
   }
 
   /**
