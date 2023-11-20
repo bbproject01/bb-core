@@ -57,7 +57,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     _attributes.effectiveInterestTime = block.timestamp;
     _attributes.interestRate = getInterestRate();
     uint256 originalCfaLife = _attributes.cfaLife;
-    uint256 yearsLeft = (originalCfaLife * 30 days * 12) + block.timestamp;
+    uint256 yearsLeft = (originalCfaLife * 30 days) + block.timestamp;
     _attributes.cfaLife = yearsLeft;
     attributes[idCounter] = _attributes;
   }
@@ -326,7 +326,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     (uint256 totalPrincipal, ) = getYieldedInterest(_id);
     uint256 loanedPrincipal = ((totalPrincipal) * 25) / 100;
     BBToken token = BBToken(registry.registry('BbToken'));
-    token.mint(address(this), loanedPrincipal);
+    token.mint(msg.sender, loanedPrincipal);
 
     loan[_id].onLoan = true;
     loan[_id].loanBalance = loanedPrincipal;
