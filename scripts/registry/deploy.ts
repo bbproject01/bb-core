@@ -6,7 +6,7 @@ async function main() {
 
   console.info('Deploying Registry contract...');
   await registry.deployed();
-  console.info('Referral contract deployed to:', registry.address);
+  console.info('Registry contract deployed to:', registry.address);
 }
 
 main();
