@@ -13,7 +13,7 @@ contract Referral is Ownable {
   uint256[] public bracket = [0, 100, 1_000, 10_000, 100_000, 1_000_000]; // number of referrals required to reach each bracket
   uint256[] public returnRates = [7, 10, 15, 20, 25];
   address public defaultReferrer; // default referrer for users who have not been referred
-
+  
   mapping(address => bool) public operators; // address => bool mapping to check if an address is an operator
   mapping(address => address) public referrer; // user => referrer
   mapping(address => uint256) public referralCount; // user => number of referrals
