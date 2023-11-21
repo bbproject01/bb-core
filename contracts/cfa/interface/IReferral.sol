@@ -5,6 +5,8 @@ interface IReferral {
   struct Referrer {
     address referrer;
     uint256 referralCount;
-    bool isAdded;
+    uint256 buyCount;
+    bool wasReferred;
+
   }
 }
