@@ -2,38 +2,30 @@
 pragma solidity 0.8.17;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
-import './interface/IReferral.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '../token/BBTOKENv2.sol';
+import './interface/IReferral.sol';
 import '../utils/Registry.sol';
 
 contract Referral is Ownable, IReferral {
   // Local Variables
   Registry public registry;
-  IReferral public referral;
 
-  uint256 public minBuys = 5; // minimum number of buys required to be eligible for referral
-  uint256 public supplyMarkerSize;
+  uint256[] public amtReferredBracket;
+  uint256[][] public interestSet;
+  uint256[] public supplyMarkers;
+  uint256[] public referredRewardRates;
+  address public defaultReferrer;
+  bool _interestSet;
 
-  uint256[] public amtReferredBracket; // number of referrals required to reach each bracket
-  uint256[] public returnRates;
-  uint256[][] public interestSet; // interest values
-  uint256[] public supplyMarkers; // supply values
-
-  bool interestsSet;
-
-  address public defaultReferrer; // default referrer for users who have not been referred
   mapping(address => Referrer) public referrer;
-  mapping(address => bool) public operators; // address => bool mapping to check if an address is an operator // user => number of referrals
+  mapping(address => bool) public operators;
 
   // Events
   event ReferralRecorded(address indexed user, address indexed referrer);
   event ReferralRemoved(address indexed user);
 
   // Modifiers
-  modifier onlyOperator() {
-    require(operators[msg.sender], '000');
-    _;
-  }
 
   // Constructor
   constructor() Ownable() {}
@@ -42,12 +34,15 @@ contract Referral is Ownable, IReferral {
   /**
    * @dev Used to set referrer to a new user
    */
-  function addReferrer(address _referrer) external onlyOperator {
-    require(referrer[msg.sender].referrer == address(0), '001');
+  function addReferrer(address _referrer) external {
+    require(referrer[msg.sender].referrer == address(0), 'Referral: Referrer already set');
+    require(_referrer != msg.sender, 'Referral: Cannot set referrer to yourself');
+    // require(!isReferral(msg.sender, _referrer), 'Referral: Circular referral not allowed');
 
+    referrer[_referrer].referrals.push(msg.sender);
+    referrer[_referrer].referralCount++;
+    referrer[msg.sender].wasReferred = true;
     referrer[msg.sender].referrer = _referrer;
-    referrer[msg.sender].referralCount++;
-
     emit ReferralRecorded(msg.sender, _referrer);
   }
 
@@ -64,26 +59,16 @@ contract Referral is Ownable, IReferral {
   }
 
   /**
-   * @dev Used to set default referrer
+   * @dev Used to set interest rates
    */
-  function setDefaultReferrer(address _referrer) external onlyOwner {
-    defaultReferrer = _referrer;
-  }
+  function setInterestRate(uint256[][] memory _newInterestSet) external onlyOwner {
+    require(_newInterestSet.length > 0, 'Referral: Empty array');
 
-  function addBuyCount(address _user, uint256 _qty) external onlyOperator {
-    referrer[_user].buyCount += _qty;
-  }
-
-  function setInterestRate(uint256[] memory _marker, uint256[][] memory _newInterestSet) external {
-    require(_marker.length == _newInterestSet.length, 'Referral: Arrays length mismatch');
-
-    // Update marker
-    marker = _marker;
-
-    // Update interestSet based on marker values
-    for (uint256 i = 0; i < _marker.length; i++) {
-      require(_marker[i] > 0 && _marker[i] <= interestSet.length, 'Referral: Invalid marker value');
-      interestSet[_marker[i] - 1] = _newInterestSet[i];
+    interestSet = new uint256[][](_newInterestSet.length);
+    _interestSet = true;
+    for (uint256 i = 0; i < _newInterestSet.length; i++) {
+      require(_newInterestSet[i].length > 0, 'Referral: Empty sub-array');
+      interestSet[i] = _newInterestSet[i];
     }
   }
 
@@ -92,72 +77,51 @@ contract Referral is Ownable, IReferral {
 
     // Iterate through the supplied markers to set supplyMarkers and update supplyMarkerSize
     for (uint256 i = 0; i < _markers.length; i++) {
-      supplyMarkers.push(_markers[i]);
-      supplyMarkerSize++;
+      supplyMarkers[i] = _markers[i];
+    }
+  }
+
+  function setReferredRewards(uint256[] memory _rewards) external onlyOwner {
+    require(_rewards.length > 0, 'Referral: Empty markers array');
+
+    for (uint256 i = 0; i < _rewards.length; i++) {
+      referredRewardRates[i] = _rewards[i];
     }
   }
 
   function setAmtReferredBracket(uint256[] memory _amtReferredBracket) external onlyOwner {
-    require(_amtReferredBracket.length > 0, 'Referral: Empty amtReferredBracket array');
+    require(_amtReferredBracket.length > 0, 'Referral: Empty array');
 
     amtReferredBracket = _amtReferredBracket;
   }
 
-  // /**
-  //  * @dev Used to change required number of referrals to reach each bracket
-  //  * @param _bracket Array of number of referrals required to reach each bracket
-  //  */
-  // function changeUserBracket(address _user) external onlyOwner {
-  //   bracket = _bracket;
-  // }
+  /**
+   * @dev Used to return rewards to the referrer
+   */
+  function rewardForReferrer(address _sender, uint256 amount) external {
+    require(referredRewardRates.length != 0, 'referredRewardRates not set');
+    require(supplyMarkers.length != 0, 'supplyMarkers not set');
+    require(amtReferredBracket.length != 0, 'supplyMarkers not set');
+    require(_interestSet, 'interest not set');
 
-  // updates what bracket user is in
-
-
-  //to be called externally, gets the users bracket and returns amount
-  function returnReward(address _sender, uint256 amount) external onlyOwner {
+    referrer[_sender].buyCount++;
     address _referrer = referrer[_sender].referrer;
-    uint256 returnRate = returnRates[_userBracket];
-
-    uint256 reward = ((amount) * returnRate) / 100;
-
+    uint256 returnRate = getUserInterest(_sender);
+    uint256 reward = (amount * returnRate) / 10000;
     BBToken token = BBToken(registry.registry('BbToken'));
     token.mint(_referrer, reward);
   }
 
-  // updates rate of return for each bracket
-  function changeRates(uint256[] memory _rates) external onlyOwner {
-    returnRates = _rates;
-  }
-
   // View Functions
   /**
-   * @dev Used to get bracket of a user
-   * @param _user address of user that you wanted to check
+   * @dev Used to get the marker for the current supply
    */
-  // function getBracket(address _user) external returns (uint256 _bracket) {
-  //   uint256 _referralCount = referrer[_user].referralCount;
-
-  //   if (_referralCount == 0) {
-  //     return 0;
-  //   } else {
-  //     for (uint256 i = 0; i < bracket.length; i++) {
-  //       if (_referralCount < bracket[i]) {
-  //         if (userBracket[_user] != i) {
-  //           updateBracket(i, _user);
-  //         }
-  //         return i;
-  //       }
-  //     }
-  //   }
-  }
-
-  function getMarker() internal view returns (uint256) {
+  function getMarker() public view returns (uint256) {
     uint256 totalSupply = IERC20(registry.registry('BbToken')).totalSupply();
     uint256 supplyMarker = 0;
 
-    if (totalSupply > supplyMarkers[supplyMarkerSize - 1]) {
-      return supplyMarkerSize - 1;
+    if (totalSupply > supplyMarkers[supplyMarkers.length - 1]) {
+      return supplyMarkers.length - 1;
     }
 
     for (uint256 index = 0; index < supplyMarkers.length - 1; index++) {
@@ -170,29 +134,83 @@ contract Referral is Ownable, IReferral {
     return supplyMarker;
   }
 
-function getUsersInterestMarker(address _referrer) internal view returns (uint256) {
+  /**
+   * @dev Used to get the interest marker for a user
+   */
+  function getUsersInterestMarker(address _referrer) public view returns (uint256) {
     uint256 referredCount = referrer[_referrer].referralCount;
 
     uint256 bracketIndex = 0;
     while (bracketIndex < amtReferredBracket.length && referredCount >= amtReferredBracket[bracketIndex]) {
       bracketIndex++;
     }
-
     require(bracketIndex < interestSet.length, 'Referral: Invalid bracket index');
-
     return bracketIndex;
-}
+  }
 
-function getUserInterest(address _referrer) internal view returns (uint256) {
-  address user = _referrer;
+  function eligibleForReward(address _referrer) external view returns (bool) {
+    if (referrer[_referrer].buyCount <= 10 && referrer[_referrer].referrer != address(0)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
-  uint256 globalMarker = getMarker();
-  uint256[] interestBracket = interestSet[globalMarker];
+  // function isReferral(address _referral, address _referrer) internal view returns (bool) {
+  //   uint256 referralCount = referrer[_referrer].referralCount;
+  //   for (uint256 i = 0; i < referralCount; i++) {
+  //     address referredAddress = referrer[_referrer].referrals[i];
+  //     if (referredAddress == _referral) {
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
 
-  uint256 userMarker = getUsersInterestMarker(user);
-  uint256 userInterest = interestBracket[userMarker];
+  /**
+   * @dev Used to get the interest rate for a user
+   */
+  function getUserInterest(address _referrer) internal view returns (uint256) {
+    uint256 globalMarker = getMarker();
+    uint256[] memory interestBracket = interestSet[globalMarker];
 
-  return userInterest;
+    uint256 userMarker = getUsersInterestMarker(_referrer);
+    uint256 userInterest = interestBracket[userMarker];
 
-}
+    return userInterest;
+  }
+
+  function getReferredDiscount() public view returns (uint256) {
+    uint256 _getMarker = getMarker();
+    uint256 reward = referredRewardRates[_getMarker];
+    return reward;
+  }
+
+  //test functions, remove at final
+  function getInterestSet() external view returns (uint256[] memory) {
+    uint256 globalMarker = getMarker();
+    uint256[] memory interestBracket = interestSet[globalMarker];
+    return interestBracket;
+  }
+
+  function increaseeferralCount(uint256 impostor) public {
+    referrer[msg.sender].referralCount += impostor;
+  }
+
+  function checkCurrentBracket() public view returns (uint256[] memory) {
+    uint256 globalMarker = getMarker();
+    uint256[] memory interestBracket = interestSet[globalMarker];
+
+    return interestBracket;
+  }
+
+  function checkSupply() public view returns (uint256) {
+    uint256 supply = IERC20(registry.registry('BbToken')).totalSupply();
+    return supply;
+  }
+
+  function checkReferrals(address refferrrr) public view returns (address[] memory) {
+    address[] memory amongus = referrer[refferrrr].referrals;
+    return amongus;
+  }
 }
