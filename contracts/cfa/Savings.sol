@@ -62,12 +62,17 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     attributes[idCounter] = _attributes;
   }
 
-  function _mintSavings(Attributes memory _attributes) internal {
-    IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _attributes.amount);
-
+  function _mintSavings(Attributes memory _attributes, address caller) internal {
+    if ((Referral(registry.registry('Referral')).eligibleForReward(caller))) {
+      Referral(registry.registry('Referral')).rewardForReferrer(caller, _attributes.amount);
+      uint256 discount = Referral(registry.registry('Referral')).getReferredDiscount();
+      uint256 amtPayable = _attributes.amount - ((_attributes.amount * discount) / 10000);
+      IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
+    } else {
+      IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _attributes.amount);
+    }
     _mint(msg.sender, idCounter, 1, '');
     _saveAttributes(_attributes);
-
     emit SavingsCreated(_attributes);
   }
 
@@ -75,10 +80,8 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     require(interestsSet, 'Savings: Interest not yet set');
 
     for (uint256 i = 0; i < _attributes.length; i++) {
-      _mintSavings(_attributes[i]);
+      _mintSavings(_attributes[i], msg.sender);
       idCounter++;
-      // Referral(registry.registry('Referral')).returnReward(msg.sender, _attributes[i].amount);
-      // Returns referral reward for every CFA minted
     }
   }
 
