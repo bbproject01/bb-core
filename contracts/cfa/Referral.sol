@@ -37,7 +37,7 @@ contract Referral is Ownable, IReferral {
   function addReferrer(address _referrer) external {
     require(referrer[msg.sender].referrer == address(0), 'Referral: Referrer already set');
     require(_referrer != msg.sender, 'Referral: Cannot set referrer to yourself');
-    // require(!isReferral(msg.sender, _referrer), 'Referral: Circular referral not allowed');
+    require(!isReferral(_referrer, msg.sender), 'Referral: Circular referral not allowed');
 
     referrer[_referrer].referrals.push(msg.sender);
     referrer[_referrer].referralCount++;
@@ -156,16 +156,21 @@ contract Referral is Ownable, IReferral {
     }
   }
 
-  // function isReferral(address _referral, address _referrer) internal view returns (bool) {
-  //   uint256 referralCount = referrer[_referrer].referralCount;
-  //   for (uint256 i = 0; i < referralCount; i++) {
-  //     address referredAddress = referrer[_referrer].referrals[i];
-  //     if (referredAddress == _referral) {
-  //       return true;
-  //     }
-  //   }
-  //   return false;
-  // }
+  function isReferral(address _referral, address _referrer) public view returns (bool) {
+    uint256 referralCount = referrer[_referrer].referralCount;
+    for (uint256 i = 0; i < referralCount; i++) {
+      address referredAddress = referrer[_referrer].referrals[i];
+      if (referredAddress == _referral) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function getAttributes(address _address) public view returns (Referrer memory) {
+    Referrer memory _attributes = referrer[_address];
+    return _attributes;
+  }
 
   /**
    * @dev Used to get the interest rate for a user
@@ -186,31 +191,31 @@ contract Referral is Ownable, IReferral {
     return reward;
   }
 
-  //test functions, remove at final
-  function getInterestSet() external view returns (uint256[] memory) {
-    uint256 globalMarker = getMarker();
-    uint256[] memory interestBracket = interestSet[globalMarker];
-    return interestBracket;
-  }
+  // Debug functions
+  // function getInterestSet() external view returns (uint256[] memory) {
+  //   uint256 globalMarker = getMarker();
+  //   uint256[] memory interestBracket = interestSet[globalMarker];
+  //   return interestBracket;
+  // }
 
-  function increaseeferralCount(uint256 impostor) public {
-    referrer[msg.sender].referralCount += impostor;
-  }
+  // function increaseeferralCount(uint256 impostor) public {
+  //   referrer[msg.sender].referralCount += impostor;
+  // }
 
-  function checkCurrentBracket() public view returns (uint256[] memory) {
-    uint256 globalMarker = getMarker();
-    uint256[] memory interestBracket = interestSet[globalMarker];
+  // function checkCurrentBracket() public view returns (uint256[] memory) {
+  //   uint256 globalMarker = getMarker();
+  //   uint256[] memory interestBracket = interestSet[globalMarker];
 
-    return interestBracket;
-  }
+  //   return interestBracket;
+  // }
 
-  function checkSupply() public view returns (uint256) {
-    uint256 supply = IERC20(registry.registry('BbToken')).totalSupply();
-    return supply;
-  }
+  // function checkSupply() public view returns (uint256) {
+  //   uint256 supply = IERC20(registry.registry('BbToken')).totalSupply();
+  //   return supply;
+  // }
 
-  function checkReferrals(address refferrrr) public view returns (address[] memory) {
-    address[] memory amongus = referrer[refferrrr].referrals;
-    return amongus;
-  }
+  // function checkReferrals(address refferrrr) public view returns (address[] memory) {
+  //   address[] memory amongus = referrer[refferrrr].referrals;
+  //   return amongus;
+  // }
 }
