@@ -10,6 +10,7 @@ import '@openzeppelin/contracts/utils/Base64.sol';
 import './interface/ISavings.sol';
 import './Referral.sol';
 import '../utils/Registry.sol';
+import '../utils/GlobalMarker.sol';
 
 contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   using Strings for uint256;
@@ -21,14 +22,12 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   Registry public registry; // The registry contract
   Life public life; // max and minimum life of Savings CFA
   Metadata public metadata; // The metadata of the Savings CFA
+  GlobalMarker public globalMarker; // the supply and Interest marker
 
   mapping(uint256 => Loan) public loan;
   mapping(uint256 => Attributes) public attributes;
-  uint256[] public markers = new uint256[](219);
-  uint256[] public interests = new uint256[](219);
   uint256 public idCounter = 1;
-  uint256 public markerSize;
-  bool interestsSet;
+
   /**
    * Events
    */
@@ -55,7 +54,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     require(_attributes.cfaLife >= life.min && life.max >= _attributes.cfaLife, 'Savings: Invalid CFA life duration');
     _attributes.timeCreated = block.timestamp;
     _attributes.effectiveInterestTime = block.timestamp;
-    _attributes.interestRate = getInterestRate();
+    _attributes.interestRate = GlobalMarker(registry.registry('GlobalMarker')).getInterestRate();
     uint256 originalCfaLife = _attributes.cfaLife;
     uint256 yearsLeft = (originalCfaLife * 30 days) + block.timestamp;
     _attributes.cfaLife = yearsLeft;
@@ -77,7 +76,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   }
 
   function mintSavings(Attributes[] memory _attributes) external nonReentrant {
-    require(interestsSet, 'Savings: Interest not yet set');
+    require(GlobalMarker(registry.registry('GlobalMarker')).isInterestSet(), 'GlobalSupply: Interest not yet set');
 
     for (uint256 i = 0; i < _attributes.length; i++) {
       _mintSavings(_attributes[i], msg.sender);
@@ -143,17 +142,6 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     life.max = _max;
   }
 
-  function setInterest(uint256[] memory _marker, uint256[] memory _interest) external onlyOwner {
-    require(_marker.length == _interest.length, 'Savings: Invalid input');
-    interestsSet = true;
-
-    for (uint256 i = 0; i < _marker.length; i++) {
-      markers[i] = _marker[i];
-      interests[i] = _interest[i];
-      markerSize++;
-    }
-  }
-
   /**
    * Read Function
    */
@@ -214,29 +202,6 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   //     }
   //   }
   // }
-
-  function getMarker() internal view returns (uint256) {
-    uint256 totalSupply = IERC20(registry.registry('BbToken')).totalSupply();
-    uint256 marker = 0;
-
-    if (totalSupply > markers[markerSize - 1]) {
-      return markerSize - 1;
-    }
-
-    for (uint256 index = 0; index < markers.length - 1; index++) {
-      if (totalSupply > markers[index] && totalSupply <= markers[index + 1]) {
-        marker = index;
-        break;
-      }
-    }
-
-    return marker;
-  }
-
-  function getInterestRate() internal view returns (uint256) {
-    uint256 marker = getMarker();
-    return interests[marker];
-  }
 
   function getTotalInterest(uint256 _id) public view returns (uint256, uint256) {
     uint256 principal = attributes[_id].amount;
