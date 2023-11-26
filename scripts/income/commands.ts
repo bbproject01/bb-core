@@ -13,13 +13,21 @@ async function main() {
   // await income.setTimeCreated('1', '1668069940');
   // console.info('Done!');
 
-  console.info('\nGettings indexes...');
-  let rawIndexes = await income.getIndexes('1');
-  console.info(rawIndexes);
+  // console.info('\nGettings indexes...');
+  // let rawIndexes = await income.getIndexes('1');
+  // console.info(rawIndexes);
 
-  console.info('Getting data...');
-  let data = await income.attributes('1');
-  console.info(data);
+  // console.info('Getting data...');
+  // let data = await income.attributes('1');
+  // console.info(data);
+
+  // console.info('Check balance...');
+  // let balance = await income.balanceOf('0xed4FA635Dd404E2914955F96B2F79Ea9D63733d7', '1');
+  // console.info(balance.toString());
+
+  // console.info('Trying to withdraw...');
+  // await income.withdrawIncome('1', '100000000000');
+  // console.info('Done!');
 }
 
 main();

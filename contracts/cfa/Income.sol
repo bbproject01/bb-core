@@ -49,8 +49,6 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     _attributes.paymentFrequency *= 30 days;
     _attributes.principalLockTime *= 365 days;
     attributes[idCounter] = _attributes;
-
-    idCounter++;
   }
 
   function mintIncome(Attributes[] memory _attributes) external {
@@ -59,14 +57,15 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
       token.transferFrom(msg.sender, address(this), _attributes[i].principal);
       _setAttributes(_attributes[i]);
       _mint(msg.sender, idCounter, 1, '');
+      idCounter++;
     }
   }
 
   function withdrawIncome(uint256 _tokenId, uint256 _amount) external {
-    require(balanceOf(msg.sender, _tokenId) >= _amount, 'Income:: Not product owner');
+    require(balanceOf(msg.sender, _tokenId) >= 1, 'Income:: Not product owner');
 
     BBToken token = BBToken(registry.getAddress('BbToken'));
-    token.mint(msg.sender, _amount);
+    // token.mint(msg.sender, _amount);
   }
 
   function withdrawPrincipal(uint256 _tokenId) external {

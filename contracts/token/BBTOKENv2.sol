@@ -14,7 +14,7 @@ contract BBToken is ERC20, ERC20Burnable {
     _mint(msg.sender, _initSupply);
   }
 
-  function mint(address _user, uint256 _amount) external {
+  function mint(address _user, uint256 _amount) public {
     require(_isAuthorizedAddress(msg.sender), 'BBToken:: Not authorized');
     _mint(_user, _amount);
   }
