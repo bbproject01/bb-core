@@ -4,7 +4,9 @@ pragma solidity 0.8.17;
 interface IReferral {
   struct Referrer {
     address referrer;
+    address[] referrals;
     uint256 referralCount;
-    bool isAdded;
+    uint256 buyCount;
+    bool wasReferred;
   }
 }

@@ -60,21 +60,25 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
     attributes[idCounter] = _attributes;
   }
 
-  function _mintInsurance(Attributes memory _attributes) internal {
-    IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _attributes.principal);
-
+  function _mintInsurance(Attributes memory _attributes, address caller) internal {
+    if ((Referral(registry.registry('Referral')).eligibleForReward(caller))) {
+      Referral(registry.registry('Referral')).rewardForReferrer(caller, _attributes.principal);
+      uint256 discount = Referral(registry.registry('Referral')).getReferredDiscount();
+      uint256 amtPayable = _attributes.principal - ((_attributes.principal * discount) / 10000);
+      IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
+    } else {
+      IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _attributes.principal);
+    }
     _mint(msg.sender, idCounter, 1, '');
     _saveAttributes(_attributes);
-
     emit InsuranceCreated(_attributes);
   }
 
   function mintInsurance(Attributes[] memory _attributes) external {
     for (uint256 i = 0; i < _attributes.length; i++) {
       require(interestRate[_attributes[i].timePeriod] != 0, 'Insurance: invalid time period');
-      _mintInsurance(_attributes[i]);
+      _mintInsurance(_attributes[i], msg.sender);
       idCounter++;
-      // Referral(registry.registry('Referral')).returnReward(msg.sender, _attributes[i].principal);
     }
   }
 
