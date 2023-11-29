@@ -6,18 +6,12 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 contract Registry is Ownable {
   mapping(string => address) public registry;
 
-  function addToRegistry(string memory _name, address _address) external onlyOwner {
-    if (registry[_name] != address(0)) {
-      revert('SteadRegistry: Name already exists');
-    }
+  function setAddress(string memory _name, address _address) external onlyOwner {
     registry[_name] = _address;
   }
 
-  function updateRegistry(string memory _name, address _address) external onlyOwner {
-    registry[_name] = _address;
-  }
-
-  function removeFromRegistry(string memory _name) external onlyOwner {
-    delete registry[_name];
+  function getAddress(string memory _name) external view returns (address) {
+    require(registry[_name] != address(0), 'Registry: Does not exist');
+    return registry[_name];
   }
 }
