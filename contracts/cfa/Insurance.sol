@@ -41,7 +41,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
   event InsuranceWithdrawn(uint256 _id, uint256 _amount, uint256 _time);
   event InsuranceBurned(Attributes _attributes, uint256 _time);
   event LoanCreated(uint256 _id, uint256 _totalLoan);
-  event LoanRepayed(uint256 _id);
+  event LoanRepaid(uint256 _id);
   event expired(uint256 _id);
 
   /**
@@ -62,7 +62,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
 
   function _mintInsurance(Attributes memory _attributes, address caller) internal {
     if ((Referral(registry.registry('Referral')).eligibleForReward(caller))) {
-      Referral(registry.registry('Referral')).rewardForReferrer(caller, _attributes.principal);
+      Referral(registry.registry('Referral')).discountForReferrer(caller, _attributes.principal);
       uint256 discount = Referral(registry.registry('Referral')).getReferredDiscount();
       uint256 amtPayable = _attributes.principal - ((_attributes.principal * discount) / 10000);
       IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
@@ -74,7 +74,10 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
     emit InsuranceCreated(_attributes);
   }
 
-  function mintInsurance(Attributes[] memory _attributes) external {
+  function mintInsurance(Attributes[] memory _attributes, address _referrer) external {
+    if (_referrer != address(0)) {
+      Referral(registry.registry('Referral')).addReferrer(msg.sender, _referrer);
+    }
     for (uint256 i = 0; i < _attributes.length; i++) {
       require(interestRate[_attributes[i].timePeriod] != 0, 'Insurance: invalid time period');
       _mintInsurance(_attributes[i], msg.sender);
@@ -246,7 +249,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
 
     BBToken(registry.registry('BbToken')).burn(_amount);
 
-    emit LoanRepayed(_id);
+    emit LoanRepaid(_id);
   }
 
   /**
