@@ -26,6 +26,10 @@ contract Referral is Ownable, IReferral {
   event ReferralRemoved(address indexed user);
 
   // Modifiers
+  modifier onlyRegistered() {
+    require(registry.isRegistered(msg.sender) == true, 'Referral: Caller not a registered contract');
+    _;
+  }
 
   // Constructor
   constructor() Ownable() {}
@@ -34,17 +38,17 @@ contract Referral is Ownable, IReferral {
   /**
    * @dev Used to set referrer to a new user
    */
-  function addReferrer(address _referrer) external {
-    require(referrer[msg.sender].referrer == address(0), 'Referral: Referrer already set');
-    require(_referrer != msg.sender, 'Referral: Cannot set referrer to yourself');
-    require(!isReferral(_referrer, msg.sender), 'Referral: Circular referral not allowed');
+  function addReferrer(address _referred, address _referrer) external onlyRegistered {
+    require(referrer[_referred].referrer == address(0), 'Referral: Referrer already set');
+    require(_referrer != _referred, 'Referral: Cannot set referrer to yourself');
+    require(!isReferral(_referrer, _referred), 'Referral: Circular referral not allowed');
     // QQ: Does this method allow for a user to set a referrer to a user who has already been referred?
 
-    referrer[_referrer].referrals.push(msg.sender);
+    referrer[_referrer].referrals.push(_referred);
     referrer[_referrer].referralCount++;
-    referrer[msg.sender].wasReferred = true;
-    referrer[msg.sender].referrer = _referrer;
-    emit ReferralRecorded(msg.sender, _referrer);
+    referrer[_referred].wasReferred = true;
+    referrer[_referred].referrer = _referrer;
+    emit ReferralRecorded(_referred, _referrer);
   }
 
   /**
@@ -100,7 +104,7 @@ contract Referral is Ownable, IReferral {
   /**
    * @dev Used to return rewards to the referrer
    */
-  function rewardForReferrer(address _sender, uint256 amount) external {
+  function discountForReferrer(address _sender, uint256 amount) external onlyRegistered {
     require(referredRewardRates.length != 0, 'referredRewardRates not set');
     require(supplyMarkers.length != 0, 'supplyMarkers not set');
     require(amtReferredBracket.length != 0, 'supplyMarkers not set');
