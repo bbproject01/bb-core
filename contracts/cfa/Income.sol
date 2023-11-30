@@ -25,6 +25,8 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
   event IncomeCreated(Attributes _attributes);
   event IncomeWithdrawn(uint256 _id, uint256 _amount, uint256 _time);
   event IncomeBurned(uint256 _id, Attributes _attributes, uint256 _time);
+  event LoanCreated(uint256 _id, uint256 _totalLoan);
+  event LoanRepaid(uint256 _id);
 
   /**
    * Modifiers
@@ -110,6 +112,50 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     return (currentIndex, claimedIndex);
   }
 
+  /**
+   * Loan functions
+   */
+
+  // function createLoan(uint256 _id) external nonReentrant {
+  //   require(balanceOf(msg.sender, _id) == 1, 'Insurance: invalid id');
+  //   require(!loan[_id].onLoan, 'Insurance: Loan already created');
+  //   require(block.timestamp < attributes[_id].cfaLife, 'Insurance: insurance has expired');
+
+  //   (uint256 interest, uint256 totalPrincipal) = getInterest(_id);
+  //   uint256 loanedPrincipal = ((totalPrincipal) * 25) / 100;
+  //   BBToken token = BBToken(registry.registry('BbToken'));
+  //   token.mint(address(this), interest);
+  //   token.mint(msg.sender, loanedPrincipal);
+
+  //   loan[_id].onLoan = true;
+  //   loan[_id].loanBalance = loanedPrincipal;
+  //   loan[_id].timeWhenLoaned = block.timestamp;
+
+  //   attributes[_id].effectiveInterestTime = block.timestamp;
+
+  //   emit LoanCreated(_id, loanedPrincipal);
+  // }
+
+  // function repayLoan(uint256 _id, uint256 _amount) external nonReentrant {
+  //   require(loan[_id].onLoan, 'Insurance: Loan invalid');
+  //   require(_amount <= loan[_id].loanBalance, 'Insurance: Incorrect loan repayment amount');
+
+  //   IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _amount);
+
+  //   if (_amount < loan[_id].loanBalance) {
+  //     loan[_id].loanBalance -= _amount;
+  //   } else {
+  //     attributes[_id].effectiveInterestTime = block.timestamp;
+  //     loan[_id].loanBalance = 0;
+  //     loan[_id].onLoan = false;
+  //     uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
+  //     attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
+  //   }
+
+  //   BBToken(registry.registry('BbToken')).burn(_amount);
+
+  //   emit LoanRepaid(_id);
+  // }
   /**
    * Overrides
    */
