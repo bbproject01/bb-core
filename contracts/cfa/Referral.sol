@@ -38,6 +38,7 @@ contract Referral is Ownable, IReferral {
     require(referrer[msg.sender].referrer == address(0), 'Referral: Referrer already set');
     require(_referrer != msg.sender, 'Referral: Cannot set referrer to yourself');
     require(!isReferral(_referrer, msg.sender), 'Referral: Circular referral not allowed');
+    // QQ: Does this method allow for a user to set a referrer to a user who has already been referred?
 
     referrer[_referrer].referrals.push(msg.sender);
     referrer[_referrer].referralCount++;
@@ -51,6 +52,7 @@ contract Referral is Ownable, IReferral {
    */
   function removeReferrer(address _user) external onlyOwner {
     require(referrer[_user].referrer != address(0), '002');
+    // QQ: Is there a need to remove a referrer from a user?
 
     delete referrer[_user].referrer;
     referrer[_user].referralCount--;
@@ -167,6 +169,7 @@ contract Referral is Ownable, IReferral {
     return false;
   }
 
+  // QQ: Is this function necessary? Function is not used anywhere
   function getAttributes(address _address) public view returns (Referrer memory) {
     Referrer memory _attributes = referrer[_address];
     return _attributes;
@@ -185,6 +188,7 @@ contract Referral is Ownable, IReferral {
     return userInterest;
   }
 
+  // QQ: Function not used anywhere, what's the purpose of this function?
   function getReferredDiscount() public view returns (uint256) {
     uint256 _getMarker = getMarker();
     uint256 reward = referredRewardRates[_getMarker];

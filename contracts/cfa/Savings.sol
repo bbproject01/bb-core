@@ -50,6 +50,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   /**
    * Main Function
    */
+
   function _createSavings(Attributes memory _attributes) internal {
     require(sysInterest.isInterestSet(), 'GlobalSupply: Interest not yet set');
     require(_attributes.cfaLife >= life.min && life.max >= _attributes.cfaLife, 'Savings: Invalid life duration');
@@ -81,6 +82,8 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
       _createSavings(_attributes[i]);
     }
   }
+
+  function withdraw
 
   /**
    * Write Function
