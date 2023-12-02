@@ -60,9 +60,9 @@ pragma solidity 0.8.17;
 //       referral.rewardForReferrer(msg.sender, _attributes.amount);
 //       uint256 discount = referral.getReferredDiscount();
 //       uint256 amtPayable = _attributes.amount - ((_attributes.amount * discount) / 10000);
-//       IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
+//       IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
 //     } else {
-//       IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _attributes.amount);
+//       IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _attributes.amount);
 //     }
 
 //     _mint(msg.sender, idCounter, 1, '');
@@ -162,7 +162,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     require(_attributes.cfaLife >= life.min && life.max >= _attributes.cfaLife, 'Savings: Invalid CFA life duration');
     _attributes.timeCreated = block.timestamp;
     _attributes.effectiveInterestTime = block.timestamp;
-    _attributes.interestRate = GlobalMarker(registry.registry('GlobalMarker')).getInterestRate();
+    _attributes.interestRate = GlobalMarker(registry.getAddress('GlobalMarker')).getInterestRate();
     uint256 originalCfaLife = _attributes.cfaLife;
     uint256 yearsLeft = (originalCfaLife * 30 days) + block.timestamp;
     _attributes.cfaLife = yearsLeft;
@@ -170,13 +170,13 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   }
 
   function _mintSavings(Attributes memory _attributes, address caller) internal {
-    if ((Referral(registry.registry('Referral')).eligibleForReward(caller))) {
-      Referral(registry.registry('Referral')).discountForReferrer(caller, _attributes.amount);
-      uint256 discount = Referral(registry.registry('Referral')).getReferredDiscount();
+    if ((Referral(registry.getAddress('Referral')).eligibleForReward(caller))) {
+      Referral(registry.getAddress('Referral')).discountForReferrer(caller, _attributes.amount);
+      uint256 discount = Referral(registry.getAddress('Referral')).getReferredDiscount();
       uint256 amtPayable = _attributes.amount - ((_attributes.amount * discount) / 10000);
-      IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
+      IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
     } else {
-      IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _attributes.amount);
+      IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _attributes.amount);
     }
     _mint(msg.sender, idCounter, 1, '');
     _saveAttributes(_attributes);
@@ -184,9 +184,9 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   }
 
   function mintSavings(Attributes[] memory _attributes, address _referrer) external nonReentrant {
-    require(GlobalMarker(registry.registry('GlobalMarker')).isInterestSet(), 'GlobalSupply: Interest not yet set');
+    require(GlobalMarker(registry.getAddress('GlobalMarker')).isInterestSet(), 'GlobalSupply: Interest not yet set');
     if (_referrer != address(0)) {
-      Referral(registry.registry('Referral')).addReferrer(msg.sender, _referrer);
+      Referral(registry.getAddress('Referral')).addReferrer(msg.sender, _referrer);
     }
     for (uint256 i = 0; i < _attributes.length; i++) {
       _mintSavings(_attributes[i], msg.sender);
@@ -211,7 +211,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
 
     (, uint256 interest) = getTotalInterest(_id); // Gets the accrued interest + principal
 
-    BBToken token = BBToken(registry.registry('BbToken'));
+    BBToken token = BBToken(registry.getAddress('BbToken'));
     token.transfer(msg.sender, attributes[_id].amount);
     token.mint(msg.sender, interest);
 
@@ -257,7 +257,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
    */
   // TODO: change public to internal
   // function getDiff() public view returns (uint256, uint256, uint256) {
-  //   uint256 totalSupply = IERC20(registry.registry('BbToken')).totalSupply();
+  //   uint256 totalSupply = IERC20(registry.getAddress('BbToken')).totalSupply();
 
   //   if (totalSupply > 20_000_000 ether && totalSupply <= 24_000_000) {
   //     return (20_000_000 ether, 24_000_000 ether, 1_000_000 ether);
@@ -302,7 +302,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
 
   // TODO: change public to internal
   // function getMarker() public view returns (uint256) {
-  //   uint256 totalSupply = IERC20(registry.registry('BbToken')).totalSupply();
+  //   uint256 totalSupply = IERC20(registry.getAddress('BbToken')).totalSupply();
   //   (uint256 min, uint256 max, uint256 diff) = getDiff();
   //   uint256 iterations = (max - min) / diff;
 
@@ -403,7 +403,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
 
     (uint256 totalPrincipal, ) = getYieldedInterest(_id);
     uint256 loanedPrincipal = ((totalPrincipal) * 25) / 100;
-    BBToken token = BBToken(registry.registry('BbToken'));
+    BBToken token = BBToken(registry.getAddress('BbToken'));
     token.mint(msg.sender, loanedPrincipal);
 
     loan[_id].onLoan = true;
@@ -417,7 +417,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     require(loan[_id].onLoan, 'Savings: Loan invalid');
     require(_amount <= loan[_id].loanBalance, 'Savings: Incorrect loan repayment amount');
 
-    IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _amount);
+    IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _amount);
 
     if (_amount < loan[_id].loanBalance) {
       loan[_id].loanBalance -= _amount;
@@ -429,7 +429,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
       attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
     }
 
-    BBToken(registry.registry('BbToken')).burn(_amount);
+    BBToken(registry.getAddress('BbToken')).burn(_amount);
 
     emit LoanRepaid(_id);
   }

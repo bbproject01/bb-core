@@ -26,7 +26,7 @@ contract GlobalMarker is Ownable {
 
   function getMarker() internal view returns (uint256) {
     require(interestsSet, 'GlobalMarker: Marker & Interest not yet set');
-    uint256 totalSupply = IERC20(registry.registry('BbToken')).totalSupply();
+    uint256 totalSupply = IERC20(registry.getAddress('BbToken')).totalSupply();
     uint256 marker = 0;
 
     if (totalSupply > markers[markerSize - 1]) {
@@ -46,6 +46,10 @@ contract GlobalMarker is Ownable {
     require(interestsSet, 'GlobalMarker: Marker & Interest not yet set');
     uint256 marker = getMarker();
     return interests[marker];
+  }
+
+  function setRegistry(Registry _registry) external onlyOwner {
+    registry = _registry;
   }
 
   function isInterestSet() external view returns (bool) {

@@ -8,6 +8,7 @@ interface IIncome {
     uint256 paymentFrequency; // in months
     uint256 principalLockTime; // in years
     uint256 lastClaimTime;
+    uint256 interest; 
   }
 
   struct System {

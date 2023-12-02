@@ -61,13 +61,13 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
   }
 
   function _mintInsurance(Attributes memory _attributes, address caller) internal {
-    if ((Referral(registry.registry('Referral')).eligibleForReward(caller))) {
-      Referral(registry.registry('Referral')).discountForReferrer(caller, _attributes.principal);
-      uint256 discount = Referral(registry.registry('Referral')).getReferredDiscount();
+    if ((Referral(registry.getAddress('Referral')).eligibleForReward(caller))) {
+      Referral(registry.getAddress('Referral')).discountForReferrer(caller, _attributes.principal);
+      uint256 discount = Referral(registry.getAddress('Referral')).getReferredDiscount();
       uint256 amtPayable = _attributes.principal - ((_attributes.principal * discount) / 10000);
-      IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
+      IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
     } else {
-      IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _attributes.principal);
+      IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _attributes.principal);
     }
     _mint(msg.sender, idCounter, 1, '');
     _saveAttributes(_attributes);
@@ -76,7 +76,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
 
   function mintInsurance(Attributes[] memory _attributes, address _referrer) external {
     if (_referrer != address(0)) {
-      Referral(registry.registry('Referral')).addReferrer(msg.sender, _referrer);
+      Referral(registry.getAddress('Referral')).addReferrer(msg.sender, _referrer);
     }
     for (uint256 i = 0; i < _attributes.length; i++) {
       require(interestRate[_attributes[i].timePeriod] != 0, 'Insurance: invalid time period');
@@ -98,7 +98,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
 
     attributes[_id].principal += interest;
 
-    BBToken token = BBToken(registry.registry('BbToken'));
+    BBToken token = BBToken(registry.getAddress('BbToken'));
     token.mint(address(this), interest);
 
     token.transfer(msg.sender, _amount);
@@ -218,7 +218,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
 
     (uint256 interest, uint256 totalPrincipal) = getInterest(_id);
     uint256 loanedPrincipal = ((totalPrincipal) * 25) / 100;
-    BBToken token = BBToken(registry.registry('BbToken'));
+    BBToken token = BBToken(registry.getAddress('BbToken'));
     token.mint(address(this), interest);
     token.mint(msg.sender, loanedPrincipal);
 
@@ -235,7 +235,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
     require(loan[_id].onLoan, 'Insurance: Loan invalid');
     require(_amount <= loan[_id].loanBalance, 'Insurance: Incorrect loan repayment amount');
 
-    IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _amount);
+    IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _amount);
 
     if (_amount < loan[_id].loanBalance) {
       loan[_id].loanBalance -= _amount;
@@ -247,7 +247,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
       attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
     }
 
-    BBToken(registry.registry('BbToken')).burn(_amount);
+    BBToken(registry.getAddress('BbToken')).burn(_amount);
 
     emit LoanRepaid(_id);
   }

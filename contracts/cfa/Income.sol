@@ -8,6 +8,7 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import './interface/IIncome.sol';
 import '../token/BBTOKENv2.sol';
 import '../utils/Registry.sol';
+import '../utils/GlobalMarker.sol';
 
 contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
   /**
@@ -15,6 +16,7 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
    */
   System system;
   Registry public registry;
+  GlobalMarker public globalMarker;
   mapping(uint256 => Attributes) public attributes;
   // mapping(uint256 => uint256) public lastClaimTime;
   uint256 public idCounter = 1;
@@ -48,6 +50,7 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     require(_attributes.principalLockTime <= system.maxPrincipalLockTime, 'Income:: Invalid principal lock time');
 
     _attributes.timeCreated = block.timestamp;
+    _attributes.interest = GlobalMarker(registry.registry('GlobalMarker')).getInterestRate();
     _attributes.paymentFrequency *= 30 days;
     _attributes.principalLockTime *= 365 days;
     attributes[idCounter] = _attributes;
