@@ -11,17 +11,21 @@ async function main() {
   await BbToken.deployed();
   console.info('BB Token deployed to:', BbToken.address);
 
-  console.info("\nSetting up BB Token's registry...");
+  console.info('Setting up registry to BBToken...');
+  await BbToken.setRegistry(REGISTRY_SEPOLIA);
+  console.info('Done!');
+
+  console.info('\nSetting up Token to Registry...');
   const reg = await ethers.getContractAt('Registry', REGISTRY_SEPOLIA);
   await reg.setAddress('BbToken', BbToken.address);
   console.info('Done!');
 
-  console.info('\nVerifying BB Token Smart Contract...');
-  run('verify:verify', {
-    address: BbToken.address,
-    constructorArguments: [initSupply, maxSupply],
-  });
-  console.info('Done!');
+  // console.info('\nVerifying BB Token Smart Contract...');
+  // run('verify:verify', {
+  //   address: BbToken.address,
+  //   constructorArguments: [initSupply, maxSupply],
+  // });
+  // console.info('Done!');
 }
 
 main();

@@ -164,14 +164,14 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     _attributes.effectiveInterestTime = block.timestamp;
     _attributes.interestRate = GlobalMarker(registry.registry('GlobalMarker')).getInterestRate();
     uint256 originalCfaLife = _attributes.cfaLife;
-    uint256 yearsLeft = (originalCfaLife * 30 days) + block.timestamp;
+    uint256 yearsLeft = (originalCfaLife * (30 days * 12)) + block.timestamp;
     _attributes.cfaLife = yearsLeft;
     attributes[idCounter] = _attributes;
   }
 
   function _mintSavings(Attributes memory _attributes, address caller) internal {
     if ((Referral(registry.registry('Referral')).eligibleForReward(caller))) {
-      Referral(registry.registry('Referral')).discountForReferrer(caller, _attributes.amount);
+      Referral(registry.registry('Referral')).discountForReferrer(caller, _attributes. );
       uint256 discount = Referral(registry.registry('Referral')).getReferredDiscount();
       uint256 amtPayable = _attributes.amount - ((_attributes.amount * discount) / 10000);
       IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
@@ -200,7 +200,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     _burn(msg.sender, _id, 1);
   }
 
-  function withdrawSavings(uint256 _id) external nonReentrant {
+  function withdrawSavings(uint256 _id, uint256 _amount) external nonReentrant {
     // require(
     //   attributes[_id].effectiveInterestTime + attributes[_id].cfaLife < block.timestamp,
     //   'Savings: CFA is not matured'
@@ -209,24 +209,15 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     require(!loan[_id].onLoan, 'Savings: On Loan');
     // require(block.timestamp < attributes[_id].cfaLife, 'Savings: insurance has expired');
 
-    (, uint256 interest) = getTotalInterest(_id); // Gets the accrued interest + principal
+    // (, uint256 interest) = getTotalInterest(_id); // Gets the accrued interest + principal
 
     BBToken token = BBToken(registry.registry('BbToken'));
     token.transfer(msg.sender, attributes[_id].amount);
-    token.mint(msg.sender, interest);
+    token.mint(msg.sender, _amount);
 
     _burnSavings(_id);
     emit SavingsWithdrawn(attributes[_id], block.timestamp);
   }
-
-  // function bindSavings(uint256 _id, uint256 _period) external {
-  //   require(attributes[_id].soulBoundTerm == 0, 'Savings: CFA is already bound');
-  //   require(balanceOf(msg.sender, _id) > 0, 'Savings: CFA is not owned by the caller');
-
-  //   attributes[_id].soulBoundTerm = _period;
-
-  //   emit SavingsBinded(attributes[_id], _period);
-  // }
 
   // TODO: Locking calculation
 
@@ -255,63 +246,6 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   /**
    * Read Function
    */
-  // TODO: change public to internal
-  // function getDiff() public view returns (uint256, uint256, uint256) {
-  //   uint256 totalSupply = IERC20(registry.registry('BbToken')).totalSupply();
-
-  //   if (totalSupply > 20_000_000 ether && totalSupply <= 24_000_000) {
-  //     return (20_000_000 ether, 24_000_000 ether, 1_000_000 ether);
-  //   } else if (totalSupply > 24_000_000 ether && totalSupply <= 82_000_000 ether) {
-  //     return (24_000_000 ether, 82_000_000 ether, 2_000_000 ether);
-  //   } else if (totalSupply > 82_000_000 ether && totalSupply <= 100_000_000 ether) {
-  //     return (82_000_000 ether, 100_000_000 ether, 3_000_000 ether);
-  //   } else if (totalSupply > 100_000_000 ether && totalSupply <= 120_000_000 ether) {
-  //     return (100_000_000 ether, 120_000_000 ether, 4_000_000 ether);
-  //   } else if (totalSupply > 120_000_000 ether && totalSupply <= 140_000_000 ether) {
-  //     return (120_000_000 ether, 140_000_000 ether, 5_000_000 ether);
-  //   } else if (totalSupply > 140_000_000 ether && totalSupply <= 280_000_000 ether) {
-  //     return (140_000_000 ether, 280_000_000 ether, 10_000_000 ether);
-  //   } else if (totalSupply > 280_000_000 ether && totalSupply <= 420_000_000 ether) {
-  //     return (280_000_000 ether, 420_000_000 ether, 20_000_000 ether);
-  //   } else if (totalSupply > 420_000_000 ether && totalSupply <= 720_000_000 ether) {
-  //     return (420_000_000 ether, 720_000_000 ether, 30_000_000 ether);
-  //   } else if (totalSupply > 720_000_000 ether && totalSupply <= 840_000_000 ether) {
-  //     return (720_000_000 ether, 840_000_000 ether, 40_000_000 ether);
-  //   } else if (totalSupply > 840_000_000 ether && totalSupply <= 2_100_000_000 ether) {
-  //     return (840_000_000 ether, 2_100_000_000 ether, 60_000_000 ether);
-  //   } else if (totalSupply > 2_100_000_000 ether && totalSupply <= 2_500_000_000 ether) {
-  //     return (2_100_000_000 ether, 2_500_000_000 ether, 80_000_000 ether);
-  //   } else if (totalSupply > 2_500_000_000 ether && totalSupply <= 4_500_000_000 ether) {
-  //     return (2_500_000_000 ether, 4_500_000_000 ether, 100_000_000 ether);
-  //   } else if (totalSupply > 4_500_000_000 ether && totalSupply <= 7_500_000_000 ether) {
-  //     return (4_500_000_000 ether, 7_500_000_000 ether, 200_000_000 ether);
-  //   } else if (totalSupply > 7_500_000_000 ether && totalSupply <= 19_000_000_000 ether) {
-  //     return (7_500_000_000 ether, 19_000_000_000 ether, 250_000_000 ether);
-  //   } else if (totalSupply > 19_000_000_000 ether && totalSupply <= 20_000_000_000 ether) {
-  //     return (19_000_000_000 ether, 20_000_000_000 ether, 200_000_000 ether);
-  //   } else if (totalSupply > 20_000_000_000 ether && totalSupply <= 20_200_000_000 ether) {
-  //     return (20_000_000_000 ether, 20_200_000_000 ether, 100_000_000 ether);
-  //   } else if (totalSupply > 20_200_000_000 ether && totalSupply <= 20_800_000_000 ether) {
-  //     return (20_200_000_000 ether, 20_800_000_000 ether, 50_000_000 ether);
-  //   } else if (totalSupply > 20_800_000_000 ether && totalSupply <= 20_900_000_000 ether) {
-  //     return (20_800_000_000 ether, 20_900_000_000 ether, 20_000_000 ether);
-  //   } else {
-  //     return (0, 1_000_000 ether, 20_000_000 ether);
-  //   }
-  // }
-
-  // TODO: change public to internal
-  // function getMarker() public view returns (uint256) {
-  //   uint256 totalSupply = IERC20(registry.registry('BbToken')).totalSupply();
-  //   (uint256 min, uint256 max, uint256 diff) = getDiff();
-  //   uint256 iterations = (max - min) / diff;
-
-  //   for (uint256 index = 0; index < iterations; index++) {
-  //     if (totalSupply > min + (index * diff) && totalSupply <= min + ((index + 1) * diff)) {
-  //       return min + ((index + 1) * diff);
-  //     }
-  //   }
-  // }
 
   function getTotalInterest(uint256 _id) public view returns (uint256, uint256) {
     uint256 principal = attributes[_id].amount;
