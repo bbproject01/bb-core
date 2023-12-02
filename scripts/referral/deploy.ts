@@ -9,6 +9,10 @@ async function main() {
   await referral.deployed();
   console.info('Referral contract deployed to:', referral.address);
 
+  console.info('\nSetting up registry to Referral...');
+  await referral.setRegistry(REGISTRY_SEPOLIA);
+  console.info('Done!');
+
   console.info('\nSetting up supply markers...');
   await referral.setSupplyMarkers(supplyMarkers);
   console.info('Done!');

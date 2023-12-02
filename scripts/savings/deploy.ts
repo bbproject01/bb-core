@@ -18,16 +18,16 @@ async function main() {
   // await savings.setInterest(markers, interests);
   // console.info('Done!');
 
+  console.info("\nSetting Up Savings's registry...");
+  await savings.setRegistry(REGISTRY_SEPOLIA);
+  console.info('Done!');
+
   console.info("\nSetting Up Savings's images...");
   await savings.setImage(images);
   console.info('Done!');
 
   console.info("\nSetting Up Savings's name and description...");
   await savings.setMetadata('Savings', 'Savings CFA that will make you rich');
-  console.info('Done!');
-
-  console.info("\nSetting Up Savings's registry...");
-  await savings.setRegistry(REGISTRY_SEPOLIA);
   console.info('Done!');
 
   console.info('\nApproving allowance...');
