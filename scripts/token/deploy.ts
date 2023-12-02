@@ -20,12 +20,12 @@ async function main() {
   await reg.setAddress('BbToken', BbToken.address);
   console.info('Done!');
 
-  // console.info('\nVerifying BB Token Smart Contract...');
-  // run('verify:verify', {
-  //   address: BbToken.address,
-  //   constructorArguments: [initSupply, maxSupply],
-  // });
-  // console.info('Done!');
+  console.info('\nVerifying BB Token Smart Contract...');
+  run('verify:verify', {
+    address: BbToken.address,
+    constructorArguments: [initSupply, maxSupply],
+  });
+  console.info('Done!');
 }
 
 main();
