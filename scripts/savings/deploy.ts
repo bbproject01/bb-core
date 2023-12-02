@@ -22,6 +22,10 @@ async function main() {
   await savings.setRegistry(REGISTRY_SEPOLIA);
   console.info('Done!');
 
+  console.info('\nSetting Up max and min life...');
+  await savings.setLife('1', '30');
+  console.info('Done!');
+
   console.info("\nSetting Up Savings's images...");
   await savings.setImage(images);
   console.info('Done!');

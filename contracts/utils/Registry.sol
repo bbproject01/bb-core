@@ -13,7 +13,7 @@ contract Registry is Ownable {
   }
 
   function getAddress(string memory _name) external view returns (address) {
-    require(registry[_name] != address(0), 'Registry: Does not exist');
+    require(registry[_name] != address(0), string(abi.encodePacked('Registry: Does not exist', _name)));
     return registry[_name];
   }
 
