@@ -31,16 +31,14 @@ contract GlobalMarker is Ownable {
 
     if (totalSupply > markers[markerSize - 1]) {
       return markerSize - 1;
-    }
-
-    for (uint256 index = 0; index < markers.length - 1; index++) {
-      if (totalSupply > markers[index] && totalSupply <= markers[index + 1]) {
-        marker = index;
-        break;
+    } else {
+      for (uint256 index = 0; index < markers.length - 1; index++) {
+        if (totalSupply > markers[index] && totalSupply <= markers[index + 1]) {
+          marker = index;
+          return marker;
+        }
       }
     }
-
-    return marker;
   }
 
   function getInterestRate() external view returns (uint256) {
