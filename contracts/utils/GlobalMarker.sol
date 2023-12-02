@@ -56,4 +56,8 @@ contract GlobalMarker is Ownable {
     bool _interestsSet = interestsSet;
     return _interestsSet;
   }
+
+  function setRegistry(address _registry) external onlyOwner {
+    registry = Registry(_registry);
+  }
 }

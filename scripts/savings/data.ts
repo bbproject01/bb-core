@@ -56,3 +56,5 @@
 
 export const images =
   'https://magenta-protestant-falcon-171.mypinata.cloud/ipfs/QmdL8nW1NrnmKkvSx7wHC8EBtNyYgHnR24ARaQLXYysnKa';
+
+export const metadata = ['Savings', 'Savings CFA that will make you rich'];

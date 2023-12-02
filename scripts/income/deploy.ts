@@ -1,6 +1,5 @@
 import { ethers } from 'hardhat';
 import { BBTOKEN_SEPOLIA, REGISTRY_SEPOLIA } from '../addresses';
-import { sampleAttributes } from './data';
 
 async function main() {
   const Income = await ethers.getContractFactory('Income');
