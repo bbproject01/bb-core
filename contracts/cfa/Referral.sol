@@ -162,7 +162,7 @@ contract Referral is Ownable, IReferral {
     }
   }
 
-  function isReferral(address _referral, address _referrer) public view returns (bool) {
+  function isReferral(address _referral, address _referrer) internal view returns (bool) {
     uint256 referralCount = referrer[_referrer].referralCount;
     for (uint256 i = 0; i < referralCount; i++) {
       address referredAddress = referrer[_referrer].referrals[i];
@@ -173,8 +173,7 @@ contract Referral is Ownable, IReferral {
     return false;
   }
 
-  // QQ: Is this function necessary? Function is not used anywhere
-  function getAttributes(address _address) public view returns (Referrer memory) {
+  function getAttributes(address _address) external view returns (Referrer memory) {
     Referrer memory _attributes = referrer[_address];
     return _attributes;
   }
@@ -192,11 +191,19 @@ contract Referral is Ownable, IReferral {
     return userInterest;
   }
 
-  // QQ: Function not used anywhere, what's the purpose of this function?
-  function getReferredDiscount() public view returns (uint256) {
+  function checkReferrals(address _address) external view returns (address[] memory) {
+    address[] memory amongus = referrer[_address].referrals;
+    return amongus;
+  }
+
+  function getReferredDiscount() external view returns (uint256) {
     uint256 _getMarker = getMarker();
     uint256 reward = referredRewardRates[_getMarker];
     return reward;
+  }
+
+  function yourReferrer() external view returns (address) {
+    return referrer[msg.sender].referrer;
   }
 
   // Debug functions
@@ -220,10 +227,5 @@ contract Referral is Ownable, IReferral {
   // function checkSupply() public view returns (uint256) {
   //   uint256 supply = IERC20(registry.registry('BbToken')).totalSupply();
   //   return supply;
-  // }
-
-  // function checkReferrals(address refferrrr) public view returns (address[] memory) {
-  //   address[] memory amongus = referrer[refferrrr].referrals;
-  //   return amongus;
   // }
 }
