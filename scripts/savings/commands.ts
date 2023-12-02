@@ -6,7 +6,7 @@ async function main() {
   const savings = await ethers.getContractAt('Savings', SAVINGS_SEPOLIA);
 
   console.info('Trying to mint...');
-  await savings.mintSavings(mintData, '0xbeDD99eF4dc976A3682550A6a65B86b9eCba1b4f');
+  await savings.mintSavings(mintData, ethers.constants.AddressZero);
   console.info('Done!');
 
   // console.info('Setting up life ...');

@@ -1,5 +1,7 @@
 // import { ethers } from 'hardhat';
 
+import { ethers } from 'ethers';
+
 // export const rawMarkers = [
 //   1_000_000, 20_000_000, 21_000_000, 22_000_000, 23_000_000, 24_000_000, 26_000_000, 28_000_000, 30_000_000, 32_000_000,
 //   34_000_000, 36_000_000, 38_000_000, 40_000_000, 42_000_000, 44_000_000, 46_000_000, 48_000_000, 50_000_000,
@@ -59,4 +61,4 @@ export const images =
 
 export const metadata = ['Savings', 'Savings CFA that will make you rich'];
 
-export const mintData = [['0', '2', '0', '1000', '0']];
+export const mintData = [['0', '2', '0', ethers.utils.parseEther(String(10_000)), '0']];
