@@ -26,4 +26,8 @@ contract BBToken is ERC20, ERC20Burnable {
 
     return false;
   }
+
+  function setRegistry(address _registry) external {
+    registry = Registry(_registry);
+  }
 }

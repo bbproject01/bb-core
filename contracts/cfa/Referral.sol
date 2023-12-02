@@ -13,8 +13,8 @@ contract Referral is Ownable, IReferral {
 
   uint256[] public amtReferredBracket;
   uint256[][] public interestSet;
-  uint256[] public supplyMarkers;
-  uint256[] public referredRewardRates;
+  uint256[] public supplyMarkers = new uint256[](11);
+  uint256[] public referredRewardRates = new uint256[](11);
   address public defaultReferrer;
   bool _interestSet;
 
