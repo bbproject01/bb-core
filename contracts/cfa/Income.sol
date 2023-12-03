@@ -9,6 +9,7 @@ import './interface/IIncome.sol';
 import '../token/BBTOKENv2.sol';
 import '../utils/Registry.sol';
 import '../utils/GlobalMarker.sol';
+import './Referral.sol';
 
 contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
   /**
@@ -17,7 +18,10 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
   System system;
   Registry public registry;
   GlobalMarker public globalMarker;
+  Referral public referral;
+
   mapping(uint256 => Attributes) public attributes;
+  mapping(uint256 => Loan) public loan;
   // mapping(uint256 => uint256) public lastClaimTime;
   uint256 public idCounter = 1;
 
@@ -50,23 +54,32 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     require(_attributes.principalLockTime <= system.maxPrincipalLockTime, 'Income:: Invalid principal lock time');
 
     _attributes.timeCreated = block.timestamp;
-    _attributes.interest = GlobalMarker(registry.registry('GlobalMarker')).getInterestRate();
+    _attributes.interest = GlobalMarker(registry.getAddress('GlobalMarker')).getInterestRate();
     _attributes.paymentFrequency *= 30 days;
     _attributes.principalLockTime *= 365 days;
     attributes[idCounter] = _attributes;
   }
 
-  function mintIncome(Attributes[] memory _attributes) external {
-    IERC20 token = IERC20(registry.getAddress('BbToken'));
+  function mintIncome(Attributes[] memory _attributes, address _referrer) external {
+    if (_referrer != address(0)) {
+      Referral(registry.getAddress('Referral')).addReferrer(msg.sender, _referrer);
+    }
     for (uint i = 0; i < _attributes.length; i++) {
-      token.transferFrom(msg.sender, address(this), _attributes[i].principal);
+      if ((Referral(registry.getAddress('Referral')).eligibleForReward(msg.sender))) {
+        Referral(registry.getAddress('Referral')).discountForReferrer(msg.sender, _attributes[i].principal);
+        uint256 discount = Referral(registry.getAddress('Referral')).getReferredDiscount();
+        uint256 amtPayable = _attributes[i].principal - ((_attributes[i].principal * discount) / 10000);
+        IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
+      } else {
+        IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _attributes[i].principal);
+      }
       _setAttributes(_attributes[i]);
       _mint(msg.sender, idCounter, 1, '');
       idCounter++;
     }
   }
 
-  function withdrawIncome(uint256 _tokenId, uint256 _amount) external {
+  function withdrawIncome(uint256 _tokenId, uint256 _amount) public {
     require(balanceOf(msg.sender, _tokenId) >= 1, 'Income:: Not product owner');
 
     BBToken token = BBToken(registry.getAddress('BbToken'));
@@ -115,50 +128,65 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     return (currentIndex, claimedIndex);
   }
 
+  function getInterest(uint256 _tokenId) external view returns (uint256) {
+    uint256 cfaInterest = attributes[_tokenId].interest;
+    return cfaInterest;
+
+    // remove if not needed
+  }
+
+  function getAccumulatedInterest(uint256 _tokenId) internal view returns (uint256) {
+    uint256 interest;
+    return interest;
+    /*
+      call offchain computation here. this should return interest accumulated, without the principal added. change loan accordingly
+      if return value is to be changed. pls use this when func withdrawIncome is called, as this should be used to compute
+      accumulated interest available for withdrawal
+    */
+  }
+
   /**
    * Loan functions
    */
 
-  // function createLoan(uint256 _id) external nonReentrant {
-  //   require(balanceOf(msg.sender, _id) == 1, 'Insurance: invalid id');
-  //   require(!loan[_id].onLoan, 'Insurance: Loan already created');
-  //   require(block.timestamp < attributes[_id].cfaLife, 'Insurance: insurance has expired');
+  function createLoan(uint256 _id) external nonReentrant {
+    require(balanceOf(msg.sender, _id) == 1, 'Income: invalid id');
+    require(!loan[_id].onLoan, 'Income: Loan already created');
+    require(block.timestamp < attributes[_id].cfaLife, 'Income: Income has expired');
 
-  //   (uint256 interest, uint256 totalPrincipal) = getInterest(_id);
-  //   uint256 loanedPrincipal = ((totalPrincipal) * 25) / 100;
-  //   BBToken token = BBToken(registry.registry('BbToken'));
-  //   token.mint(address(this), interest);
-  //   token.mint(msg.sender, loanedPrincipal);
+    uint256 interest = getAccumulatedInterest(_id);
+    withdrawIncome(_id, interest);
+    uint256 loanedPrincipal = ((attributes[_id].principal) * 25) / 100;
+    BBToken token = BBToken(registry.getAddress('BbToken'));
+    token.mint(address(this), loanedPrincipal);
 
-  //   loan[_id].onLoan = true;
-  //   loan[_id].loanBalance = loanedPrincipal;
-  //   loan[_id].timeWhenLoaned = block.timestamp;
+    loan[_id].onLoan = true;
+    loan[_id].loanBalance = loanedPrincipal;
+    loan[_id].timeWhenLoaned = block.timestamp;
 
-  //   attributes[_id].effectiveInterestTime = block.timestamp;
+    emit LoanCreated(_id, loanedPrincipal);
+  }
 
-  //   emit LoanCreated(_id, loanedPrincipal);
-  // }
+  function repayLoan(uint256 _id, uint256 _amount) external nonReentrant {
+    require(loan[_id].onLoan, 'Income: Loan invalid');
+    require(_amount <= loan[_id].loanBalance, 'Income: Incorrect loan repayment amount');
 
-  // function repayLoan(uint256 _id, uint256 _amount) external nonReentrant {
-  //   require(loan[_id].onLoan, 'Insurance: Loan invalid');
-  //   require(_amount <= loan[_id].loanBalance, 'Insurance: Incorrect loan repayment amount');
+    IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _amount);
 
-  //   IERC20(registry.registry('BbToken')).transferFrom(msg.sender, address(this), _amount);
+    if (_amount < loan[_id].loanBalance) {
+      loan[_id].loanBalance -= _amount;
+    } else {
+      attributes[_id].lastClaimTime = block.timestamp;
+      loan[_id].loanBalance = 0;
+      loan[_id].onLoan = false;
+      uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
+      attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
+    }
 
-  //   if (_amount < loan[_id].loanBalance) {
-  //     loan[_id].loanBalance -= _amount;
-  //   } else {
-  //     attributes[_id].effectiveInterestTime = block.timestamp;
-  //     loan[_id].loanBalance = 0;
-  //     loan[_id].onLoan = false;
-  //     uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
-  //     attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
-  //   }
+    BBToken(registry.getAddress('BbToken')).burn(_amount);
 
-  //   BBToken(registry.registry('BbToken')).burn(_amount);
-
-  //   emit LoanRepaid(_id);
-  // }
+    emit LoanRepaid(_id);
+  }
   /**
    * Overrides
    */

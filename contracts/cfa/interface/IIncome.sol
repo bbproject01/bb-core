@@ -8,7 +8,15 @@ interface IIncome {
     uint256 paymentFrequency; // in months
     uint256 principalLockTime; // in years
     uint256 lastClaimTime;
-    uint256 interest; 
+    uint256 interest;
+    uint256 cfaLife;
+  }
+
+  struct Loan {
+    bool onLoan;
+    uint256 loanBalance;
+    uint256 loanTimeCreated;
+    uint256 timeWhenLoaned;
   }
 
   struct System {
