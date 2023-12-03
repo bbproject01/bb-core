@@ -135,7 +135,7 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     // remove if not needed
   }
 
-  function getAccumulatedInterest(uint256 _tokenId) internal view returns (uint256) {
+  function getAccumulatedInterest(uint256 interest) internal view returns (uint256) {
     uint256 interest;
     return interest;
     /*
@@ -154,7 +154,7 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     require(!loan[_id].onLoan, 'Income: Loan already created');
     require(block.timestamp < attributes[_id].cfaLife, 'Income: Income has expired');
 
-    uint256 interest = getAccumulatedInterest(_id);
+    uint256 interest = getAccumulatedInterest(attributes[_id].interest);
     withdrawIncome(_id, interest);
     uint256 loanedPrincipal = ((attributes[_id].principal) * 25) / 100;
     BBToken token = BBToken(registry.getAddress('BbToken'));
@@ -181,8 +181,11 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
       loan[_id].onLoan = false;
       uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
       attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
+      uint256 _lastClaimTime = (((((block.timestamp - attributes[_id].lastClaimTime) /
+        attributes[_id].paymentFrequency) + 1) * attributes[_id].paymentFrequency) + attributes[_id].lastClaimTime) -
+        block.timestamp;
+      attributes[_id].lastClaimTime = _lastClaimTime;
     }
-
     BBToken(registry.getAddress('BbToken')).burn(_amount);
 
     emit LoanRepaid(_id);
