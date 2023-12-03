@@ -135,14 +135,14 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     // remove if not needed
   }
 
-  function getAccumulatedInterest(uint256 interest) internal view returns (uint256) {
-    uint256 interest;
-    return interest;
-    /*
-      call offchain computation here. this should return interest accumulated, without the principal added. change loan accordingly
-      if return value is to be changed. pls use this when func withdrawIncome is called, as this should be used to compute
-      accumulated interest available for withdrawal
-    */
+  function getAccumulatedInterest(uint256 _interest, uint256 _id) internal view returns (uint256) {
+    if (attributes[_id].lastClaimTime - block.timestamp < attributes[_id].paymentFrequency) {
+      return 0;
+    } else {
+      uint256 iterations = (attributes[_id].lastClaimTime - block.timestamp) / attributes[_id].paymentFrequency;
+      uint256 computedInterest = iterations * ((_interest * attributes[_id].principal) / 10000);
+      return computedInterest;
+    }
   }
 
   /**
@@ -154,7 +154,7 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     require(!loan[_id].onLoan, 'Income: Loan already created');
     require(block.timestamp < attributes[_id].cfaLife, 'Income: Income has expired');
 
-    uint256 interest = getAccumulatedInterest(attributes[_id].interest);
+    uint256 interest = getAccumulatedInterest(attributes[_id].interest, _id);
     withdrawIncome(_id, interest);
     uint256 loanedPrincipal = ((attributes[_id].principal) * 25) / 100;
     BBToken token = BBToken(registry.getAddress('BbToken'));
