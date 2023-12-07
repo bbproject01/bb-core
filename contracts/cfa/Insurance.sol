@@ -62,7 +62,7 @@ contract Insurance is IInsurance, ERC1155, Ownable, ReentrancyGuard {
 
   function _mintInsurance(Attributes memory _attributes, address caller) internal {
     if ((Referral(registry.getAddress('Referral')).eligibleForReward(caller))) {
-      Referral(registry.getAddress('Referral')).discountForReferrer(caller, _attributes.principal);
+      Referral(registry.getAddress('Referral')).rewardForReferrer(caller, _attributes.principal);
       uint256 discount = Referral(registry.getAddress('Referral')).getReferredDiscount();
       uint256 amtPayable = _attributes.principal - ((_attributes.principal * discount) / 10000);
       IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
