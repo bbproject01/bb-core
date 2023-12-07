@@ -108,7 +108,7 @@ contract Referral is Ownable, IReferral {
   /**
    * @dev Used to return rewards to the referrer
    */
-  function discountForReferrer(address _sender, uint256 amount) external onlyRegistered {
+  function rewardForReferrer(address _sender, uint256 amount) external onlyRegistered {
     require(referredRewardRates.length != 0, 'referredRewardRates not set');
     require(supplyMarkers.length != 0, 'supplyMarkers not set');
     require(amtReferredBracket.length != 0, 'supplyMarkers not set');
