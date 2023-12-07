@@ -18,6 +18,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   /**
    * Local variables
    */
+  System public system;
   Referral public referral; // Referral contract
   Registry public registry; // The registry contract
   Life public life; // max and minimum life of Savings CFA
@@ -26,7 +27,6 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
 
   mapping(uint256 => Loan) public loan;
   mapping(uint256 => Attributes) public attributes;
-  uint256 public idCounter = 1;
 
   /**
    * Events
@@ -44,7 +44,9 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   /**
    * Constructor
    */
-  constructor() ERC1155('') {}
+  constructor() ERC1155('') {
+    system.idCounter = 1;
+  }
 
   /**
    * Main Function
@@ -55,22 +57,19 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     _attributes.timeCreated = block.timestamp;
     _attributes.effectiveInterestTime = block.timestamp;
     _attributes.interestRate = GlobalMarker(registry.getAddress('GlobalMarker')).getInterestRate();
-    uint256 originalCfaLife = _attributes.cfaLife;
-    uint256 yearsLeft = (originalCfaLife * 30 days) + block.timestamp;
-    _attributes.cfaLife = yearsLeft;
-    attributes[idCounter] = _attributes;
+    attributes[system.idCounter] = _attributes;
   }
 
   function _mintSavings(Attributes memory _attributes, address caller) internal {
     if ((Referral(registry.getAddress('Referral')).eligibleForReward(caller))) {
-      Referral(registry.getAddress('Referral')).rewardForReferrer(caller, _attributes.amount);
+      Referral(registry.getAddress('Referral')).rewardForReferrer(caller, _attributes.principal);
       uint256 discount = Referral(registry.getAddress('Referral')).getReferredDiscount();
-      uint256 amtPayable = _attributes.amount - ((_attributes.amount * discount) / 10000);
+      uint256 amtPayable = _attributes.principal - ((_attributes.principal * discount) / 10000);
       IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
     } else {
-      IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _attributes.amount);
+      IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _attributes.principal);
     }
-    _mint(msg.sender, idCounter, 1, '');
+    _mint(msg.sender, system.idCounter, 1, '');
     _saveAttributes(_attributes);
     emit SavingsCreated(_attributes);
   }
@@ -82,7 +81,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     }
     for (uint256 i = 0; i < _attributes.length; i++) {
       _mintSavings(_attributes[i], msg.sender);
-      idCounter++;
+      system.idCounter++;
     }
   }
 
@@ -97,14 +96,17 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     //   attributes[_id].effectiveInterestTime + attributes[_id].cfaLife < block.timestamp,
     //   'Savings: CFA is not matured'
     // );
-    require(block.timestamp > attributes[_id].cfaLife, 'Savings: CFA not yet matured');
+    require(
+      block.timestamp > getTotalLife(attributes[_id].timeCreated, attributes[_id].cfaLife),
+      'Savings: CFA not yet matured'
+    );
     require(!loan[_id].onLoan, 'Savings: On Loan');
     // require(block.timestamp < attributes[_id].cfaLife, 'Savings: insurance has expired');
 
     // (, uint256 interest) = getTotalInterest(_id); // Gets the accrued interest + principal
 
     BBToken token = BBToken(registry.getAddress('BbToken'));
-    token.transfer(msg.sender, attributes[_id].amount);
+    token.transfer(msg.sender, attributes[_id].principal);
     token.mint(msg.sender, _amount);
 
     _burnSavings(_id);
@@ -205,39 +207,45 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   //   }
   // }
 
-  function getTotalInterest(uint256 _id) public view returns (uint256, uint256) {
-    uint256 principal = attributes[_id].amount;
-    uint256 interest = attributes[_id].interestRate;
-    uint256 month = 30 days;
-    uint256 months = (attributes[_id].cfaLife - attributes[_id].effectiveInterestTime) / month;
-    uint256 basisPoint = 10000;
-    uint256 totalInterest = 0;
+  // function getTotalInterest(uint256 _id) public view returns (uint256, uint256) {
+  //   uint256 principal = attributes[_id].amount;
+  //   uint256 interest = attributes[_id].interestRate;
+  //   uint256 month = 30 days;
+  //   uint256 months = (attributes[_id].cfaLife - attributes[_id].effectiveInterestTime) / month;
+  //   uint256 basisPoint = 10000;
+  //   uint256 totalInterest = 0;
 
-    for (uint256 index = 0; index < months; index++) {
-      uint256 tempInterest = (principal * interest) / basisPoint;
-      principal += tempInterest;
-      totalInterest += tempInterest;
-    }
-    // uint256 totalInterest = (principal * compoundedInterest) / basisPoint;
+  //   for (uint256 index = 0; index < months; index++) {
+  //     uint256 tempInterest = (principal * interest) / basisPoint;
+  //     principal += tempInterest;
+  //     totalInterest += tempInterest;
+  //   }
+  //   // uint256 totalInterest = (principal * compoundedInterest) / basisPoint;
 
-    return (principal, totalInterest);
-  }
+  //   return (principal, totalInterest);
+  // }
 
-  function getYieldedInterest(uint256 _id) public view returns (uint256, uint256) {
-    uint256 principal = attributes[_id].amount;
-    uint256 interest = attributes[_id].interestRate;
-    uint256 months = (block.timestamp - attributes[_id].effectiveInterestTime) / 30 days;
-    uint256 basisPoint = 10000;
-    uint256 totalInterest = 0;
+  // function getYieldedInterest(uint256 _id) public view returns (uint256, uint256) {
+  //   uint256 principal = attributes[_id].amount;
+  //   uint256 interest = attributes[_id].interestRate;
+  //   uint256 months = (block.timestamp - attributes[_id].effectiveInterestTime) / 30 days;
+  //   uint256 basisPoint = 10000;
+  //   uint256 totalInterest = 0;
 
-    for (uint256 index = 0; index < months; index++) {
-      uint256 tempInterest = (principal * interest) / basisPoint;
-      principal += tempInterest;
-      totalInterest += tempInterest;
-    }
-    // uint256 totalInterest = (principal * compoundedInterest) / basisPoint;
+  //   for (uint256 index = 0; index < months; index++) {
+  //     uint256 tempInterest = (principal * interest) / basisPoint;
+  //     principal += tempInterest;
+  //     totalInterest += tempInterest;
+  //   }
+  //   // uint256 totalInterest = (principal * compoundedInterest) / basisPoint;
 
-    return (principal, totalInterest);
+  //   return (principal, totalInterest);
+  // }
+
+  function getTotalLife(uint256 _timeCreate, uint256 _cfaLife) public pure returns (uint256) {
+    uint256 cfaLife = _cfaLife * (12 * 30 days);
+    uint256 totalLife = _timeCreate + cfaLife;
+    return totalLife;
   }
 
   function getImage() public view returns (string memory) {
@@ -288,13 +296,12 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
    * Loan functions
    */
 
-  function createLoan(uint256 _id) external nonReentrant {
+  function createLoan(uint256 _id, uint256 _yieldedInterest) external nonReentrant {
     require(balanceOf(msg.sender, _id) == 1, 'Savings: invalid id');
     require(!loan[_id].onLoan, 'Savings: Loan already created');
     require(block.timestamp < attributes[_id].cfaLife, 'Savings: insurance has expired');
 
-    (uint256 totalPrincipal, ) = getYieldedInterest(_id);
-    uint256 loanedPrincipal = ((totalPrincipal) * 25) / 100;
+    uint256 loanedPrincipal = ((attributes[_id].principal + _yieldedInterest) * 25) / 100;
     BBToken token = BBToken(registry.getAddress('BbToken'));
     token.mint(msg.sender, loanedPrincipal);
 
