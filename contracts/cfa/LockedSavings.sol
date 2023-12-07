@@ -20,6 +20,7 @@ contract LockedSavings is ILockedSavings, ERC1155, Ownable, ReentrancyGuard {
   // Local variables
   Registry public registry;
   System public system;
+  Referral public referral;
 
   mapping(uint256 => Attributes) public attributes;
   mapping(uint256 => mapping(uint256 => uint256)) public multipliers;
@@ -46,18 +47,28 @@ contract LockedSavings is ILockedSavings, ERC1155, Ownable, ReentrancyGuard {
     attributes[idCounter] = _attributes;
   }
 
-  function _createLockedSavings(Attributes memory _attributes) internal {
-    BBToken(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _attributes.principal);
+  function _createLockedSavings(Attributes memory _attributes, address caller) internal {
+    if ((Referral(registry.getAddress('Referral')).eligibleForReward(caller))) {
+      Referral(registry.getAddress('Referral')).discountForReferrer(caller, _attributes.principal);
+      uint256 discount = Referral(registry.getAddress('Referral')).getReferredDiscount();
+      uint256 amtPayable = _attributes.principal - ((_attributes.principal * discount) / 10000);
+      IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
+    } else {
+      IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _attributes.principal);
+    }
     _saveAttributes(_attributes);
     _mint(msg.sender, idCounter, 1, '');
     idCounter++;
   }
 
-  function createLockedSavings(Attributes[] memory _attributes) external nonReentrant {
+  function createLockedSavings(Attributes[] memory _attributes, address _referrer) external nonReentrant {
     uint256 currMarker = GlobalMarker(registry.getAddress('GlobalMarker')).getMarker();
     require(currMarker <= 100, 'LockedSavings: Beyond Max Marker');
+    if (_referrer != address(0)) {
+      Referral(registry.getAddress('Referral')).addReferrer(msg.sender, _referrer);
+    }
     for (uint256 i = 0; i < _attributes.length; i++) {
-      _createLockedSavings(_attributes[i]);
+      _createLockedSavings(_attributes[i], msg.sender);
     }
   }
 
