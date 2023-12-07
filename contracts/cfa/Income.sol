@@ -66,7 +66,7 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     }
     for (uint i = 0; i < _attributes.length; i++) {
       if ((Referral(registry.getAddress('Referral')).eligibleForReward(msg.sender))) {
-        Referral(registry.getAddress('Referral')).discountForReferrer(msg.sender, _attributes[i].principal);
+        Referral(registry.getAddress('Referral')).rewardForReferrer(msg.sender, _attributes[i].principal);
         uint256 discount = Referral(registry.getAddress('Referral')).getReferredDiscount();
         uint256 amtPayable = _attributes[i].principal - ((_attributes[i].principal * discount) / 10000);
         IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);

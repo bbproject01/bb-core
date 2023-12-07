@@ -171,7 +171,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
 
   function _mintSavings(Attributes memory _attributes, address caller) internal {
     if ((Referral(registry.getAddress('Referral')).eligibleForReward(caller))) {
-      Referral(registry.getAddress('Referral')).discountForReferrer(caller, _attributes.amount);
+      Referral(registry.getAddress('Referral')).rewardForReferrer(caller, _attributes.amount);
       uint256 discount = Referral(registry.getAddress('Referral')).getReferredDiscount();
       uint256 amtPayable = _attributes.amount - ((_attributes.amount * discount) / 10000);
       IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
