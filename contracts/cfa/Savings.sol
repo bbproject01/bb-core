@@ -18,6 +18,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   /**
    * Local variables
    */
+  System public system;
   Referral public referral; // Referral contract
   Registry public registry; // The registry contract
   Life public life; // max and minimum life of Savings CFA
@@ -26,7 +27,6 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
 
   mapping(uint256 => Loan) public loan;
   mapping(uint256 => Attributes) public attributes;
-  uint256 public idCounter = 1;
 
   /**
    * Events
@@ -44,7 +44,9 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   /**
    * Constructor
    */
-  constructor() ERC1155('') {}
+  constructor() ERC1155('') {
+    system.idCounter = 1;
+  }
 
   /**
    * Main Function
@@ -55,7 +57,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     _attributes.timeCreated = block.timestamp;
     _attributes.effectiveInterestTime = block.timestamp;
     _attributes.interestRate = GlobalMarker(registry.getAddress('GlobalMarker')).getInterestRate();
-    attributes[idCounter] = _attributes;
+    attributes[system.idCounter] = _attributes;
   }
 
   function _mintSavings(Attributes memory _attributes, address caller) internal {
@@ -67,7 +69,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     } else {
       IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _attributes.principal);
     }
-    _mint(msg.sender, idCounter, 1, '');
+    _mint(msg.sender, system.idCounter, 1, '');
     _saveAttributes(_attributes);
     emit SavingsCreated(_attributes);
   }
@@ -79,7 +81,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     }
     for (uint256 i = 0; i < _attributes.length; i++) {
       _mintSavings(_attributes[i], msg.sender);
-      idCounter++;
+      system.idCounter++;
     }
   }
 
@@ -94,7 +96,10 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     //   attributes[_id].effectiveInterestTime + attributes[_id].cfaLife < block.timestamp,
     //   'Savings: CFA is not matured'
     // );
-    require(block.timestamp > (attributes[_id].cfaLife * (30 days * 12)), 'Savings: CFA not yet matured');
+    require(
+      block.timestamp > getTotalLife(attributes[_id].timeCreated, attributes[_id].cfaLife),
+      'Savings: CFA not yet matured'
+    );
     require(!loan[_id].onLoan, 'Savings: On Loan');
     // require(block.timestamp < attributes[_id].cfaLife, 'Savings: insurance has expired');
 
@@ -236,6 +241,12 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
 
   //   return (principal, totalInterest);
   // }
+
+  function getTotalLife(uint256 _timeCreate, uint256 _cfaLife) public pure returns (uint256) {
+    uint256 cfaLife = _cfaLife * (12 * 30 days);
+    uint256 totalLife = _timeCreate + cfaLife;
+    return totalLife;
+  }
 
   function getImage() public view returns (string memory) {
     string memory image = metadata.image;

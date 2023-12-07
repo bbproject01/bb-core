@@ -2,6 +2,12 @@
 pragma solidity 0.8.17;
 
 interface ISavings {
+  struct System {
+    uint256 idCounter; // The total number of CFAs minted
+    uint256 totalActiveCfa; // The total number of CFAs active in the contract
+    uint256 totalAmount; // The total amount of B&B tokens locked in the contract
+  }
+
   struct Life {
     uint256 min;
     uint256 max;
