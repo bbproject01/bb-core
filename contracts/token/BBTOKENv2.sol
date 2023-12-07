@@ -24,6 +24,8 @@ contract BBToken is ERC20, ERC20Burnable {
     if (registry.getAddress('Referral') == _address) return true;
     if (registry.getAddress('Insurance') == _address) return true;
     if (registry.getAddress('Income') == _address) return true;
+    if (registry.getAddress('LockedSavings') == _address) return true;
+
     revert('BBToken: Not Registered');
     return false;
   }
