@@ -1,114 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-// import './interface/ISavings.sol';
-// import '@openzeppelin/contracts/token/ERC1155/ERC1155.sol';
-// import '@openzeppelin/contracts/access/Ownable.sol';
-// import '@openzeppelin/contracts/utils/Strings.sol';
-// import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
-// import '@openzeppelin/contracts/utils/Base64.sol';
-// import '../utils/Registry.sol';
-// import '../utils/GlobalMarker.sol';
-// import './Referral.sol';
-
-// contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
-//   /**
-//    * Use
-//    */
-//   using Strings for uint256;
-
-//   /**
-//    * Local variables
-//    */
-//   Registry public registry;
-//   GlobalMarker public sysInterest;
-//   Referral public referral;
-//   Life public life;
-
-//   uint256 public idCounter = 1;
-
-//   mapping(uint256 => Attributes) public attributes;
-
-//   /**
-//    * Events
-//    */
-//   event SavingsCreated(Attributes _attribute);
-//   event SavingsWithdrawn(Attributes _attribute, uint256 _time);
-
-//   /**
-//    * Modifiers
-//    */
-
-//   /**
-//    * Constructor
-//    */
-//   constructor() ERC1155('') {
-//     life.min = 1;
-//     life.max = 30;
-//   }
-
-//   /**
-//    * Main Function
-//    */
-
-//   function _createSavings(Attributes memory _attributes) internal {
-//     require(sysInterest.isInterestSet(), 'GlobalSupply: Interest not yet set');
-//     require(_attributes.cfaLife >= life.min && life.max >= _attributes.cfaLife, 'Savings: Invalid life duration');
-//     require(_attributes.amount > 0, 'Savings: Invalid amount');
-
-//     if ((referral.eligibleForReward(msg.sender))) {
-//       referral.rewardForReferrer(msg.sender, _attributes.amount);
-//       uint256 discount = referral.getReferredDiscount();
-//       uint256 amtPayable = _attributes.amount - ((_attributes.amount * discount) / 10000);
-//       IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
-//     } else {
-//       IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _attributes.amount);
-//     }
-
-//     _mint(msg.sender, idCounter, 1, '');
-//     _attributes.timeCreated = block.timestamp;
-//     _attributes.effectiveInterestTime = block.timestamp;
-//     _attributes.interestRate = sysInterest.getInterestRate();
-//     uint256 originalCfaLife = _attributes.cfaLife;
-//     uint256 yearsLeft = (originalCfaLife * 30 days) + block.timestamp;
-//     _attributes.cfaLife = yearsLeft;
-//     attributes[idCounter] = _attributes;
-//     emit SavingsCreated(_attributes);
-//     idCounter++;
-//   }
-
-//   function createSavings(Attributes[] memory _attributes) external nonReentrant {
-//     for (uint256 i = 0; i < _attributes.length; i++) {
-//       _createSavings(_attributes[i]);
-//     }
-//   }
-
-//   // function withdraw
-
-//   /**
-//    * Write Function
-//    */
-//   function setRegistry(address _registry) external onlyOwner {
-//     registry = Registry(_registry);
-//   }
-
-//   function setGlobalMarker(address _sysInterest) external onlyOwner {
-//     sysInterest = GlobalMarker(_sysInterest);
-//   }
-
-//   function setReferral(address _referral) external onlyOwner {
-//     referral = Referral(_referral);
-//   }
-
-//   /**
-//    * Read Function
-//    */
-// }
-
-/**
- * ON CHAIN SMART CONTRACT
- */
-
 import '@openzeppelin/contracts/token/ERC1155/ERC1155.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
@@ -171,7 +63,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
 
   function _mintSavings(Attributes memory _attributes, address caller) internal {
     if ((Referral(registry.getAddress('Referral')).eligibleForReward(caller))) {
-      Referral(registry.getAddress('Referral')).discountForReferrer(caller, _attributes.amount);
+      Referral(registry.getAddress('Referral')).rewardForReferrer(caller, _attributes.amount);
       uint256 discount = Referral(registry.getAddress('Referral')).getReferredDiscount();
       uint256 amtPayable = _attributes.amount - ((_attributes.amount * discount) / 10000);
       IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
