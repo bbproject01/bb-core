@@ -55,8 +55,9 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
 
     _attributes.timeCreated = block.timestamp;
     _attributes.interest = GlobalMarker(registry.getAddress('GlobalMarker')).getInterestRate();
-    _attributes.paymentFrequency *= 30 days;
-    _attributes.principalLockTime *= 365 days;
+    // commented because those time will be saved as is and not in unix
+    // _attributes.paymentFrequency *= 30 days;
+    // _attributes.principalLockTime *= 365 days;
     attributes[idCounter] = _attributes;
   }
 
@@ -81,15 +82,15 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
 
   function withdrawIncome(uint256 _tokenId, uint256 _amount) public {
     require(balanceOf(msg.sender, _tokenId) >= 1, 'Income:: Not product owner');
-
+    attributes[_tokenId].lastClaimTime = block.timestamp;
     BBToken token = BBToken(registry.getAddress('BbToken'));
-    // token.mint(msg.sender, _amount);
+    token.mint(msg.sender, _amount);
   }
 
   function withdrawPrincipal(uint256 _tokenId) external {
     require(balanceOf(msg.sender, _tokenId) >= 1, 'Income:: Not product owner');
     require(
-      block.timestamp >= attributes[_tokenId].timeCreated + attributes[_tokenId].principalLockTime,
+      block.timestamp >= attributes[_tokenId].timeCreated + (attributes[_tokenId].principalLockTime * 365 days),
       'Income:: Principal is locked'
     );
 
@@ -111,7 +112,8 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
    * Read function
    */
   function getIndexes(uint256 _tokenId) external view returns (uint256, uint256) {
-    uint256 timeDiff = (block.timestamp - attributes[_tokenId].timeCreated) / attributes[_tokenId].paymentFrequency;
+    uint256 timeDiff = (block.timestamp - attributes[_tokenId].timeCreated) /
+      ((attributes[_tokenId].paymentFrequency * 30 days));
     uint256 currentIndex = 0;
     uint256 claimedIndex = 0;
 
@@ -122,7 +124,7 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     if (attributes[_tokenId].lastClaimTime > 0) {
       claimedIndex =
         (attributes[_tokenId].lastClaimTime - attributes[_tokenId].timeCreated) /
-        attributes[_tokenId].paymentFrequency;
+        (attributes[_tokenId].paymentFrequency * 30 days);
     }
 
     return (currentIndex, claimedIndex);
