@@ -210,13 +210,13 @@ contract Referral is Ownable, IReferral {
     return referrer[msg.sender].referrer;
   }
 
-  function hasBeenReferred() external view returns (bool) {
-    if (referrer[msg.sender].referrer != address(0)) {
-      return false;
-    } else {
-      return true;
-    }
-  }
+  // function hasBeenReferred() external view returns (bool) {
+  //   if (referrer[msg.sender].referrer != address(0)) {
+  //     return false;
+  //   } else {
+  //     return true;
+  //   }
+  // }
 
   // Debug functions
   // function getInterestSet() external view returns (uint256[] memory) {
