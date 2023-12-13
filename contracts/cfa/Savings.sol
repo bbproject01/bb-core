@@ -54,8 +54,8 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
 
   function _saveAttributes(Attributes memory _attributes) internal {
     require(_attributes.cfaLife >= life.min && life.max >= _attributes.cfaLife, 'Savings: Invalid CFA life duration');
-    _attributes.timeCreated = block.timestamp;
-    _attributes.effectiveInterestTime = block.timestamp;
+    _attributes.timeCreated = block.timestamp - 365 days; // remove - 1 year for mainnet
+    _attributes.effectiveInterestTime = block.timestamp - 365 days; // remove - 1 year for mainnet
     _attributes.interestRate = GlobalMarker(registry.getAddress('GlobalMarker')).getInterestRate();
     attributes[system.idCounter] = _attributes;
   }
@@ -92,18 +92,11 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   }
 
   function withdrawSavings(uint256 _id, uint256 _amount) external nonReentrant {
-    // require(
-    //   attributes[_id].effectiveInterestTime + attributes[_id].cfaLife < block.timestamp,
-    //   'Savings: CFA is not matured'
-    // );
     require(
       block.timestamp > getTotalLife(attributes[_id].timeCreated, attributes[_id].cfaLife),
       'Savings: CFA not yet matured'
     );
     require(!loan[_id].onLoan, 'Savings: On Loan');
-    // require(block.timestamp < attributes[_id].cfaLife, 'Savings: insurance has expired');
-
-    // (, uint256 interest) = getTotalInterest(_id); // Gets the accrued interest + principal
 
     BBToken token = BBToken(registry.getAddress('BbToken'));
     token.transfer(msg.sender, attributes[_id].principal);
@@ -112,17 +105,6 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     _burnSavings(_id);
     emit SavingsWithdrawn(attributes[_id], block.timestamp);
   }
-
-  // function bindSavings(uint256 _id, uint256 _period) external {
-  //   require(attributes[_id].soulBoundTerm == 0, 'Savings: CFA is already bound');
-  //   require(balanceOf(msg.sender, _id) > 0, 'Savings: CFA is not owned by the caller');
-
-  //   attributes[_id].soulBoundTerm = _period;
-
-  //   emit SavingsBinded(attributes[_id], _period);
-  // }
-
-  // TODO: Locking calculation
 
   /**
    * Write Function
@@ -149,98 +131,6 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   /**
    * Read Function
    */
-  // TODO: change public to internal
-  // function getDiff() public view returns (uint256, uint256, uint256) {
-  //   uint256 totalSupply = IERC20(registry.getAddress('BbToken')).totalSupply();
-
-  //   if (totalSupply > 20_000_000 ether && totalSupply <= 24_000_000) {
-  //     return (20_000_000 ether, 24_000_000 ether, 1_000_000 ether);
-  //   } else if (totalSupply > 24_000_000 ether && totalSupply <= 82_000_000 ether) {
-  //     return (24_000_000 ether, 82_000_000 ether, 2_000_000 ether);
-  //   } else if (totalSupply > 82_000_000 ether && totalSupply <= 100_000_000 ether) {
-  //     return (82_000_000 ether, 100_000_000 ether, 3_000_000 ether);
-  //   } else if (totalSupply > 100_000_000 ether && totalSupply <= 120_000_000 ether) {
-  //     return (100_000_000 ether, 120_000_000 ether, 4_000_000 ether);
-  //   } else if (totalSupply > 120_000_000 ether && totalSupply <= 140_000_000 ether) {
-  //     return (120_000_000 ether, 140_000_000 ether, 5_000_000 ether);
-  //   } else if (totalSupply > 140_000_000 ether && totalSupply <= 280_000_000 ether) {
-  //     return (140_000_000 ether, 280_000_000 ether, 10_000_000 ether);
-  //   } else if (totalSupply > 280_000_000 ether && totalSupply <= 420_000_000 ether) {
-  //     return (280_000_000 ether, 420_000_000 ether, 20_000_000 ether);
-  //   } else if (totalSupply > 420_000_000 ether && totalSupply <= 720_000_000 ether) {
-  //     return (420_000_000 ether, 720_000_000 ether, 30_000_000 ether);
-  //   } else if (totalSupply > 720_000_000 ether && totalSupply <= 840_000_000 ether) {
-  //     return (720_000_000 ether, 840_000_000 ether, 40_000_000 ether);
-  //   } else if (totalSupply > 840_000_000 ether && totalSupply <= 2_100_000_000 ether) {
-  //     return (840_000_000 ether, 2_100_000_000 ether, 60_000_000 ether);
-  //   } else if (totalSupply > 2_100_000_000 ether && totalSupply <= 2_500_000_000 ether) {
-  //     return (2_100_000_000 ether, 2_500_000_000 ether, 80_000_000 ether);
-  //   } else if (totalSupply > 2_500_000_000 ether && totalSupply <= 4_500_000_000 ether) {
-  //     return (2_500_000_000 ether, 4_500_000_000 ether, 100_000_000 ether);
-  //   } else if (totalSupply > 4_500_000_000 ether && totalSupply <= 7_500_000_000 ether) {
-  //     return (4_500_000_000 ether, 7_500_000_000 ether, 200_000_000 ether);
-  //   } else if (totalSupply > 7_500_000_000 ether && totalSupply <= 19_000_000_000 ether) {
-  //     return (7_500_000_000 ether, 19_000_000_000 ether, 250_000_000 ether);
-  //   } else if (totalSupply > 19_000_000_000 ether && totalSupply <= 20_000_000_000 ether) {
-  //     return (19_000_000_000 ether, 20_000_000_000 ether, 200_000_000 ether);
-  //   } else if (totalSupply > 20_000_000_000 ether && totalSupply <= 20_200_000_000 ether) {
-  //     return (20_000_000_000 ether, 20_200_000_000 ether, 100_000_000 ether);
-  //   } else if (totalSupply > 20_200_000_000 ether && totalSupply <= 20_800_000_000 ether) {
-  //     return (20_200_000_000 ether, 20_800_000_000 ether, 50_000_000 ether);
-  //   } else if (totalSupply > 20_800_000_000 ether && totalSupply <= 20_900_000_000 ether) {
-  //     return (20_800_000_000 ether, 20_900_000_000 ether, 20_000_000 ether);
-  //   } else {
-  //     return (0, 1_000_000 ether, 20_000_000 ether);
-  //   }
-  // }
-
-  // TODO: change public to internal
-  // function getMarker() public view returns (uint256) {
-  //   uint256 totalSupply = IERC20(registry.getAddress('BbToken')).totalSupply();
-  //   (uint256 min, uint256 max, uint256 diff) = getDiff();
-  //   uint256 iterations = (max - min) / diff;
-
-  //   for (uint256 index = 0; index < iterations; index++) {
-  //     if (totalSupply > min + (index * diff) && totalSupply <= min + ((index + 1) * diff)) {
-  //       return min + ((index + 1) * diff);
-  //     }
-  //   }
-  // }
-
-  // function getTotalInterest(uint256 _id) public view returns (uint256, uint256) {
-  //   uint256 principal = attributes[_id].amount;
-  //   uint256 interest = attributes[_id].interestRate;
-  //   uint256 month = 30 days;
-  //   uint256 months = (attributes[_id].cfaLife - attributes[_id].effectiveInterestTime) / month;
-  //   uint256 basisPoint = 10000;
-  //   uint256 totalInterest = 0;
-
-  //   for (uint256 index = 0; index < months; index++) {
-  //     uint256 tempInterest = (principal * interest) / basisPoint;
-  //     principal += tempInterest;
-  //     totalInterest += tempInterest;
-  //   }
-  //   // uint256 totalInterest = (principal * compoundedInterest) / basisPoint;
-
-  //   return (principal, totalInterest);
-  // }
-
-  // function getYieldedInterest(uint256 _id) public view returns (uint256, uint256) {
-  //   uint256 principal = attributes[_id].amount;
-  //   uint256 interest = attributes[_id].interestRate;
-  //   uint256 months = (block.timestamp - attributes[_id].effectiveInterestTime) / 30 days;
-  //   uint256 basisPoint = 10000;
-  //   uint256 totalInterest = 0;
-
-  //   for (uint256 index = 0; index < months; index++) {
-  //     uint256 tempInterest = (principal * interest) / basisPoint;
-  //     principal += tempInterest;
-  //     totalInterest += tempInterest;
-  //   }
-  //   // uint256 totalInterest = (principal * compoundedInterest) / basisPoint;
-
-  //   return (principal, totalInterest);
-  // }
 
   function getTotalLife(uint256 _timeCreate, uint256 _cfaLife) public pure returns (uint256) {
     uint256 cfaLife = _cfaLife * (12 * 30 days);
@@ -252,16 +142,6 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     string memory image = metadata.image;
     return image;
   }
-
-  // function batchGetImage(uint256[] memory _tokenId) public view returns (string[] memory) {
-  //   string[] memory images = new string[](_tokenId.length);
-
-  //   for (uint256 index = 0; index < _tokenId.length; index++) {
-  //     images[index] = getImage(_tokenId[index]);
-  //   }
-
-  //   return images;
-  // }
 
   function getMetadata(uint256 _tokenId) public view returns (string memory) {
     string memory _metadata = string(
@@ -299,7 +179,10 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   function createLoan(uint256 _id, uint256 _yieldedInterest) external nonReentrant {
     require(balanceOf(msg.sender, _id) == 1, 'Savings: invalid id');
     require(!loan[_id].onLoan, 'Savings: Loan already created');
-    require(block.timestamp < attributes[_id].cfaLife, 'Savings: insurance has expired');
+    require(
+      block.timestamp < getTotalLife(attributes[_id].timeCreated, attributes[_id].cfaLife),
+      'Savings: CFA has expired'
+    );
 
     uint256 loanedPrincipal = ((attributes[_id].principal + _yieldedInterest) * 25) / 100;
     BBToken token = BBToken(registry.getAddress('BbToken'));

@@ -1,5 +1,6 @@
 import { ethers } from 'hardhat';
 import { BBTOKEN_SEPOLIA, REGISTRY_SEPOLIA } from '../addresses';
+import { images, metadata } from './data';
 
 async function main() {
   const Income = await ethers.getContractFactory('Income');
@@ -11,6 +12,14 @@ async function main() {
 
   console.info('\nSettings registry to income...');
   await income.setRegistry(REGISTRY_SEPOLIA);
+  console.info('Done!');
+
+  console.info('\nSetting image...');
+  await income.setImage(images);
+  console.info('Done!');
+
+  console.info('\nSetting metadata...');
+  await income.setMetadata(metadata[0], metadata[1]);
   console.info('Done!');
 
   console.info('\nApproving income to spend tokens...');

@@ -206,8 +206,8 @@ contract Referral is Ownable, IReferral {
     return reward;
   }
 
-  function yourReferrer() external view returns (address) {
-    return referrer[msg.sender].referrer;
+  function yourReferrer(address _user) external view returns (address) {
+    return referrer[_user].referrer;
   }
 
   // Debug functions

@@ -5,6 +5,8 @@ import '@openzeppelin/contracts/token/ERC1155/ERC1155.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import '@openzeppelin/contracts/utils/Strings.sol';
+import '@openzeppelin/contracts/utils/Base64.sol';
 import './interface/IIncome.sol';
 import '../token/BBTOKENv2.sol';
 import '../utils/Registry.sol';
@@ -13,12 +15,18 @@ import './Referral.sol';
 
 contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
   /**
+   * Uses
+   */
+  using Strings for uint256;
+
+  /**
    * Local variables
    */
   System system;
   Registry public registry;
   GlobalMarker public globalMarker;
   Referral public referral;
+  Metadata public metadata;
 
   mapping(uint256 => Attributes) public attributes;
   mapping(uint256 => Loan) public loan;
@@ -53,11 +61,12 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     require(_attributes.paymentFrequency <= system.maxPaymentFrequency, 'Income:: Invalid payment frequency');
     require(_attributes.principalLockTime <= system.maxPrincipalLockTime, 'Income:: Invalid principal lock time');
 
-    _attributes.timeCreated = block.timestamp;
+    _attributes.timeCreated = block.timestamp - (365 days * (_attributes.principalLockTime - 1)); // remove - 1 year for mainnet
     _attributes.interest = GlobalMarker(registry.getAddress('GlobalMarker')).getInterestRate();
     // commented because those time will be saved as is and not in unix
     // _attributes.paymentFrequency *= 30 days;
     // _attributes.principalLockTime *= 365 days;
+    _attributes.cfaLife = _attributes.timeCreated + (_attributes.principalLockTime * 365 days);
     attributes[idCounter] = _attributes;
   }
 
@@ -108,6 +117,15 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     attributes[_id].timeCreated = _timeCreated;
   }
 
+  function setImage(string memory _image) external onlyOwner {
+    metadata.image = _image;
+  }
+
+  function setMetadata(string memory _name, string memory _description) external onlyOwner {
+    metadata.name = _name;
+    metadata.description = _description;
+  }
+
   /**
    * Read function
    */
@@ -147,17 +165,46 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     }
   }
 
+  function getImage() public view returns (string memory) {
+    string memory image = metadata.image;
+    return image;
+  }
+
+  function getMetadata(uint256 _tokenId) public view returns (string memory) {
+    string memory _metadata = string(
+      abi.encodePacked(
+        '{',
+        '"name":"',
+        metadata.name,
+        ' #',
+        _tokenId.toString(),
+        '",',
+        '"description":',
+        '"',
+        metadata.description,
+        '",',
+        '"image":',
+        '"',
+        getImage(),
+        '"',
+        '}'
+      )
+    );
+
+    return _metadata;
+  }
+
   /**
    * Loan functions
    */
 
-  function createLoan(uint256 _id) external nonReentrant {
+  function createLoan(uint256 _id, uint256 _interest) external nonReentrant {
     require(balanceOf(msg.sender, _id) == 1, 'Income: invalid id');
     require(!loan[_id].onLoan, 'Income: Loan already created');
     require(block.timestamp < attributes[_id].cfaLife, 'Income: Income has expired');
 
-    uint256 interest = getAccumulatedInterest(attributes[_id].interest, _id);
-    withdrawIncome(_id, interest);
+    // uint256 interest = getAccumulatedInterest(attributes[_id].interest, _id);
+    withdrawIncome(_id, _interest);
     uint256 loanedPrincipal = ((attributes[_id].principal) * 25) / 100;
     BBToken token = BBToken(registry.getAddress('BbToken'));
     token.mint(address(this), loanedPrincipal);

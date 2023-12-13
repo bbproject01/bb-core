@@ -23,4 +23,10 @@ interface IIncome {
     uint256 maxPaymentFrequency; // defined as months
     uint256 maxPrincipalLockTime; // defined as years
   }
+
+  struct Metadata {
+    string name;
+    string description;
+    string image;
+  }
 }

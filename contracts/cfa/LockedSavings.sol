@@ -89,19 +89,18 @@ contract LockedSavings is ILockedSavings, ERC1155, Ownable, ReentrancyGuard {
     registry = Registry(_registry);
   }
 
-  function _setMultiplier(uint256 _marker, uint256 _cfaLife, uint256 _multiplier) internal onlyOwner {
-    multipliers[_marker][_cfaLife] = _multiplier;
+  function _setMultiplier(uint256 _marker, uint256 _multiplier, uint256 _cfaLife) internal onlyOwner {
+    multipliers[_marker][_multiplier] = _cfaLife;
   }
 
-  function setMultiplier(
-    uint256[] memory _marker,
-    uint256[] memory _cfaLife,
-    uint256[] memory _multiplier
-  ) external onlyOwner {
-    require(_marker.length == _cfaLife.length, 'LockedSavings: Marker, CFA Life and Multiplier length should be equal');
+  function setMultiplier(uint256 _marker, uint256[] memory _multiplier, uint256[] memory _cfaLife) external onlyOwner {
+    require(
+      _multiplier.length == _cfaLife.length,
+      'LockedSavings: Marker, CFA Life and Multiplier length should be equal'
+    );
 
-    for (uint256 i = 0; i < _marker.length; i++) {
-      _setMultiplier(_marker[i], _cfaLife[i], _multiplier[i]);
+    for (uint256 i = 0; i < _multiplier.length; i++) {
+      _setMultiplier(_marker, _cfaLife[i], _multiplier[i]);
     }
   }
 
@@ -111,6 +110,7 @@ contract LockedSavings is ILockedSavings, ERC1155, Ownable, ReentrancyGuard {
   }
 
   // Read Function
+  // function get
 
   // Override
   function safeTransferFrom(
