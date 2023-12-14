@@ -26,7 +26,7 @@ contract GlobalMarker is Ownable {
 
   function getMarker() public view returns (uint256) {
     require(interestsSet, 'GlobalMarker: Marker & Interest not yet set');
-    uint256 totalSupply = IERC20(registry.getAddress('BbToken')).totalSupply();
+    uint256 totalSupply = IERC20(registry.getContractAddress('BbToken')).totalSupply();
     uint256 marker = 0;
 
     if (totalSupply > markers[markerSize - 1]) {

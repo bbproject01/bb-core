@@ -56,18 +56,18 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     require(_attributes.cfaLife >= life.min && life.max >= _attributes.cfaLife, 'Savings: Invalid CFA life duration');
     _attributes.timeCreated = block.timestamp - 365 days; // remove - 1 year for mainnet
     _attributes.effectiveInterestTime = block.timestamp - 365 days; // remove - 1 year for mainnet
-    _attributes.interestRate = GlobalMarker(registry.getAddress('GlobalMarker')).getInterestRate();
+    _attributes.interestRate = GlobalMarker(registry.getContractAddress('GlobalMarker')).getInterestRate();
     attributes[system.idCounter] = _attributes;
   }
 
   function _mintSavings(Attributes memory _attributes, address caller) internal {
-    if ((Referral(registry.getAddress('Referral')).eligibleForReward(caller))) {
-      Referral(registry.getAddress('Referral')).rewardForReferrer(caller, _attributes.principal);
-      uint256 discount = Referral(registry.getAddress('Referral')).getReferredDiscount();
+    if ((Referral(registry.getContractAddress('Referral')).eligibleForReward(caller))) {
+      Referral(registry.getContractAddress('Referral')).rewardForReferrer(caller, _attributes.principal);
+      uint256 discount = Referral(registry.getContractAddress('Referral')).getReferredDiscount();
       uint256 amtPayable = _attributes.principal - ((_attributes.principal * discount) / 10000);
-      IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
+      IERC20(registry.getContractAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
     } else {
-      IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _attributes.principal);
+      IERC20(registry.getContractAddress('BbToken')).transferFrom(msg.sender, address(this), _attributes.principal);
     }
     _mint(msg.sender, system.idCounter, 1, '');
     _saveAttributes(_attributes);
@@ -75,9 +75,12 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
   }
 
   function mintSavings(Attributes[] memory _attributes, address _referrer) external nonReentrant {
-    require(GlobalMarker(registry.getAddress('GlobalMarker')).isInterestSet(), 'GlobalSupply: Interest not yet set');
+    require(
+      GlobalMarker(registry.getContractAddress('GlobalMarker')).isInterestSet(),
+      'GlobalSupply: Interest not yet set'
+    );
     if (_referrer != address(0)) {
-      Referral(registry.getAddress('Referral')).addReferrer(msg.sender, _referrer);
+      Referral(registry.getContractAddress('Referral')).addReferrer(msg.sender, _referrer);
     }
     for (uint256 i = 0; i < _attributes.length; i++) {
       _mintSavings(_attributes[i], msg.sender);
@@ -98,7 +101,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     );
     require(!loan[_id].onLoan, 'Savings: On Loan');
 
-    BBToken token = BBToken(registry.getAddress('BbToken'));
+    BBToken token = BBToken(registry.getContractAddress('BbToken'));
     token.transfer(msg.sender, attributes[_id].principal);
     token.mint(msg.sender, _amount);
 
@@ -185,7 +188,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     );
 
     uint256 loanedPrincipal = ((attributes[_id].principal + _yieldedInterest) * 25) / 100;
-    BBToken token = BBToken(registry.getAddress('BbToken'));
+    BBToken token = BBToken(registry.getContractAddress('BbToken'));
     token.mint(msg.sender, loanedPrincipal);
 
     loan[_id].onLoan = true;
@@ -199,7 +202,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
     require(loan[_id].onLoan, 'Savings: Loan invalid');
     require(_amount <= loan[_id].loanBalance, 'Savings: Incorrect loan repayment amount');
 
-    IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _amount);
+    IERC20(registry.getContractAddress('BbToken')).transferFrom(msg.sender, address(this), _amount);
 
     if (_amount < loan[_id].loanBalance) {
       loan[_id].loanBalance -= _amount;
@@ -211,7 +214,7 @@ contract Savings is ISavings, ERC1155, Ownable, ReentrancyGuard {
       attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
     }
 
-    BBToken(registry.getAddress('BbToken')).burn(_amount);
+    BBToken(registry.getContractAddress('BbToken')).burn(_amount);
 
     emit LoanRepaid(_id);
   }

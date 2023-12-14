@@ -62,7 +62,7 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     require(_attributes.principalLockTime <= system.maxPrincipalLockTime, 'Income:: Invalid principal lock time');
 
     _attributes.timeCreated = block.timestamp - (365 days * (_attributes.principalLockTime - 1)); // remove - 1 year for mainnet
-    _attributes.interest = GlobalMarker(registry.getAddress('GlobalMarker')).getInterestRate();
+    _attributes.interest = GlobalMarker(registry.getContractAddress('GlobalMarker')).getInterestRate();
     // commented because those time will be saved as is and not in unix
     // _attributes.paymentFrequency *= 30 days;
     // _attributes.principalLockTime *= 365 days;
@@ -72,16 +72,20 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
 
   function mintIncome(Attributes[] memory _attributes, address _referrer) external {
     if (_referrer != address(0)) {
-      Referral(registry.getAddress('Referral')).addReferrer(msg.sender, _referrer);
+      Referral(registry.getContractAddress('Referral')).addReferrer(msg.sender, _referrer);
     }
     for (uint i = 0; i < _attributes.length; i++) {
-      if ((Referral(registry.getAddress('Referral')).eligibleForReward(msg.sender))) {
-        Referral(registry.getAddress('Referral')).rewardForReferrer(msg.sender, _attributes[i].principal);
-        uint256 discount = Referral(registry.getAddress('Referral')).getReferredDiscount();
+      if ((Referral(registry.getContractAddress('Referral')).eligibleForReward(msg.sender))) {
+        Referral(registry.getContractAddress('Referral')).rewardForReferrer(msg.sender, _attributes[i].principal);
+        uint256 discount = Referral(registry.getContractAddress('Referral')).getReferredDiscount();
         uint256 amtPayable = _attributes[i].principal - ((_attributes[i].principal * discount) / 10000);
-        IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
+        IERC20(registry.getContractAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
       } else {
-        IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _attributes[i].principal);
+        IERC20(registry.getContractAddress('BbToken')).transferFrom(
+          msg.sender,
+          address(this),
+          _attributes[i].principal
+        );
       }
       _setAttributes(_attributes[i]);
       _mint(msg.sender, idCounter, 1, '');
@@ -92,7 +96,7 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
   function withdrawIncome(uint256 _tokenId, uint256 _amount) public {
     require(balanceOf(msg.sender, _tokenId) >= 1, 'Income:: Not product owner');
     attributes[_tokenId].lastClaimTime = block.timestamp;
-    BBToken token = BBToken(registry.getAddress('BbToken'));
+    BBToken token = BBToken(registry.getContractAddress('BbToken'));
     token.mint(msg.sender, _amount);
   }
 
@@ -103,7 +107,7 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
       'Income:: Principal is locked'
     );
 
-    IERC20 token = IERC20(registry.getAddress('BbToken'));
+    IERC20 token = IERC20(registry.getContractAddress('BbToken'));
     token.transfer(msg.sender, attributes[_tokenId].principal);
 
     _burn(msg.sender, _tokenId, 1);
@@ -206,7 +210,7 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     // uint256 interest = getAccumulatedInterest(attributes[_id].interest, _id);
     withdrawIncome(_id, _interest);
     uint256 loanedPrincipal = ((attributes[_id].principal) * 25) / 100;
-    BBToken token = BBToken(registry.getAddress('BbToken'));
+    BBToken token = BBToken(registry.getContractAddress('BbToken'));
     token.mint(address(this), loanedPrincipal);
 
     loan[_id].onLoan = true;
@@ -220,7 +224,7 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
     require(loan[_id].onLoan, 'Income: Loan invalid');
     require(_amount <= loan[_id].loanBalance, 'Income: Incorrect loan repayment amount');
 
-    IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _amount);
+    IERC20(registry.getContractAddress('BbToken')).transferFrom(msg.sender, address(this), _amount);
 
     if (_amount < loan[_id].loanBalance) {
       loan[_id].loanBalance -= _amount;
@@ -235,7 +239,7 @@ contract Income is IIncome, ERC1155, Ownable, ReentrancyGuard {
         block.timestamp;
       attributes[_id].lastClaimTime = _lastClaimTime;
     }
-    BBToken(registry.getAddress('BbToken')).burn(_amount);
+    BBToken(registry.getContractAddress('BbToken')).burn(_amount);
 
     emit LoanRepaid(_id);
   }

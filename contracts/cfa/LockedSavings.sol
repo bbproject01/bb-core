@@ -37,8 +37,8 @@ contract LockedSavings is ILockedSavings, ERC1155, Ownable, ReentrancyGuard {
 
   // Main Function
   function _saveAttributes(Attributes memory _attributes) internal {
-    uint256 currMarker = GlobalMarker(registry.getAddress('GlobalMarker')).getMarker();
-    uint256 interestRate = GlobalMarker(registry.getAddress('GlobalMarker')).getInterestRate();
+    uint256 currMarker = GlobalMarker(registry.getContractAddress('GlobalMarker')).getMarker();
+    uint256 interestRate = GlobalMarker(registry.getContractAddress('GlobalMarker')).getInterestRate();
 
     _attributes.timeCreated = block.timestamp;
     _attributes.cfaLife = multipliers[currMarker][_attributes.cfaLife] * 30 days;
@@ -48,13 +48,13 @@ contract LockedSavings is ILockedSavings, ERC1155, Ownable, ReentrancyGuard {
   }
 
   function _createLockedSavings(Attributes memory _attributes, address caller) internal {
-    if ((Referral(registry.getAddress('Referral')).eligibleForReward(caller))) {
-      Referral(registry.getAddress('Referral')).rewardForReferrer(caller, _attributes.principal);
-      uint256 discount = Referral(registry.getAddress('Referral')).getReferredDiscount();
+    if ((Referral(registry.getContractAddress('Referral')).eligibleForReward(caller))) {
+      Referral(registry.getContractAddress('Referral')).rewardForReferrer(caller, _attributes.principal);
+      uint256 discount = Referral(registry.getContractAddress('Referral')).getReferredDiscount();
       uint256 amtPayable = _attributes.principal - ((_attributes.principal * discount) / 10000);
-      IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
+      IERC20(registry.getContractAddress('BbToken')).transferFrom(msg.sender, address(this), amtPayable);
     } else {
-      IERC20(registry.getAddress('BbToken')).transferFrom(msg.sender, address(this), _attributes.principal);
+      IERC20(registry.getContractAddress('BbToken')).transferFrom(msg.sender, address(this), _attributes.principal);
     }
     _saveAttributes(_attributes);
     _mint(msg.sender, idCounter, 1, '');
@@ -62,10 +62,10 @@ contract LockedSavings is ILockedSavings, ERC1155, Ownable, ReentrancyGuard {
   }
 
   function createLockedSavings(Attributes[] memory _attributes, address _referrer) external nonReentrant {
-    uint256 currMarker = GlobalMarker(registry.getAddress('GlobalMarker')).getMarker();
+    uint256 currMarker = GlobalMarker(registry.getContractAddress('GlobalMarker')).getMarker();
     require(currMarker <= 100, 'LockedSavings: Beyond Max Marker');
     if (_referrer != address(0)) {
-      Referral(registry.getAddress('Referral')).addReferrer(msg.sender, _referrer);
+      Referral(registry.getContractAddress('Referral')).addReferrer(msg.sender, _referrer);
     }
     for (uint256 i = 0; i < _attributes.length; i++) {
       _createLockedSavings(_attributes[i], msg.sender);
@@ -79,8 +79,8 @@ contract LockedSavings is ILockedSavings, ERC1155, Ownable, ReentrancyGuard {
       'LockedSavings: CFA is still locked'
     );
 
-    BBToken(registry.getAddress('BbToken')).transfer(msg.sender, attributes[_id].principal);
-    BBToken(registry.getAddress('BbToken')).mint(msg.sender, _interest);
+    BBToken(registry.getContractAddress('BbToken')).transfer(msg.sender, attributes[_id].principal);
+    BBToken(registry.getContractAddress('BbToken')).mint(msg.sender, _interest);
     _burn(msg.sender, _id, 1);
   }
 

@@ -118,7 +118,7 @@ contract Referral is Ownable, IReferral {
     address _referrer = referrer[_sender].referrer;
     uint256 returnRate = getUserInterest(_sender);
     uint256 reward = (amount * returnRate) / 10000;
-    BBToken token = BBToken(registry.getAddress('BbToken'));
+    BBToken token = BBToken(registry.getContractAddress('BbToken'));
     token.mint(_referrer, reward);
   }
 
@@ -127,7 +127,7 @@ contract Referral is Ownable, IReferral {
    * @dev Used to get the marker for the current supply
    */
   function getMarker() public view returns (uint256) {
-    uint256 totalSupply = IERC20(registry.getAddress('BbToken')).totalSupply();
+    uint256 totalSupply = IERC20(registry.getContractAddress('BbToken')).totalSupply();
     uint256 supplyMarker = 0;
 
     if (totalSupply > supplyMarkers[supplyMarkers.length - 1]) {
@@ -237,7 +237,7 @@ contract Referral is Ownable, IReferral {
   // }
 
   // function checkSupply() public view returns (uint256) {
-  //   uint256 supply = IERC20(registry.getAddress('BbToken')).totalSupply();
+  //   uint256 supply = IERC20(registry.getContractAddress('BbToken')).totalSupply();
   //   return supply;
   // }
 }
