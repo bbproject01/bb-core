@@ -27,7 +27,10 @@ contract BBToken is ERC20, ERC20Burnable {
     if (registry.getAddress('LockedSavings') == _address) return true;
 
     revert('BBToken: Not Registered');
-    return false;
+  }
+
+  function testMint(uint256 _amount) external {
+    _mint(msg.sender, _amount);
   }
 
   function setRegistry(address _registry) external {
