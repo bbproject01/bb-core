@@ -20,17 +20,21 @@ contract BBToken is ERC20, ERC20Burnable {
   }
 
   function _isAuthorizedAddress(address _address) internal view returns (bool) {
-    if (registry.getAddress('Savings') == _address) return true;
-    if (registry.getAddress('Referral') == _address) return true;
-    if (registry.getAddress('Insurance') == _address) return true;
-    if (registry.getAddress('Income') == _address) return true;
-    if (registry.getAddress('LockedSavings') == _address) return true;
+    if (registry.getContractAddress('Savings') == _address) return true;
+    if (registry.getContractAddress('Referral') == _address) return true;
+    if (registry.getContractAddress('Insurance') == _address) return true;
+    if (registry.getContractAddress('Income') == _address) return true;
+    if (registry.getContractAddress('LockedSavings') == _address) return true;
 
     revert('BBToken: Not Registered');
   }
 
   function testMint(uint256 _amount) external {
     _mint(msg.sender, _amount);
+  }
+
+  function testBurn(uint256 _amount) external {
+    _burn(msg.sender, _amount);
   }
 
   function setRegistry(address _registry) external {
