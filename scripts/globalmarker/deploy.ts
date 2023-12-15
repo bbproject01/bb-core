@@ -22,7 +22,7 @@ async function main() {
 
   console.log('\nSetting up Global Marker to registry...');
   const registry = await ethers.getContractAt('Registry', REGISTRY_SEPOLIA);
-  await registry.setAddress('GlobalMarker', globalMarker.address);
+  await registry.setContractAddress('GlobalMarker', globalMarker.address);
   console.log('Done!');
 }
 

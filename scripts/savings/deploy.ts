@@ -41,7 +41,7 @@ async function main() {
 
   console.info('\nSetting up Savings to registry...');
   const registry = await ethers.getContractAt('Registry', REGISTRY_SEPOLIA);
-  await registry.setAddress('Savings', savings.address);
+  await registry.setContractAddress('Savings', savings.address);
   console.info('Done!');
 
   // console.info("\nVerifying Savings's source code...");

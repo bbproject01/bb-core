@@ -29,7 +29,7 @@ async function main() {
 
   console.info('\nSetting income to registry...');
   const registry = await ethers.getContractAt('Registry', REGISTRY_SEPOLIA);
-  await registry.setAddress('Income', income.address);
+  await registry.setContractAddress('Income', income.address);
   console.info('Done!');
 }
 

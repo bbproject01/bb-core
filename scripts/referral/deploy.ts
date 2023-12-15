@@ -5,7 +5,7 @@ async function main() {
   const Referral = await ethers.getContractFactory('Referral');
   const referral = await Referral.deploy();
 
-  console.info('Deploying Referral contract...');
+  console.info('\nDeploying Referral contract...');
   await referral.deployed();
   console.info('Referral contract deployed to:', referral.address);
 
@@ -31,7 +31,7 @@ async function main() {
 
   console.info('\nSetting up referral to registry...');
   const registry = await ethers.getContractAt('Registry', REGISTRY_SEPOLIA);
-  await registry.setAddress('Referral', referral.address);
+  await registry.setContractAddress('Referral', referral.address);
   console.info('Done!');
 }
 

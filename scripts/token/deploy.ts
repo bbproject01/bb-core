@@ -17,7 +17,7 @@ async function main() {
 
   console.info('\nSetting up Token to Registry...');
   const reg = await ethers.getContractAt('Registry', REGISTRY_SEPOLIA);
-  await reg.setAddress('BbToken', BbToken.address);
+  await reg.setContractAddress('BbToken', BbToken.address);
   console.info('Done!');
 
   // console.info('\nVerifying BB Token Smart Contract...');
