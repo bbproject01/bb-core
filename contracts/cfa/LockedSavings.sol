@@ -37,11 +37,15 @@ contract LockedSavings is ILockedSavings, ERC1155, Ownable, ReentrancyGuard {
 
   // Main Function
   function _saveAttributes(Attributes memory _attributes) internal {
-    uint256 currMarker = GlobalMarker(registry.getContractAddress('GlobalMarker')).getMarker();
+    uint256 currMarker = getMarker();
     uint256 interestRate = GlobalMarker(registry.getContractAddress('GlobalMarker')).getInterestRate();
+    uint256 lifeBasedOnMult = multipliers[_attributes.multiplier][currMarker];
 
+    require(lifeBasedOnMult != 0, 'LockedSavings: Invalid Multiplier');
+
+    _attributes.marker = currMarker;
     _attributes.timeCreated = block.timestamp;
-    _attributes.cfaLife = multipliers[currMarker][_attributes.cfaLife] * 30 days;
+    _attributes.cfaLife = lifeBasedOnMult * 30 days;
     _attributes.interestRate = interestRate;
 
     attributes[idCounter] = _attributes;
@@ -79,7 +83,7 @@ contract LockedSavings is ILockedSavings, ERC1155, Ownable, ReentrancyGuard {
       'LockedSavings: CFA is still locked'
     );
 
-    BBToken(registry.getContractAddress('BbToken')).transfer(msg.sender, attributes[_id].principal);
+    BBToken(registry.getContractAddress('BbToken')).burn(attributes[_id].principal);
     BBToken(registry.getContractAddress('BbToken')).mint(msg.sender, _interest);
     _burn(msg.sender, _id, 1);
   }
@@ -89,18 +93,13 @@ contract LockedSavings is ILockedSavings, ERC1155, Ownable, ReentrancyGuard {
     registry = Registry(_registry);
   }
 
-  function _setMultiplier(uint256 _marker, uint256 _multiplier, uint256 _cfaLife) internal onlyOwner {
-    multipliers[_marker][_multiplier] = _cfaLife;
+  function _setMultiplier(uint256 _multiplier, uint256 _marker, uint256 _cfaLife) internal onlyOwner {
+    multipliers[_multiplier][_marker] = _cfaLife;
   }
 
-  function setMultiplier(uint256 _marker, uint256[] memory _multiplier, uint256[] memory _cfaLife) external onlyOwner {
-    require(
-      _multiplier.length == _cfaLife.length,
-      'LockedSavings: Marker, CFA Life and Multiplier length should be equal'
-    );
-
-    for (uint256 i = 0; i < _multiplier.length; i++) {
-      _setMultiplier(_marker, _cfaLife[i], _multiplier[i]);
+  function setMultiplier(uint256 _multiplier, uint256[] memory _marker, uint256[] memory _cfaLife) external onlyOwner {
+    for (uint256 i = 0; i < _marker.length; i++) {
+      _setMultiplier(_multiplier, _marker[i], _cfaLife[i]);
     }
   }
 
@@ -110,7 +109,24 @@ contract LockedSavings is ILockedSavings, ERC1155, Ownable, ReentrancyGuard {
   }
 
   // Read Function
-  // function get
+  function getMarker() public view returns (uint256) {
+    uint256 currMarker = GlobalMarker(registry.getContractAddress('GlobalMarker')).getMarker();
+    uint256 tempMarker = 5;
+
+    if (currMarker < 5) {
+      return 1;
+    } else {
+      for (uint256 i = 0; i <= 19; i++) {
+        if (currMarker >= tempMarker && currMarker < tempMarker) {
+          return tempMarker;
+        }
+
+        tempMarker += 5;
+      }
+    }
+
+    return 0;
+  }
 
   // Override
   function safeTransferFrom(
