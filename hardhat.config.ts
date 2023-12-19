@@ -56,7 +56,7 @@ const config: HardhatUserConfig = {
     // },
     sepolia: {
       url: 'https://eth-sepolia.g.alchemy.com/v2/5vjC3Fw2meujUNzb4SMJuD9wJ41rFnqW',
-      accounts: ['6a5c17c07dddcb4ef7d48ef341987e5e96e40f2c54a0b0229d165e3f6ddaba15'],
+      accounts: [process.env.TESTNET_PRIV_KEY ?? ''],
     },
     ganache: {
       url: 'http://127.0.0.1:7545',
