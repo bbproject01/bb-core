@@ -11,7 +11,7 @@ import 'hardhat-deploy';
 import 'hardhat-gas-reporter';
 // import 'hardhat-typechain'
 
-dotenv.config({ debug: false });
+dotenv.config();
 
 let real_accounts = undefined;
 if (process.env.DEPLOYER_KEY) {
