@@ -1,3 +1,5 @@
+import { ethers } from "ethers";
+
 export const supplyMarkers = [
   '34000000',
   '44000000',
@@ -26,3 +28,13 @@ export const interests = [
 ];
 export const numberOfReferrals = ['20', '100', '1000', '10000', '100000', '1000000'];
 export const discountForReferred = ['500', '400', '400', '300', '300', '200', '200', '100', '100', '50', '50'];
+
+export const trueMarkers = () => {
+  let markers = [];
+  for (let i = 0; i < supplyMarkers.length; i++) {
+    markers.push(String(ethers.utils.parseEther((supplyMarkers[i]))));
+  }
+
+  return markers;
+  
+};
