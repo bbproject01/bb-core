@@ -33,7 +33,7 @@ contract GlobalMarker is Ownable {
       return markerSize - 1;
     } else {
       for (uint256 index = 0; index < markers.length - 1; index++) {
-        if (totalSupply > markers[index] && totalSupply <= markers[index + 1]) {
+        if (totalSupply >= markers[index] && totalSupply < markers[index + 1]) {
           marker = index;
           return marker;
         }
