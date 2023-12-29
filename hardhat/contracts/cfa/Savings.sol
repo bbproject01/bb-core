@@ -112,7 +112,8 @@ contract Savings is
     }
 
     function mintSavings(
-        Attributes[] memory _attributes,
+        Attributes memory _attributes,
+        uint256 _qty,
         address _referrer
     ) external nonReentrant {
         require(
@@ -126,8 +127,8 @@ contract Savings is
                 _referrer
             );
         }
-        for (uint256 i = 0; i < _attributes.length; i++) {
-            _mintSavings(_attributes[i], msg.sender);
+        for (uint256 i = 0; i < _qty; i++) {
+            _mintSavings(_attributes, msg.sender);
             system.idCounter++;
         }
     }
