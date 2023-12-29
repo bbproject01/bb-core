@@ -1,0 +1,11 @@
+{
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#223303",
+    "titleBar.activeBackground": "#2F4705",
+    "titleBar.activeForeground": "#F5FDE5"
+  },
+  "conventionalCommits.scopes": [
+    "ERC1155",
+    "ERC20"
+  ]
+}
