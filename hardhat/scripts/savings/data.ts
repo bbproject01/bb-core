@@ -1,6 +1,6 @@
 // import { ethers } from 'hardhat';
 
-import { ethers } from 'ethers';
+import { ethers } from "ethers";
 
 // export const rawMarkers = [
 //   1_000_000, 20_000_000, 21_000_000, 22_000_000, 23_000_000, 24_000_000, 26_000_000, 28_000_000, 30_000_000, 32_000_000,
@@ -57,8 +57,10 @@ import { ethers } from 'ethers';
 // ];
 
 export const images =
-  'https://magenta-protestant-falcon-171.mypinata.cloud/ipfs/QmdL8nW1NrnmKkvSx7wHC8EBtNyYgHnR24ARaQLXYysnKa';
+  "https://magenta-protestant-falcon-171.mypinata.cloud/ipfs/QmdL8nW1NrnmKkvSx7wHC8EBtNyYgHnR24ARaQLXYysnKa";
 
-export const metadata = ['Savings', 'Savings CFA that will make you rich'];
+export const metadata = ["Savings", "Savings CFA that will make you rich"];
 
-export const mintData = [['0', '2', '0', ethers.utils.parseEther(String(10_000)), '0']];
+export const mintData = [
+  ["0", "2", "0", ethers.parseEther(String(10_000)), "0"],
+];

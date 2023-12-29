@@ -4,7 +4,15 @@ import "@openzeppelin/hardhat-upgrades";
 require("dotenv").config();
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.20",
+  solidity: {
+    version: "0.8.20",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
+  },
   networks: {
     sepolia: {
       url: "https://eth-sepolia.g.alchemy.com/v2/5vjC3Fw2meujUNzb4SMJuD9wJ41rFnqW",

@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "../token/BBTOKENv2.sol";
 import "./interface/IReferral.sol";
 import "../utils/Registry.sol";
 
-contract Referral is Ownable, IReferral {
+contract Referral is OwnableUpgradeable, IReferral {
     // Local Variables
     Registry public registry;
 
     uint256[] public amtReferredBracket;
     uint256[][] public interestSet;
-    uint256[] public supplyMarkers = new uint256[](11);
-    uint256[] public referredRewardRates = new uint256[](11);
+    uint256[] public supplyMarkers;
+    uint256[] public referredRewardRates;
     address public defaultReferrer;
     bool _interestSet;
 
@@ -35,7 +35,12 @@ contract Referral is Ownable, IReferral {
     }
 
     // Constructor
-    constructor() Ownable(msg.sender) {}
+    // constructor() Ownable(msg.sender) {}
+    function initialize() public initializer {
+        __Ownable_init(msg.sender);
+        supplyMarkers = new uint256[](11);
+        referredRewardRates = new uint256[](11);
+    }
 
     // Write Functions
     /**
