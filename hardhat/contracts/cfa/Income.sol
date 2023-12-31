@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "./interface/IIncome.sol";
@@ -13,7 +13,12 @@ import "../utils/Registry.sol";
 import "../utils/GlobalMarker.sol";
 import "./Referral.sol";
 
-contract Income is IIncome, ERC1155, Ownable(msg.sender), ReentrancyGuard {
+contract Income is
+    IIncome,
+    ERC1155Upgradeable,
+    OwnableUpgradeable,
+    ReentrancyGuardUpgradeable
+{
     /**
      * Uses
      */
@@ -49,7 +54,15 @@ contract Income is IIncome, ERC1155, Ownable(msg.sender), ReentrancyGuard {
     /**
      * Construstor
      */
-    constructor() ERC1155("") {
+    // constructor() ERC1155("") {
+    //     system.maxPaymentFrequency = 12;
+    //     system.maxPrincipalLockTime = 50;
+    // }
+
+    function initialize() public initializer {
+        __ERC1155_init("");
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
         system.maxPaymentFrequency = 12;
         system.maxPrincipalLockTime = 50;
     }
