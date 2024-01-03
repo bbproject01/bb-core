@@ -287,7 +287,6 @@ contract Income is
                     '{ "trait_type": "Date Finishing", "display_type": "date", "value": "',
                     attributes[_tokenId].cfaLife.toString(),
                     '" },',
-                    '{ "trait_type": "Payment Period", "value": "Monthly" },',
                     '{ "trait_type": "CFA Life", "value": "',
                     Strings.toString(attributes[_tokenId].principalLockTime),
                     ' years" },',
