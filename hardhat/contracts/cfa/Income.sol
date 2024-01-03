@@ -274,7 +274,6 @@ contract Income is IIncome, ERC1155, Ownable(msg.sender), ReentrancyGuard {
                     '{ "trait_type": "Date Finishing", "display_type": "date", "value": "',
                     attributes[_tokenId].cfaLife.toString(),
                     '" },',
-                    '{ "trait_type": "Payment Period", "value": "Monthly" },',
                     '{ "trait_type": "CFA Life", "value": "',
                     Strings.toString(attributes[_tokenId].principalLockTime),
                     ' years" },',
