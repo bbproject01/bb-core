@@ -205,27 +205,81 @@ contract Savings is
     }
 
     function getMetadata(uint256 _tokenId) public view returns (string memory) {
-        string memory _metadata = string(
-            abi.encodePacked(
-                "{",
-                '"name":"',
-                metadata.name,
-                " #",
-                _tokenId.toString(),
-                '",',
-                '"description":',
-                '"',
-                metadata.description,
-                '",',
-                '"image":',
-                '"',
-                getImage(),
-                '"',
-                "}"
-            )
-        );
+        string memory basicInfo = getBasicInfo(_tokenId);
+        string memory attributesInfo = getAttributesInfo(_tokenId);
+        string memory loanInfo = getLoanInfo(_tokenId);
 
-        return _metadata;
+        return
+            string(
+                abi.encodePacked("{", basicInfo, attributesInfo, loanInfo, "]}")
+            );
+    }
+
+    function getBasicInfo(
+        uint256 _tokenId
+    ) internal view returns (string memory) {
+        return
+            string(
+                abi.encodePacked(
+                    '"name":"SAV1-',
+                    Strings.toString(_tokenId),
+                    '",',
+                    '"description":"',
+                    metadata.description,
+                    '",',
+                    '"image":"',
+                    getImage(),
+                    '",',
+                    '"attributes": ['
+                )
+            );
+    }
+
+    function getAttributesInfo(
+        uint256 _tokenId
+    ) internal view returns (string memory) {
+        return
+            string(
+                abi.encodePacked(
+                    '{ "trait_type": "Date Started", "display_type": "date", "value": "',
+                    attributes[_tokenId].timeCreated.toString(),
+                    '" },',
+                    '{ "trait_type": "Date Finishing", "display_type": "date", "value": "',
+                    getTotalLife(
+                        attributes[_tokenId].timeCreated,
+                        attributes[_tokenId].cfaLife
+                    ).toString(),
+                    '" },',
+                    '{ "trait_type": "CFA Life", "value": "',
+                    attributes[_tokenId].cfaLife.toString(),
+                    ' years" },',
+                    '{ "trait_type": "Principal", "value": "',
+                    attributes[_tokenId].principal.toString(),
+                    '" },',
+                    '{ "trait_type": "Loan Status", "value": "',
+                    (loan[_tokenId].onLoan ? "On Loan" : "Not on Loan"),
+                    '" }'
+                )
+            );
+    }
+
+    function getLoanInfo(
+        uint256 _tokenId
+    ) internal view returns (string memory) {
+        if (loan[_tokenId].onLoan) {
+            return
+                string(
+                    abi.encodePacked(
+                        ', { "trait_type": "Loan Time Created", "display_type": "date", "value": "',
+                        loan[_tokenId].timeWhenLoaned.toString(),
+                        '" },',
+                        '{ "trait_type": "Loan Balance", "value": "',
+                        loan[_tokenId].loanBalance.toString(),
+                        '" }'
+                    )
+                );
+        }
+        return "";
     }
 
     function getLoanBalance(uint _id) external view returns (uint256) {

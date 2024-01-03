@@ -142,6 +142,9 @@ contract Income is
             balanceOf(msg.sender, _tokenId) >= 1,
             "Income:: Not product owner"
         );
+        if (msg.sender != address(this)) {
+            attributes[_amount].incomePaid += _amount;
+        }
         attributes[_tokenId].lastClaimTime = block.timestamp;
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
         token.mint(msg.sender, _amount);
@@ -242,27 +245,82 @@ contract Income is
     }
 
     function getMetadata(uint256 _tokenId) public view returns (string memory) {
-        string memory _metadata = string(
-            abi.encodePacked(
-                "{",
-                '"name":"',
-                metadata.name,
-                " #",
-                _tokenId.toString(),
-                '",',
-                '"description":',
-                '"',
-                metadata.description,
-                '",',
-                '"image":',
-                '"',
-                getImage(),
-                '"',
-                "}"
-            )
-        );
+        string memory basicInfo = getBasicInfo(_tokenId);
+        string memory attributesInfo = getAttributesInfo(_tokenId);
+        string memory loanInfo = getLoanInfo(_tokenId);
 
-        return _metadata;
+        return
+            string(
+                abi.encodePacked("{", basicInfo, attributesInfo, loanInfo, "]}")
+            );
+    }
+
+    function getBasicInfo(
+        uint256 _tokenId
+    ) internal view returns (string memory) {
+        return
+            string(
+                abi.encodePacked(
+                    '"name":"INC1-',
+                    Strings.toString(_tokenId),
+                    '",',
+                    '"description":"',
+                    metadata.description,
+                    '",',
+                    '"image":"',
+                    getImage(),
+                    '",',
+                    '"attributes": ['
+                )
+            );
+    }
+
+    function getAttributesInfo(
+        uint256 _tokenId
+    ) internal view returns (string memory) {
+        return
+            string(
+                abi.encodePacked(
+                    '{ "trait_type": "Date Started", "display_type": "date", "value": "',
+                    attributes[_tokenId].timeCreated.toString(),
+                    '" },',
+                    '{ "trait_type": "Date Finishing", "display_type": "date", "value": "',
+                    attributes[_tokenId].cfaLife.toString(),
+                    '" },',
+                    '{ "trait_type": "Payment Period", "value": "Monthly" },',
+                    '{ "trait_type": "CFA Life", "value": "',
+                    Strings.toString(attributes[_tokenId].principalLockTime),
+                    ' years" },',
+                    '{ "trait_type": "Principal", "display_type": "number", "value": "',
+                    attributes[_tokenId].principal.toString(),
+                    '" },',
+                    '{ "trait_type": "Paid Up To Date", "display_type": "number", "value": "',
+                    attributes[_tokenId].incomePaid.toString(),
+                    '" },',
+                    '{ "trait_type": "Loaned", "value": "',
+                    (loan[_tokenId].onLoan ? "true" : "false"),
+                    '" }'
+                )
+            );
+    }
+
+    function getLoanInfo(
+        uint256 _tokenId
+    ) internal view returns (string memory) {
+        if (loan[_tokenId].onLoan) {
+            return
+                string(
+                    abi.encodePacked(
+                        ', { "trait_type": "Loan Time Created", "display_type": "date", "value": "',
+                        loan[_tokenId].timeWhenLoaned.toString(),
+                        '" },',
+                        '{ "trait_type": "Loan Balance", "value": "',
+                        loan[_tokenId].loanBalance.toString(),
+                        '" }'
+                    )
+                );
+        }
+        return "";
     }
 
     /**

@@ -10,6 +10,7 @@ interface IIncome {
         uint256 lastClaimTime;
         uint256 interest;
         uint256 cfaLife;
+        uint256 incomePaid; // paid income in total
     }
 
     struct Loan {

@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
 export const supplyMarkers = [
-  '34000000',
+  '0',
   '44000000',
   '54000000',
   '64000000',
