@@ -41,6 +41,7 @@ contract Savings is
     event SavingsBurned(Attributes _attribute, uint256 _time);
     event LoanCreated(uint256 _id, uint256 _totalLoan);
     event LoanRepaid(uint256 _id);
+    event MetadataUpdate(uint256 _tokenId);
 
     /**
      * Modifier
@@ -316,6 +317,7 @@ contract Savings is
         loan[_id].timeWhenLoaned = block.timestamp;
 
         emit LoanCreated(_id, (loanedPrincipal * 25) / 100);
+        emit MetadataUpdate(_id);
     }
 
     function repayLoan(uint256 _id, uint256 _amount) external nonReentrant {
@@ -344,6 +346,7 @@ contract Savings is
         BBToken(registry.getContractAddress("BbToken")).burn(_amount);
 
         emit LoanRepaid(_id);
+        emit MetadataUpdate(_id);
     }
 
     /**

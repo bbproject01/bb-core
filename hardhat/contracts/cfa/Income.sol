@@ -46,6 +46,7 @@ contract Income is
     event IncomeBurned(uint256 _id, Attributes _attributes, uint256 _time);
     event LoanCreated(uint256 _id, uint256 _totalLoan);
     event LoanRepaid(uint256 _id);
+    event MetadataUpdate(uint256 _tokenId);
 
     /**
      * Modifiers
@@ -148,6 +149,7 @@ contract Income is
         attributes[_tokenId].lastClaimTime = block.timestamp;
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
         token.mint(msg.sender, _amount);
+        emit MetadataUpdate(_tokenId);
     }
 
     function withdrawPrincipal(uint256 _tokenId) external {
@@ -239,19 +241,26 @@ contract Income is
         }
     }
 
-    function getImage() public view returns (string memory) {
-        string memory image = metadata.image;
-        return image;
-    }
-
     function getMetadata(uint256 _tokenId) public view returns (string memory) {
         string memory basicInfo = getBasicInfo(_tokenId);
-        string memory attributesInfo = getAttributesInfo(_tokenId);
+        string memory firstHalfAttributesInfo = getFirstHalfAttributesInfo(
+            _tokenId
+        );
+        string memory secondHalfAttributesInfo = getSecondHalfAttributesInfo(
+            _tokenId
+        );
         string memory loanInfo = getLoanInfo(_tokenId);
 
         return
             string(
-                abi.encodePacked("{", basicInfo, attributesInfo, loanInfo, "]}")
+                abi.encodePacked(
+                    "{",
+                    basicInfo,
+                    firstHalfAttributesInfo,
+                    secondHalfAttributesInfo,
+                    loanInfo,
+                    "]}"
+                )
             );
     }
 
@@ -268,14 +277,14 @@ contract Income is
                     metadata.description,
                     '",',
                     '"image":"',
-                    getImage(),
+                    metadata.image,
                     '",',
                     '"attributes": ['
                 )
             );
     }
 
-    function getAttributesInfo(
+    function getFirstHalfAttributesInfo(
         uint256 _tokenId
     ) internal view returns (string memory) {
         return
@@ -289,7 +298,17 @@ contract Income is
                     '" },',
                     '{ "trait_type": "CFA Life", "value": "',
                     Strings.toString(attributes[_tokenId].principalLockTime),
-                    ' years" },',
+                    ' years" },'
+                )
+            );
+    }
+
+    function getSecondHalfAttributesInfo(
+        uint256 _tokenId
+    ) internal view returns (string memory) {
+        return
+            string(
+                abi.encodePacked(
                     '{ "trait_type": "Principal", "display_type": "number", "value": "',
                     attributes[_tokenId].principal.toString(),
                     '" },',
@@ -345,6 +364,7 @@ contract Income is
         loan[_id].timeWhenLoaned = block.timestamp;
 
         emit LoanCreated(_id, loanedPrincipal);
+        emit MetadataUpdate(_id);
     }
 
     function repayLoan(uint256 _id, uint256 _amount) external nonReentrant {
@@ -378,6 +398,7 @@ contract Income is
         BBToken(registry.getContractAddress("BbToken")).burn(_amount);
 
         emit LoanRepaid(_id);
+        emit MetadataUpdate(_id);
     }
     /**
      * Overrides
