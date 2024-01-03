@@ -221,7 +221,7 @@ contract Savings is
         return
             string(
                 abi.encodePacked(
-                    '"name":"SAV1 #',
+                    '"name":"SAV1-',
                     Strings.toString(_tokenId),
                     '",',
                     '"description":"',

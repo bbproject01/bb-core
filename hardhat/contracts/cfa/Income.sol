@@ -248,7 +248,7 @@ contract Income is IIncome, ERC1155, Ownable(msg.sender), ReentrancyGuard {
         return
             string(
                 abi.encodePacked(
-                    '"name":"INC1 #',
+                    '"name":"INC1-',
                     Strings.toString(_tokenId),
                     '",',
                     '"description":"',
