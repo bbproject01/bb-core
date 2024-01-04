@@ -1,13 +1,13 @@
-import { ethers } from 'hardhat';
-import { BBTOKEN_SEPOLIA, INCOME_SEPOLIA } from '../addresses';
-import { sampleAttributes } from './data';
+import { ethers } from "hardhat";
+import { BBTOKEN_SEPOLIA, INCOME_SEPOLIA } from "../addresses";
+import { sampleAttributes } from "./data";
 
 async function main() {
-  const income = await ethers.getContractAt('Income', INCOME_SEPOLIA);
+  const income = await ethers.getContractAt("Income", INCOME_SEPOLIA);
 
-  console.info('\nTrying to mint income cfa...');
-  await income.mintIncome([sampleAttributes], ethers.constants.AddressZero);
-  console.info('Done!');
+  console.info("\nTrying to mint income cfa...");
+  await income.mintIncome([sampleAttributes as any], ethers.ZeroAddress);
+  console.info("Done!");
 
   // console.info("\nChanging time to '1668069940'...");
   // await income.setTimeCreated('2  ', '1668069940');

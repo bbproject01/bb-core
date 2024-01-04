@@ -29,14 +29,14 @@ contract Income is
      */
     System system;
     Registry public registry;
-    GlobalMarker public globalMarker;
-    Referral public referral;
+    // GlobalMarker public globalMarker;
+    // Referral public referral;
     Metadata public metadata;
 
     mapping(uint256 => Attributes) public attributes;
     mapping(uint256 => Loan) public loan;
     // mapping(uint256 => uint256) public lastClaimTime;
-    uint256 public idCounter = 1;
+    uint256 public idCounter;
 
     /**
      * Events
@@ -66,6 +66,7 @@ contract Income is
         __ReentrancyGuard_init();
         system.maxPaymentFrequency = 12;
         system.maxPrincipalLockTime = 50;
+        idCounter = 1;
     }
 
     /**
