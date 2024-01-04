@@ -7,8 +7,8 @@ async function main() {
   const income = await Income.deploy();
 
   console.info('Deploying Income contract...');
-  await income.deployed();
-  console.info('Income deployed to:', income.address);
+  await income.waitForDeployment();
+  console.info('Income deployed to:', await income.getAddress());
 
   console.info('\nSettings registry to income...');
   await income.setRegistry(REGISTRY_SEPOLIA);
@@ -24,12 +24,12 @@ async function main() {
 
   console.info('\nApproving income to spend tokens...');
   const token = await ethers.getContractAt('BBToken', BBTOKEN_SEPOLIA);
-  await token.approve(income.address, ethers.constants.MaxUint256);
+  await token.approve( await income.getAddress(), ethers.MaxUint256);
   console.info('Done!');
 
   console.info('\nSetting income to registry...');
   const registry = await ethers.getContractAt('Registry', REGISTRY_SEPOLIA);
-  await registry.setContractAddress('Income', income.address);
+  await registry.setContractAddress('Income',  await income.getAddress());
   console.info('Done!');
 }
 
