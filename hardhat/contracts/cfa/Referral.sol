@@ -25,15 +25,6 @@ contract Referral is OwnableUpgradeable, IReferral {
     event ReferralRecorded(address indexed user, address indexed referrer);
     event ReferralRemoved(address indexed user);
 
-    // Modifiers
-    modifier onlyRegistered() {
-        require(
-            registry.isRegistered(msg.sender) == true,
-            "Referral: Caller not a registered contract"
-        );
-        _;
-    }
-
     // Constructor
     // constructor() Ownable(msg.sender) {}
     function initialize() public initializer {
@@ -46,10 +37,7 @@ contract Referral is OwnableUpgradeable, IReferral {
     /**
      * @dev Used to set referrer to a new user
      */
-    function addReferrer(
-        address _referred,
-        address _referrer
-    ) external onlyRegistered {
+    function addReferrer(address _referred, address _referrer) external {
         require(
             referrer[_referred].referrer == address(0),
             "Referral: Referrer already set"
@@ -62,7 +50,7 @@ contract Referral is OwnableUpgradeable, IReferral {
             !isReferral(_referrer, _referred),
             "Referral: Circular referral not allowed"
         );
-        // QQ: Does this method allow for a user to set a referrer to a user who has already been referred?
+        require(!isContract(_referrer), "Referral: Referrer is not a wallet");
 
         referrer[_referrer].referrals.push(_referred);
         referrer[_referrer].referralCount++;
@@ -132,10 +120,7 @@ contract Referral is OwnableUpgradeable, IReferral {
     /**
      * @dev Used to return rewards to the referrer
      */
-    function rewardForReferrer(
-        address _sender,
-        uint256 amount
-    ) external onlyRegistered {
+    function rewardForReferrer(address _sender, uint256 amount) external {
         require(referredRewardRates.length != 0, "referredRewardRates not set");
         require(supplyMarkers.length != 0, "supplyMarkers not set");
         require(amtReferredBracket.length != 0, "supplyMarkers not set");
@@ -153,6 +138,17 @@ contract Referral is OwnableUpgradeable, IReferral {
     /**
      * @dev Used to get the marker for the current supply
      */
+
+    function isContract(
+        address addr
+    ) internal view returns (bool isContractBool) {
+        uint size;
+        assembly {
+            size := extcodesize(addr)
+        }
+        isContractBool = size > 0;
+    }
+
     function getMarker() public view returns (uint256) {
         uint256 totalSupply = IERC20(registry.getContractAddress("BbToken"))
             .totalSupply();
