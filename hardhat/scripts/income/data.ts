@@ -1,13 +1,14 @@
 import { ethers } from "ethers";
 
 export const sampleAttributes = [
-  "0",
-  ethers.parseEther(String(10_000)),
-  "1",
-  "1",
-  "0",
-  "0",
-  "0",
+  "0", // time created
+  ethers.parseEther(String(10_000)), // principal
+  "1", // payment frequency
+  "1", // principal lock time
+  "0", // last claim time
+  "0", // interest
+  "0", // cfa life
+  "0", // income paid
 ];
 export const timeCreated = "1668069940";
 export const images =
