@@ -69,8 +69,8 @@ contract Savings is
             _attributes.cfaLife >= life.min && life.max >= _attributes.cfaLife,
             "Savings: Invalid CFA life duration"
         );
-        _attributes.timeCreated = block.timestamp - 365 days; // remove - 1 year for mainnet
-        _attributes.effectiveInterestTime = block.timestamp - 365 days; // remove - 1 year for mainnet
+        _attributes.timeCreated = block.timestamp;
+        _attributes.effectiveInterestTime = block.timestamp; 
         _attributes.interestRate = GlobalMarker(
             registry.getContractAddress("GlobalMarker")
         ).getInterestRate();
@@ -222,7 +222,8 @@ contract Savings is
         return
             string(
                 abi.encodePacked(
-                    '"name":"SAV1-',
+                    '"name":"',
+                    metadata.name,
                     Strings.toString(_tokenId),
                     '",',
                     '"description":"',
@@ -255,7 +256,7 @@ contract Savings is
                     attributes[_tokenId].cfaLife.toString(),
                     ' years" },',
                     '{ "trait_type": "Principal", "value": "',
-                    attributes[_tokenId].principal.toString(),
+                    (attributes[_tokenId].principal / 1 ether).toString(),
                     '" },',
                     '{ "trait_type": "Loan Status", "value": "',
                     (loan[_tokenId].onLoan ? "On Loan" : "Not on Loan"),
