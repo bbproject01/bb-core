@@ -14,4 +14,4 @@ export const timeCreated = "1668069940";
 export const images =
   "https://magenta-protestant-falcon-171.mypinata.cloud/ipfs/QmdL8nW1NrnmKkvSx7wHC8EBtNyYgHnR24ARaQLXYysnKa";
 
-export const metadata = ["Income", "Income CFA will be your best friend"];
+export const metadata = ["INC1-", "Income CFA will be your best friend"];
