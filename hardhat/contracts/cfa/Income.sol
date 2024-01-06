@@ -271,7 +271,8 @@ contract Income is
         return
             string(
                 abi.encodePacked(
-                    '"name":"INC1-',
+                    '"name":"',
+                    metadata.name,
                     Strings.toString(_tokenId),
                     '",',
                     '"description":"',
@@ -314,7 +315,7 @@ contract Income is
                     attributes[_tokenId].principal.toString(),
                     '" },',
                     '{ "trait_type": "Paid Up To Date", "display_type": "number", "value": "',
-                    attributes[_tokenId].incomePaid.toString(),
+                    (attributes[_tokenId].principal / 1 ether).toString(),
                     '" },',
                     '{ "trait_type": "Loaned", "value": "',
                     (loan[_tokenId].onLoan ? "true" : "false"),
