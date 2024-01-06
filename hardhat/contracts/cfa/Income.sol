@@ -346,7 +346,7 @@ contract Income is
      * Loan functions
      */
 
-    function createLoan(uint256 _id, uint256 _interest) external nonReentrant {
+    function createLoan(uint256 _id, uint256 _amount) external nonReentrant {
         require(balanceOf(msg.sender, _id) == 1, "Income: invalid id");
         require(!loan[_id].onLoan, "Income: Loan already created");
         require(
@@ -355,7 +355,7 @@ contract Income is
         );
 
         // uint256 interest = getAccumulatedInterest(attributes[_id].interest, _id);
-        withdrawIncome(_id, _interest);
+        withdrawIncome(_id, _amount);
         uint256 loanedPrincipal = ((attributes[_id].principal) * 25) / 100;
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
         token.mint(address(this), loanedPrincipal);
