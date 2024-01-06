@@ -16,7 +16,7 @@ interface IIncome {
     struct Loan {
         bool onLoan;
         uint256 loanBalance;
-        uint256 loanTimeCreated;
+        uint256 loanTimeCreated; //remove this
         uint256 timeWhenLoaned;
     }
 
