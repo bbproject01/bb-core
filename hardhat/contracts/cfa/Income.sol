@@ -403,7 +403,22 @@ contract Income is
         emit LoanRepaid(_id);
         emit MetadataUpdate(_id);
     }
+
     /**
      * Overrides
      */
+
+    function uri(
+        uint256 _tokenId
+    ) public view virtual override returns (string memory) {
+        bytes memory _metadata = abi.encodePacked(getMetadata(_tokenId));
+
+        return
+            string(
+                abi.encodePacked(
+                    "data:application/json;base64,",
+                    Base64.encode(_metadata)
+                )
+            );
+    }
 }
