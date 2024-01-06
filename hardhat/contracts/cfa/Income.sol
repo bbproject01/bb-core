@@ -355,7 +355,9 @@ contract Income is
         );
 
         // uint256 interest = getAccumulatedInterest(attributes[_id].interest, _id);
-        withdrawIncome(_id, _amount);
+        if (_amount != 0) {
+            withdrawIncome(_id, _amount);
+        }
         uint256 loanedPrincipal = ((attributes[_id].principal) * 25) / 100;
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
         token.mint(address(this), loanedPrincipal);
