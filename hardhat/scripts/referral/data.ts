@@ -32,7 +32,7 @@ export const discountForReferred = ['500', '400', '400', '300', '300', '200', '2
 export const trueMarkers = () => {
   let markers = [];
   for (let i = 0; i < supplyMarkers.length; i++) {
-    markers.push(String(ethers.utils.parseEther((supplyMarkers[i]))));
+    markers.push(String(ethers.parseEther((supplyMarkers[i]))));
   }
 
   return markers;
