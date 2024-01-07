@@ -1,9 +1,9 @@
 import { ethers, upgrades } from "hardhat";
 import {
-  supplyMarkers,
   interests,
   numberOfReferrals,
   discountForReferred,
+  trueMarkers,
 } from "./data";
 import { REGISTRY_SEPOLIA } from "../addresses";
 async function main() {
@@ -19,7 +19,7 @@ async function main() {
   console.info("Done!");
 
   console.info("\nSetting up supply markers...");
-  await referral.setSupplyMarkers(supplyMarkers);
+  await referral.setSupplyMarkers(trueMarkers());
   console.info("Done!");
 
   console.info("\nSetting up interest rates...");
