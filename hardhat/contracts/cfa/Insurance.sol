@@ -225,28 +225,98 @@ contract Insurance is
         return image;
     }
 
-    function getMetadata(uint256 _tokenId) public view returns (string memory) {
-        string memory _metadata = string(
-            abi.encodePacked(
-                "{",
-                '"name":"',
-                metadata.name,
-                " #",
-                _tokenId.toString(),
-                '",',
-                '"description":',
-                '"',
-                metadata.description,
-                '",',
-                '"image":',
-                '"',
-                getImage(),
-                '"',
-                "}"
-            )
-        );
+    function getPeriodString(
+        uint256 _period
+    ) internal pure returns (string memory) {
+        if (_period == 7776000) {
+            return "3 months";
+        } else if (_period == 31104000) {
+            return "1 year";
+        } else if (_period == 62208000) {
+            return "2 years";
+        } else if (_period == 155520000) {
+            return "5 years";
+        } else if (_period == 311040000) {
+            return "10 years";
+        } else {
+            return "Invalid Period, Please Contact Support";
+        }
+    }
 
-        return _metadata;
+    function getMetadata(uint256 _tokenId) public view returns (string memory) {
+        string memory basicInfo = getBasicInfo(_tokenId);
+        string memory attributesInfo = getAttributesInfo(_tokenId);
+        string memory loanInfo = getLoanInfo(_tokenId);
+
+        return
+            string(
+                abi.encodePacked("{", basicInfo, attributesInfo, loanInfo, "]}")
+            );
+    }
+
+    function getBasicInfo(
+        uint256 _tokenId
+    ) internal view returns (string memory) {
+        return
+            string(
+                abi.encodePacked(
+                    '"name":"',
+                    metadata.name,
+                    Strings.toString(_tokenId),
+                    '",',
+                    '"description":"',
+                    metadata.description,
+                    '",',
+                    '"image":"',
+                    getImage(),
+                    '",',
+                    '"attributes": ['
+                )
+            );
+    }
+
+    function getAttributesInfo(
+        uint256 _tokenId
+    ) internal view returns (string memory) {
+        return
+            string(
+                abi.encodePacked(
+                    '{ "trait_type": "Date Started", "display_type": "date", "value": "',
+                    attributes[_tokenId].timeCreated.toString(),
+                    '" },',
+                    '{ "trait_type": "Date Finishing", "display_type": "date", "value": "',
+                    attributes[_tokenId].cfaLife.toString(),
+                    '" },',
+                    '{ "trait_type": "Period", "value": "In ',
+                    getPeriodString(attributes[_tokenId].timePeriod),
+                    '" },',
+                    '{ "trait_type": "Principal", "value": "',
+                    (attributes[_tokenId].principal / 1 ether).toString(),
+                    '" },',
+                    '{ "trait_type": "Loan Status", "value": "',
+                    (loan[_tokenId].onLoan ? "On Loan" : "Not on Loan"),
+                    '" }'
+                )
+            );
+    }
+
+    function getLoanInfo(
+        uint256 _tokenId
+    ) internal view returns (string memory) {
+        if (loan[_tokenId].onLoan) {
+            return
+                string(
+                    abi.encodePacked(
+                        ', { "trait_type": "Loan Time Created", "display_type": "date", "value": "',
+                        loan[_tokenId].timeWhenLoaned.toString(),
+                        '" },',
+                        '{ "trait_type": "Loan Balance", "value": "',
+                        (loan[_tokenId].loanBalance / 1 ether).toString(),
+                        '" }'
+                    )
+                );
+        }
+        return "";
     }
 
     function getLoanBalance(uint _id) external view returns (uint256) {
@@ -312,4 +382,18 @@ contract Insurance is
     /**
      * Override Functions
      */
+
+    function uri(
+        uint256 _tokenId
+    ) public view virtual override returns (string memory) {
+        bytes memory _metadata = abi.encodePacked(getMetadata(_tokenId));
+
+        return
+            string(
+                abi.encodePacked(
+                    "data:application/json;base64,",
+                    Base64.encode(_metadata)
+                )
+            );
+    }
 }
