@@ -311,11 +311,11 @@ contract Income is
         return
             string(
                 abi.encodePacked(
-                    '{ "trait_type": "Principal", "display_type": "number", "value": "',
-                    attributes[_tokenId].principal.toString(),
-                    '" },',
-                    '{ "trait_type": "Paid Up To Date", "display_type": "number", "value": "',
+                    '{ "trait_type": "Principal", "value": "',
                     (attributes[_tokenId].principal / 1 ether).toString(),
+                    '" },',
+                    '{ "trait_type": "Paid Up To Date", "value": "',
+                    (attributes[_tokenId].incomePaid / 1 ether).toString(),
                     '" },',
                     '{ "trait_type": "Loaned", "value": "',
                     (loan[_tokenId].onLoan ? "true" : "false"),
@@ -335,7 +335,7 @@ contract Income is
                         loan[_tokenId].timeWhenLoaned.toString(),
                         '" },',
                         '{ "trait_type": "Loan Balance", "value": "',
-                        loan[_tokenId].loanBalance.toString(),
+                        (loan[_tokenId].loanBalance / 1 ether).toString(),
                         '" }'
                     )
                 );

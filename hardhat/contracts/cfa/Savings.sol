@@ -276,7 +276,7 @@ contract Savings is
                         loan[_tokenId].timeWhenLoaned.toString(),
                         '" },',
                         '{ "trait_type": "Loan Balance", "value": "',
-                        loan[_tokenId].loanBalance.toString(),
+                        (loan[_tokenId].loanBalance / 1 ether).toString(),
                         '" }'
                     )
                 );
