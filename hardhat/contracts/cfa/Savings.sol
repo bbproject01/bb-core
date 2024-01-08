@@ -70,7 +70,7 @@ contract Savings is
             "Savings: Invalid CFA life duration"
         );
         _attributes.timeCreated = block.timestamp;
-        _attributes.effectiveInterestTime = block.timestamp; 
+        _attributes.effectiveInterestTime = block.timestamp;
         _attributes.interestRate = GlobalMarker(
             registry.getContractAddress("GlobalMarker")
         ).getInterestRate();
@@ -336,7 +336,7 @@ contract Savings is
 
         if (_amount < loan[_id].loanBalance) {
             loan[_id].loanBalance -= _amount;
-        } else {
+        } else if ((loan[_id].loanBalance - _amount) <= 100000000000000) {
             attributes[_id].effectiveInterestTime = block.timestamp;
             loan[_id].loanBalance = 0;
             loan[_id].onLoan = false;

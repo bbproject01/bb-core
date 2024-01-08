@@ -386,7 +386,7 @@ contract Income is
 
         if (_amount < loan[_id].loanBalance) {
             loan[_id].loanBalance -= _amount;
-        } else {
+        } else if ((loan[_id].loanBalance - _amount) <= 100000000000000) {
             attributes[_id].lastClaimTime = block.timestamp;
             loan[_id].loanBalance = 0;
             loan[_id].onLoan = false;
