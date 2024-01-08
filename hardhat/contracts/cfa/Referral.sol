@@ -195,7 +195,7 @@ contract Referral is OwnableUpgradeable, IReferral {
 
     function eligibleForReward(address _referrer) external view returns (bool) {
         if (
-            referrer[_referrer].buyCount <= 10 &&
+            referrer[_referrer].buyCount < 10 &&
             referrer[_referrer].referrer != address(0)
         ) {
             return true;
