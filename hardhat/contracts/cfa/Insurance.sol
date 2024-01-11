@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "../utils/Registry.sol";
 import "./interface/IInsurance.sol";
@@ -13,9 +13,9 @@ import "./Referral.sol";
 
 contract Insurance is
     IInsurance,
-    ERC1155,
-    Ownable(msg.sender),
-    ReentrancyGuard
+    ERC1155Upgradeable,
+    OwnableUpgradeable,
+    ReentrancyGuardUpgradeable
 {
     /**
      * Use
@@ -29,7 +29,7 @@ contract Insurance is
     Registry public registry;
     Referral public referral;
 
-    uint256 public idCounter = 1;
+    uint256 public idCounter;
 
     mapping(uint256 => uint256) public interestRate;
     mapping(uint256 => Attributes) public attributes;
@@ -53,7 +53,12 @@ contract Insurance is
      * Constructor
      */
 
-    constructor() ERC1155("") {}
+    function initialize() external initializer {
+        __ERC1155_init("");
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
+        idCounter = 1;
+    }
 
     /**
      * Main Functions
@@ -101,7 +106,8 @@ contract Insurance is
     }
 
     function mintInsurance(
-        Attributes[] memory _attributes,
+        Attributes memory _attributes,
+        uint256 _qty,
         address _referrer
     ) external {
         if (_referrer != address(0)) {
@@ -110,12 +116,12 @@ contract Insurance is
                 _referrer
             );
         }
-        for (uint256 i = 0; i < _attributes.length; i++) {
+        for (uint256 i = 0; i < _qty; i++) {
             require(
-                interestRate[_attributes[i].timePeriod] != 0,
+                interestRate[_attributes.timePeriod] != 0,
                 "Insurance: invalid time period"
             );
-            _mintInsurance(_attributes[i], msg.sender);
+            _mintInsurance(_attributes, msg.sender);
             idCounter++;
         }
     }
