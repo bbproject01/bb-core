@@ -147,7 +147,7 @@ contract Savings is
         require(
             block.timestamp >
                 getTotalLife(
-                    attributes[_id].timeCreated,
+                    attributes[_id].effectiveInterestTime,
                     attributes[_id].cfaLife
                 ),
             "Savings: CFA not yet matured"
@@ -248,7 +248,7 @@ contract Savings is
                     '" },',
                     '{ "trait_type": "Date Finishing", "display_type": "date", "value": "',
                     getTotalLife(
-                        attributes[_tokenId].timeCreated,
+                        attributes[_tokenId].effectiveInterestTime,
                         attributes[_tokenId].cfaLife
                     ).toString(),
                     '" },',
@@ -302,7 +302,7 @@ contract Savings is
         require(
             block.timestamp <
                 getTotalLife(
-                    attributes[_id].timeCreated,
+                    attributes[_id].effectiveInterestTime,
                     attributes[_id].cfaLife
                 ),
             "Savings: CFA has expired"
