@@ -243,8 +243,8 @@ contract Referral is OwnableUpgradeable, IReferral {
     function checkReferrals(
         address _address
     ) external view returns (address[] memory) {
-        address[] memory amongus = referrer[_address].referrals;
-        return amongus;
+        address[] memory _referrals = referrer[_address].referrals;
+        return _referrals;
     }
 
     function getReferredDiscount() external view returns (uint256) {
