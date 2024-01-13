@@ -13,7 +13,6 @@ interface IInsurance {
     struct Loan {
         bool onLoan;
         uint256 loanBalance;
-        uint256 loanTimeCreated;
         uint256 timeWhenLoaned;
     }
 
