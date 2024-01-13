@@ -267,7 +267,7 @@ contract Insurance is
         } else if (_period == 10) {
             return "10 years";
         } else {
-            return "Invalid Period, Please Contact Support";
+            revert ("Invalid Period, Please Contact Support");
         }
     }
 
