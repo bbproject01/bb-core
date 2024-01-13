@@ -47,7 +47,6 @@ contract Insurance is
     event InsuranceBurned(Attributes _attributes, uint256 _time);
     event LoanCreated(uint256 _id, uint256 _totalLoan);
     event LoanRepaid(uint256 _id);
-    event expired(uint256 _id);
 
     /**
      * Constructor
