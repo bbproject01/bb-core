@@ -2,6 +2,8 @@ import { ethers, run } from "hardhat";
 import {
   BBTOKEN_SEPOLIA,
   GLOBAL_MARKER_SEPOLIA,
+  INCOME_SEPOLIA,
+  INSURANCE_SEPOLIA,
   REFERRAL_SEPOLIA,
   REGISTRY_SEPOLIA,
   SAVINGS_SEPOLIA,
@@ -35,6 +37,20 @@ async function main() {
   console.info("\nVerifying Savings Smart Contract...");
   await run("verify:verify", {
     address: SAVINGS_SEPOLIA,
+    constructorArguments: [],
+  });
+  console.info("Done!");
+
+  console.info("\nVerifying Insurance Smart Contract...");
+  await run("verify:verify", {
+    address: INSURANCE_SEPOLIA,
+    constructorArguments: [],
+  });
+  console.info("Done!");
+
+  console.info("\nVerifying Income Smart Contract...");
+  await run("verify:verify", {
+    address: INCOME_SEPOLIA,
     constructorArguments: [],
   });
   console.info("Done!");
