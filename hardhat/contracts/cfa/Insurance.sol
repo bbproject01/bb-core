@@ -64,6 +64,11 @@ contract Insurance is
      * Main Functions
      */
     function _saveAttributes(Attributes memory _attributes) internal {
+        require(
+            interestRate[_attributes.timePeriod] != 0,
+            "Insurance: invalid time period"
+        );
+
         _attributes.timeCreated = block.timestamp;
         _attributes.cfaLife = block.timestamp + (30 days * 12 * 30); // 30 Years of CFA Life
         _attributes.effectiveInterestTime = _attributes.timeCreated;
@@ -126,24 +131,26 @@ contract Insurance is
         }
     }
 
-    function withdraw(uint256 _id, uint256 _amount) external nonReentrant {
-        (uint256 interest, uint256 totalPrincipal) = getInterest(_id); // interest = total yielded interest, totalPrincipal = principal + interest
+    function withdraw(
+        uint256 _id,
+        uint256 _amount,
+        uint256 _interest
+    ) external nonReentrant {
+        // (uint256 interest, uint256 totalPrincipal) = getInterest(_id); // interest = total yielded interest, totalPrincipal = principal + interest
         // require(block.timestamp < attributes[_id].cfaLife, 'Insurance: insurance has expired');
         require(balanceOf(msg.sender, _id) == 1, "Insurance: invalid id");
-        require(_amount <= (totalPrincipal), "Insurance: invalid amount"); // amount should be less than or equal to totalPrincipal
-        // require(
-        //   ((block.timestamp - attributes[_id].timeCreated) / attributes[_id].timePeriod) > 0,
-        //   'Insurance: Still not matured'
-        // ); With this, withdraw can only happen when interest has ticked
+        require(
+            _amount <= (attributes[_id].principal + _interest),
+            "Insurance: invalid amount"
+        );
         require(!loan[_id].onLoan, "Insurance: On Loan");
 
-        attributes[_id].principal += interest;
+        attributes[_id].principal += _interest;
+        attributes[_id].principal -= _amount;
 
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
-        token.mint(address(this), interest);
-
+        token.mint(address(this), _interest);
         token.transfer(msg.sender, _amount);
-        attributes[_id].principal -= _amount;
 
         if (attributes[_id].principal < 1000000000000000000) {
             emit InsuranceBurned(attributes[_id], block.timestamp);
@@ -187,12 +194,12 @@ contract Insurance is
      */
     function getIterations(uint256 _id) public view returns (uint256) {
         uint256 totalIterations = (block.timestamp -
-            attributes[_id].effectiveInterestTime) / attributes[_id].timePeriod;
+            attributes[_id].effectiveInterestTime) / getTimePeriod(_id);
         if (block.timestamp > attributes[_id].cfaLife) {
             totalIterations =
                 (attributes[_id].cfaLife -
                     attributes[_id].effectiveInterestTime) /
-                attributes[_id].timePeriod;
+                getTimePeriod(_id);
         }
         return totalIterations;
     }
@@ -231,18 +238,34 @@ contract Insurance is
         return image;
     }
 
+    function getTimePeriod(uint256 _id) internal view returns (uint256) {
+        if (attributes[_id].timePeriod == 3) {
+            return 3 * 30 days;
+        } else if (attributes[_id].timePeriod == 1) {
+            return 12 * 30 days;
+        } else if (attributes[_id].timePeriod == 2) {
+            return 24 * 30 days;
+        } else if (attributes[_id].timePeriod == 5) {
+            return 60 * 30 days;
+        } else if (attributes[_id].timePeriod == 10) {
+            return 120 * 30 days;
+        } else {
+            revert("Invalid Period");
+        }
+    }
+
     function getPeriodString(
         uint256 _period
     ) internal pure returns (string memory) {
-        if (_period == 7776000) {
+        if (_period == 3) {
             return "3 months";
-        } else if (_period == 31104000) {
+        } else if (_period == 1) {
             return "1 year";
-        } else if (_period == 62208000) {
+        } else if (_period == 2) {
             return "2 years";
-        } else if (_period == 155520000) {
+        } else if (_period == 5) {
             return "5 years";
-        } else if (_period == 311040000) {
+        } else if (_period == 10) {
             return "10 years";
         } else {
             return "Invalid Period, Please Contact Support";
