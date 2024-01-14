@@ -337,11 +337,10 @@ contract Savings is
         if (_amount < loan[_id].loanBalance) {
             loan[_id].loanBalance -= _amount;
         } else if ((loan[_id].loanBalance - _amount) <= 100000000000000) {
-            attributes[_id].effectiveInterestTime = block.timestamp;
+            uint256 oldTime = attributes[_id].effectiveInterestTime;
+            attributes[_id].effectiveInterestTime = block.timestamp - (loan[_id].timeWhenLoaned - oldTime); 
             loan[_id].loanBalance = 0;
             loan[_id].onLoan = false;
-            uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
-            attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
         }
 
         BBToken(registry.getContractAddress("BbToken")).burn(_amount);
