@@ -130,7 +130,9 @@ contract Savings is
         }
         for (uint256 i = 0; i < _qty; i++) {
             _mintSavings(_attributes, msg.sender);
+            system.totalAmount += attributes[system.idCounter].principal;
             system.idCounter++;
+            system.totalActiveCfa++;
         }
     }
 
@@ -138,6 +140,8 @@ contract Savings is
         emit SavingsBurned(attributes[_id], block.timestamp);
         delete attributes[_id];
         _burn(msg.sender, _id, 1);
+                system.totalActiveCfa--;
+
     }
 
     function withdrawSavings(
@@ -159,7 +163,10 @@ contract Savings is
         token.mint(msg.sender, _amount);
 
         _burnSavings(_id);
+         system.totalActiveCfa--;
         emit SavingsWithdrawn(attributes[_id], block.timestamp);
+        system.totalPaidAmount += _amount;
+        system.totalAmount -= _amount;
     }
 
     /**
@@ -370,6 +377,7 @@ contract Savings is
     function burn(uint256 id) public {
         // require(attributes[id].soulBoundTerm == 0, 'CFA: El CFA esta bloqueado y no se puede quemar');
         _burn(msg.sender, id, 1);
+         system.totalActiveCfa--;
     }
 
     // Override the `burnBatch` function to prevent burning of locked CFAs
@@ -382,6 +390,9 @@ contract Savings is
         //   require(attributes[ids[i]].soulBoundTerm == 0, 'CFA: No se puede quemar un CFA bloqueado');
         // }
         this.burnBatch(account, ids, amounts);
+        for (uint256 i = 0; i < ids.length; i++) {
+             system.totalActiveCfa--;
+        }
     }
 
     function uri(

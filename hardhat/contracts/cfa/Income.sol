@@ -36,7 +36,6 @@ contract Income is
     mapping(uint256 => Attributes) public attributes;
     mapping(uint256 => Loan) public loan;
     // mapping(uint256 => uint256) public lastClaimTime;
-    uint256 public idCounter;
 
     /**
      * Events
@@ -66,7 +65,7 @@ contract Income is
         __ReentrancyGuard_init();
         system.maxPaymentFrequency = 12;
         system.maxPrincipalLockTime = 50;
-        idCounter = 1;
+        system.idCounter = 1;
     }
 
     /**
@@ -94,7 +93,7 @@ contract Income is
         _attributes.cfaLife =
             _attributes.timeCreated +
             (_attributes.principalLockTime * 365 days);
-        attributes[idCounter] = _attributes;
+        attributes[system.idCounter] = _attributes;
     }
 
     function mintIncome(
@@ -134,8 +133,10 @@ contract Income is
                 );
             }
             _setAttributes(_attributes[i]);
-            _mint(msg.sender, idCounter, 1, "");
-            idCounter++;
+            _mint(msg.sender, system.idCounter, 1, "");
+            system.totalAmount += _attributes[system.idCounter].principal;
+            system.idCounter++;
+            system.totalActiveCfa++;
         }
     }
 
@@ -146,11 +147,13 @@ contract Income is
         );
         if (msg.sender != address(this)) {
             attributes[_amount].incomePaid += _amount;
+            system.totalPaidAmount += _amount;
         }
         attributes[_tokenId].lastClaimTime = block.timestamp;
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
         token.mint(msg.sender, _amount);
         emit MetadataUpdate(_tokenId);
+         system.totalAmount -= _amount;
     }
 
     function withdrawPrincipal(uint256 _tokenId) external {
@@ -169,6 +172,9 @@ contract Income is
         token.transfer(msg.sender, attributes[_tokenId].principal);
 
         _burn(msg.sender, _tokenId, 1);
+        system.totalActiveCfa--;
+        system.totalPaidAmount += attributes[_tokenId].principal;
+        system.totalAmount -= attributes[_tokenId].principal;
     }
 
     function setRegistry(address _registry) external onlyOwner {

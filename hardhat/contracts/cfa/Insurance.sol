@@ -28,8 +28,7 @@ contract Insurance is
     Metadata public metadata;
     Registry public registry;
     Referral public referral;
-
-    uint256 public idCounter;
+    System public system;   
 
     mapping(uint256 => uint256) public interestRate;
     mapping(uint256 => Attributes) public attributes;
@@ -56,7 +55,7 @@ contract Insurance is
         __ERC1155_init("");
         __Ownable_init(msg.sender);
         __ReentrancyGuard_init();
-        idCounter = 1;
+        system.idCounter = 1;
     }
 
     /**
@@ -71,7 +70,7 @@ contract Insurance is
         _attributes.timeCreated = block.timestamp;
         _attributes.cfaLife = block.timestamp + (30 days * 12 * 30); // 30 Years of CFA Life
         _attributes.effectiveInterestTime = _attributes.timeCreated;
-        attributes[idCounter] = _attributes;
+        attributes[system.idCounter] = _attributes;
     }
 
     function _mintInsurance(
@@ -104,7 +103,7 @@ contract Insurance is
                 _attributes.principal
             );
         }
-        _mint(msg.sender, idCounter, 1, "");
+        _mint(msg.sender, system.idCounter, 1, "");
         _saveAttributes(_attributes);
         emit InsuranceCreated(_attributes);
     }
@@ -126,7 +125,9 @@ contract Insurance is
                 "Insurance: invalid time period"
             );
             _mintInsurance(_attributes, msg.sender);
-            idCounter++;
+            system.totalAmount += attributes[system.idCounter].principal;
+            system.idCounter++;
+            system.totalActiveCfa++;
         }
     }
 
@@ -155,12 +156,14 @@ contract Insurance is
             emit InsuranceBurned(attributes[_id], block.timestamp);
             delete attributes[_id];
             _burn(msg.sender, _id, 1);
+            system.totalActiveCfa--;
         } else {
             attributes[_id].effectiveInterestTime +=
                 getIterations(_id) *
                 attributes[_id].timePeriod;
         }
-
+        system.totalAmount -= _amount;
+        system.totalPaidAmount += _amount;
         emit InsuranceWithdrawn(_id, _amount, block.timestamp);
     }
 
@@ -352,6 +355,9 @@ contract Insurance is
         return _loanBalance;
     }
 
+    function getTotalRewards() external view returns (uint256) {
+
+    }
     /**
      * Loan functions
      */

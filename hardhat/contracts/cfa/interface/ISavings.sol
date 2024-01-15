@@ -6,6 +6,7 @@ interface ISavings {
         uint256 idCounter; // The total number of CFAs minted
         uint256 totalActiveCfa; // The total number of CFAs active in the contract
         uint256 totalAmount; // The total amount of B&B tokens locked in the contract
+        uint256 totalPaidAmount; //total amount rewarded to users
     }
 
     struct Life {
