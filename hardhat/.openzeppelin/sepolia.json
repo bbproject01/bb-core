@@ -260,6 +260,46 @@
       "address": "0xc7D78f66152ea6A1a6ce058d8AAC4CD685DE0381",
       "txHash": "0xb5c44536e7b38e6f99b94713b6baa1d77c317ff8075622cd46e4ab819bbb0b89",
       "kind": "transparent"
+    },
+    {
+      "address": "0x61D83Fa915DD28735ABb110201F313265a4c7D97",
+      "txHash": "0xff2f6904ed131f1276dc186ec6059f54830d97d916f447f7419fa08c2698d6ab",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xF981b412055A19a5fef5478123444ED4E80029d3",
+      "txHash": "0xd6c2660dabda2cbc38590b84ba20ffb01fe029c1f2ba806332454ba65573604c",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xc749C6f31BaC0671EbC97153D6C84aeef451F072",
+      "txHash": "0x51cac0922f6bb05f95a41075f99b99567cb7d9c020da6aa9c6a5b622097565a6",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xE3A14FE2bDDEb259F24496DE391D5eb9262C5dB4",
+      "txHash": "0x9115ff0efe5b3c139051ec335ec5c89e710ab52a4fc65eefcdfcf975f4a38605",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xdB2Fb58bb6d3e6Db108E84c4bD4F96d749f36703",
+      "txHash": "0x125e8982040ab7b57f3a82daa886d1247fdf2d2b2720fb36cac060c9add3c0d4",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xbf3DB233ac631f717b51b5231c18adB602D34Ea9",
+      "txHash": "0xd032648fa1337dd6148fb8e86f54fbad603842841cbb6c47560f08e618f9cf1e",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x6f26718E28b3429b644698e94E1BD7fed23eF7B4",
+      "txHash": "0x2b2803eaf797935c57fb5d12714f9776c209f69ec013daf3e82b1837184d3917",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x59739EB391f25B6FD9EBADA408542cE97Cccba71",
+      "txHash": "0xf1705e7032b528a9e24553d19d75bab3dd3cabd65b4fceb4f5cc2c0b0cd08152",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -6942,9 +6982,9 @@
         }
       }
     },
-    "6689d8e6a226360952254063843f1e072a29aff17529430f348e9f5336de4b79": {
-      "address": "0xFfA5feC955d4679b1d396D4FA9f1d6d9305E3F0d",
-      "txHash": "0xb80c42da686c7f3b0f21bd79a7c78668577762648ad087ec6c6983893bf9b692",
+    "1483c19fec823f7fb920fb71ed1f3e77f1ba07828fd1ce33284eee4c04eb0a74": {
+      "address": "0x948fBc98E810901f83bEA42f3F2F142A3d293766",
+      "txHash": "0x5ed9cdf731f09ba3763c13b1aca165b00ada8d21061b34b8ea63747c3ef61ba2",
       "layout": {
         "solcVersion": "0.8.20",
         "storage": [
@@ -6952,25 +6992,25 @@
             "label": "metadata",
             "offset": 0,
             "slot": "0",
-            "type": "t_struct(Metadata)11015_storage",
+            "type": "t_struct(Metadata)11118_storage",
             "contract": "Insurance",
-            "src": "contracts/cfa/Insurance.sol:28"
+            "src": "contracts\\cfa\\Insurance.sol:28"
           },
           {
             "label": "registry",
             "offset": 0,
             "slot": "3",
-            "type": "t_contract(Registry)11583",
+            "type": "t_contract(Registry)12417",
             "contract": "Insurance",
-            "src": "contracts/cfa/Insurance.sol:29"
+            "src": "contracts\\cfa\\Insurance.sol:29"
           },
           {
             "label": "referral",
             "offset": 0,
             "slot": "4",
-            "type": "t_contract(Referral)9853",
+            "type": "t_contract(Referral)9928",
             "contract": "Insurance",
-            "src": "contracts/cfa/Insurance.sol:30"
+            "src": "contracts\\cfa\\Insurance.sol:30"
           },
           {
             "label": "idCounter",
@@ -6978,7 +7018,7 @@
             "slot": "5",
             "type": "t_uint256",
             "contract": "Insurance",
-            "src": "contracts/cfa/Insurance.sol:32"
+            "src": "contracts\\cfa\\Insurance.sol:32"
           },
           {
             "label": "interestRate",
@@ -6986,23 +7026,23 @@
             "slot": "6",
             "type": "t_mapping(t_uint256,t_uint256)",
             "contract": "Insurance",
-            "src": "contracts/cfa/Insurance.sol:34"
+            "src": "contracts\\cfa\\Insurance.sol:34"
           },
           {
             "label": "attributes",
             "offset": 0,
             "slot": "7",
-            "type": "t_mapping(t_uint256,t_struct(Attributes)10999_storage)",
+            "type": "t_mapping(t_uint256,t_struct(Attributes)11102_storage)",
             "contract": "Insurance",
-            "src": "contracts/cfa/Insurance.sol:35"
+            "src": "contracts\\cfa\\Insurance.sol:35"
           },
           {
             "label": "loan",
             "offset": 0,
             "slot": "8",
-            "type": "t_mapping(t_uint256,t_struct(Loan)11008_storage)",
+            "type": "t_mapping(t_uint256,t_struct(Loan)11111_storage)",
             "contract": "Insurance",
-            "src": "contracts/cfa/Insurance.sol:36"
+            "src": "contracts\\cfa\\Insurance.sol:36"
           }
         ],
         "types": {
@@ -7108,19 +7148,19 @@
             "label": "uint64",
             "numberOfBytes": "8"
           },
-          "t_contract(Referral)9853": {
+          "t_contract(Referral)9928": {
             "label": "contract Referral",
             "numberOfBytes": "20"
           },
-          "t_contract(Registry)11583": {
+          "t_contract(Registry)12417": {
             "label": "contract Registry",
             "numberOfBytes": "20"
           },
-          "t_mapping(t_uint256,t_struct(Attributes)10999_storage)": {
+          "t_mapping(t_uint256,t_struct(Attributes)11102_storage)": {
             "label": "mapping(uint256 => struct IInsurance.Attributes)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(Loan)11008_storage)": {
+          "t_mapping(t_uint256,t_struct(Loan)11111_storage)": {
             "label": "mapping(uint256 => struct IInsurance.Loan)",
             "numberOfBytes": "32"
           },
@@ -7128,7 +7168,7 @@
             "label": "mapping(uint256 => uint256)",
             "numberOfBytes": "32"
           },
-          "t_struct(Attributes)10999_storage": {
+          "t_struct(Attributes)11102_storage": {
             "label": "struct IInsurance.Attributes",
             "members": [
               {
@@ -7164,7 +7204,7 @@
             ],
             "numberOfBytes": "160"
           },
-          "t_struct(Loan)11008_storage": {
+          "t_struct(Loan)11111_storage": {
             "label": "struct IInsurance.Loan",
             "members": [
               {
@@ -7194,7 +7234,7 @@
             ],
             "numberOfBytes": "128"
           },
-          "t_struct(Metadata)11015_storage": {
+          "t_struct(Metadata)11118_storage": {
             "label": "struct IInsurance.Metadata",
             "members": [
               {
@@ -7225,7 +7265,7 @@
               "contract": "ReentrancyGuardUpgradeable",
               "label": "_status",
               "type": "t_uint256",
-              "src": "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol:40",
+              "src": "@openzeppelin\\contracts-upgradeable\\utils\\ReentrancyGuardUpgradeable.sol:40",
               "offset": 0,
               "slot": "0"
             }
@@ -7235,7 +7275,7 @@
               "contract": "OwnableUpgradeable",
               "label": "_owner",
               "type": "t_address",
-              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:24",
               "offset": 0,
               "slot": "0"
             }
@@ -7245,7 +7285,7 @@
               "contract": "ERC1155Upgradeable",
               "label": "_balances",
               "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
-              "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:27",
+              "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC1155\\ERC1155Upgradeable.sol:27",
               "offset": 0,
               "slot": "0"
             },
@@ -7253,7 +7293,7 @@
               "contract": "ERC1155Upgradeable",
               "label": "_operatorApprovals",
               "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
-              "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:29",
+              "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC1155\\ERC1155Upgradeable.sol:29",
               "offset": 0,
               "slot": "1"
             },
@@ -7261,7 +7301,7 @@
               "contract": "ERC1155Upgradeable",
               "label": "_uri",
               "type": "t_string_storage",
-              "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:32",
+              "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC1155\\ERC1155Upgradeable.sol:32",
               "offset": 0,
               "slot": "2"
             }
@@ -7271,7 +7311,7 @@
               "contract": "Initializable",
               "label": "_initialized",
               "type": "t_uint64",
-              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:69",
               "offset": 0,
               "slot": "0"
             },
@@ -7279,7 +7319,7 @@
               "contract": "Initializable",
               "label": "_initializing",
               "type": "t_bool",
-              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:73",
               "offset": 8,
               "slot": "0"
             }
@@ -7287,67 +7327,75 @@
         }
       }
     },
-    "1483c19fec823f7fb920fb71ed1f3e77f1ba07828fd1ce33284eee4c04eb0a74": {
-      "address": "0xA30377640F2A984F164657f41bbAE5C9d31e32DB",
-      "txHash": "0x037e34dc5bfbb162bd4ef44dffbd3fcb31228c8834337ea23e9dcf38dc0c17db",
+    "fa29011dcf29d41ed4bf16b20bed5dc76f4220a7f41167c8c1c99ea7688f7f76": {
+      "address": "0x1f0188ABc1A87f1777316C03391E585855E9F903",
+      "txHash": "0x4db9410846dffec31099b31cfc691640cc0a2e2c8e4c1a46b49d02b4a28d9c07",
       "layout": {
         "solcVersion": "0.8.20",
         "storage": [
           {
-            "label": "metadata",
+            "label": "system",
             "offset": 0,
             "slot": "0",
-            "type": "t_struct(Metadata)6679_storage",
-            "contract": "Insurance",
-            "src": "contracts/cfa/Insurance.sol:28"
-          },
-          {
-            "label": "registry",
-            "offset": 0,
-            "slot": "3",
-            "type": "t_contract(Registry)6942",
-            "contract": "Insurance",
-            "src": "contracts/cfa/Insurance.sol:29"
+            "type": "t_struct(System)9131_storage",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:26"
           },
           {
             "label": "referral",
             "offset": 0,
-            "slot": "4",
-            "type": "t_contract(Referral)6650",
-            "contract": "Insurance",
-            "src": "contracts/cfa/Insurance.sol:30"
+            "slot": "3",
+            "type": "t_contract(Referral)7948",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:27"
           },
           {
-            "label": "idCounter",
+            "label": "registry",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_contract(Registry)9642",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:28"
+          },
+          {
+            "label": "life",
             "offset": 0,
             "slot": "5",
-            "type": "t_uint256",
-            "contract": "Insurance",
-            "src": "contracts/cfa/Insurance.sol:32"
+            "type": "t_struct(Life)9136_storage",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:29"
           },
           {
-            "label": "interestRate",
-            "offset": 0,
-            "slot": "6",
-            "type": "t_mapping(t_uint256,t_uint256)",
-            "contract": "Insurance",
-            "src": "contracts/cfa/Insurance.sol:34"
-          },
-          {
-            "label": "attributes",
+            "label": "metadata",
             "offset": 0,
             "slot": "7",
-            "type": "t_mapping(t_uint256,t_struct(Attributes)6663_storage)",
-            "contract": "Insurance",
-            "src": "contracts/cfa/Insurance.sol:35"
+            "type": "t_struct(Metadata)9161_storage",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:30"
+          },
+          {
+            "label": "globalMarker",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_contract(GlobalMarker)9552",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:31"
           },
           {
             "label": "loan",
             "offset": 0,
-            "slot": "8",
-            "type": "t_mapping(t_uint256,t_struct(Loan)6672_storage)",
-            "contract": "Insurance",
-            "src": "contracts/cfa/Insurance.sol:36"
+            "slot": "11",
+            "type": "t_mapping(t_uint256,t_struct(Loan)9154_storage)",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:33"
+          },
+          {
+            "label": "attributes",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_mapping(t_uint256,t_struct(Attributes)9147_storage)",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:34"
           }
         ],
         "types": {
@@ -7453,19 +7501,759 @@
             "label": "uint64",
             "numberOfBytes": "8"
           },
-          "t_contract(Referral)6650": {
+          "t_contract(GlobalMarker)9552": {
+            "label": "contract GlobalMarker",
+            "numberOfBytes": "20"
+          },
+          "t_contract(Referral)7948": {
             "label": "contract Referral",
             "numberOfBytes": "20"
           },
-          "t_contract(Registry)6942": {
+          "t_contract(Registry)9642": {
             "label": "contract Registry",
             "numberOfBytes": "20"
           },
-          "t_mapping(t_uint256,t_struct(Attributes)6663_storage)": {
+          "t_mapping(t_uint256,t_struct(Attributes)9147_storage)": {
+            "label": "mapping(uint256 => struct ISavings.Attributes)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Loan)9154_storage)": {
+            "label": "mapping(uint256 => struct ISavings.Loan)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Attributes)9147_storage": {
+            "label": "struct ISavings.Attributes",
+            "members": [
+              {
+                "label": "timeCreated",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "cfaLife",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "effectiveInterestTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "principal",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "interestRate",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(Life)9136_storage": {
+            "label": "struct ISavings.Life",
+            "members": [
+              {
+                "label": "min",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "max",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Loan)9154_storage": {
+            "label": "struct ISavings.Loan",
+            "members": [
+              {
+                "label": "onLoan",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "loanBalance",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "timeWhenLoaned",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(Metadata)9161_storage": {
+            "label": "struct ISavings.Metadata",
+            "members": [
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "description",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "image",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(System)9131_storage": {
+            "label": "struct ISavings.System",
+            "members": [
+              {
+                "label": "idCounter",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "totalActiveCfa",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "totalAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.ReentrancyGuard": [
+            {
+              "contract": "ReentrancyGuardUpgradeable",
+              "label": "_status",
+              "type": "t_uint256",
+              "src": "@openzeppelin\\contracts-upgradeable\\utils\\ReentrancyGuardUpgradeable.sol:40",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.ERC1155": [
+            {
+              "contract": "ERC1155Upgradeable",
+              "label": "_balances",
+              "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
+              "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC1155\\ERC1155Upgradeable.sol:27",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "ERC1155Upgradeable",
+              "label": "_operatorApprovals",
+              "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+              "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC1155\\ERC1155Upgradeable.sol:29",
+              "offset": 0,
+              "slot": "1"
+            },
+            {
+              "contract": "ERC1155Upgradeable",
+              "label": "_uri",
+              "type": "t_string_storage",
+              "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC1155\\ERC1155Upgradeable.sol:32",
+              "offset": 0,
+              "slot": "2"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "0b8c79373516ccf983b3f512e4dc99d91c3e513401dffa3915159d99dbb96f70": {
+      "address": "0xCCCA1cDb4C79C4dF3A3FfC2116346E20b0774c05",
+      "txHash": "0x29f6daca981200bfbbb2de88cd9dfd90996c692df13969f0822fab926d07a27b",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "system",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_struct(System)9071_storage",
+            "contract": "Income",
+            "src": "contracts\\cfa\\Income.sol:30"
+          },
+          {
+            "label": "registry",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(Registry)9642",
+            "contract": "Income",
+            "src": "contracts\\cfa\\Income.sol:31"
+          },
+          {
+            "label": "metadata",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_struct(Metadata)9078_storage",
+            "contract": "Income",
+            "src": "contracts\\cfa\\Income.sol:34"
+          },
+          {
+            "label": "attributes",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_struct(Attributes)9059_storage)",
+            "contract": "Income",
+            "src": "contracts\\cfa\\Income.sol:36"
+          },
+          {
+            "label": "loan",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_uint256,t_struct(Loan)9066_storage)",
+            "contract": "Income",
+            "src": "contracts\\cfa\\Income.sol:37"
+          },
+          {
+            "label": "idCounter",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_uint256",
+            "contract": "Income",
+            "src": "contracts\\cfa\\Income.sol:39"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+            "label": "mapping(address => mapping(address => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(uint256 => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(ERC1155Storage)156_storage": {
+            "label": "struct ERC1155Upgradeable.ERC1155Storage",
+            "members": [
+              {
+                "label": "_balances",
+                "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_operatorApprovals",
+                "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "_uri",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(InitializableStorage)64_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)14_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(ReentrancyGuardStorage)393_storage": {
+            "label": "struct ReentrancyGuardUpgradeable.ReentrancyGuardStorage",
+            "members": [
+              {
+                "label": "_status",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_contract(Registry)9642": {
+            "label": "contract Registry",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_uint256,t_struct(Attributes)9059_storage)": {
+            "label": "mapping(uint256 => struct IIncome.Attributes)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Loan)9066_storage)": {
+            "label": "mapping(uint256 => struct IIncome.Loan)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Attributes)9059_storage": {
+            "label": "struct IIncome.Attributes",
+            "members": [
+              {
+                "label": "timeCreated",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "principal",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "paymentFrequency",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "principalLockTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "lastClaimTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "interest",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "cfaLife",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "incomePaid",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              }
+            ],
+            "numberOfBytes": "256"
+          },
+          "t_struct(Loan)9066_storage": {
+            "label": "struct IIncome.Loan",
+            "members": [
+              {
+                "label": "onLoan",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "loanBalance",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "timeWhenLoaned",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(Metadata)9078_storage": {
+            "label": "struct IIncome.Metadata",
+            "members": [
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "description",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "image",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(System)9071_storage": {
+            "label": "struct IIncome.System",
+            "members": [
+              {
+                "label": "maxPaymentFrequency",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "maxPrincipalLockTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.ReentrancyGuard": [
+            {
+              "contract": "ReentrancyGuardUpgradeable",
+              "label": "_status",
+              "type": "t_uint256",
+              "src": "@openzeppelin\\contracts-upgradeable\\utils\\ReentrancyGuardUpgradeable.sol:40",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.ERC1155": [
+            {
+              "contract": "ERC1155Upgradeable",
+              "label": "_balances",
+              "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
+              "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC1155\\ERC1155Upgradeable.sol:27",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "ERC1155Upgradeable",
+              "label": "_operatorApprovals",
+              "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+              "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC1155\\ERC1155Upgradeable.sol:29",
+              "offset": 0,
+              "slot": "1"
+            },
+            {
+              "contract": "ERC1155Upgradeable",
+              "label": "_uri",
+              "type": "t_string_storage",
+              "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC1155\\ERC1155Upgradeable.sol:32",
+              "offset": 0,
+              "slot": "2"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "5f7f5b79b14bea40ba9870c5f1950967d581469283aad116802c170b1c1ab9a8": {
+      "address": "0x50CABdBD272C0fbd4B1d25c7009b265C680303D6",
+      "txHash": "0xfe7e3e4919e6c2f4b976dbc9f34714f61fb2775853e427e3b6e1c913e826652d",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "metadata",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_struct(Metadata)9106_storage",
+            "contract": "Insurance",
+            "src": "contracts\\cfa\\Insurance.sol:28"
+          },
+          {
+            "label": "registry",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(Registry)9642",
+            "contract": "Insurance",
+            "src": "contracts\\cfa\\Insurance.sol:29"
+          },
+          {
+            "label": "referral",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_contract(Referral)7948",
+            "contract": "Insurance",
+            "src": "contracts\\cfa\\Insurance.sol:30"
+          },
+          {
+            "label": "idCounter",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_uint256",
+            "contract": "Insurance",
+            "src": "contracts\\cfa\\Insurance.sol:32"
+          },
+          {
+            "label": "interestRate",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "Insurance",
+            "src": "contracts\\cfa\\Insurance.sol:34"
+          },
+          {
+            "label": "attributes",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_uint256,t_struct(Attributes)9092_storage)",
+            "contract": "Insurance",
+            "src": "contracts\\cfa\\Insurance.sol:35"
+          },
+          {
+            "label": "loan",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_uint256,t_struct(Loan)9099_storage)",
+            "contract": "Insurance",
+            "src": "contracts\\cfa\\Insurance.sol:36"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+            "label": "mapping(address => mapping(address => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(uint256 => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(ERC1155Storage)156_storage": {
+            "label": "struct ERC1155Upgradeable.ERC1155Storage",
+            "members": [
+              {
+                "label": "_balances",
+                "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_operatorApprovals",
+                "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "_uri",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(InitializableStorage)64_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)14_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(ReentrancyGuardStorage)393_storage": {
+            "label": "struct ReentrancyGuardUpgradeable.ReentrancyGuardStorage",
+            "members": [
+              {
+                "label": "_status",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_contract(Referral)7948": {
+            "label": "contract Referral",
+            "numberOfBytes": "20"
+          },
+          "t_contract(Registry)9642": {
+            "label": "contract Registry",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_uint256,t_struct(Attributes)9092_storage)": {
             "label": "mapping(uint256 => struct IInsurance.Attributes)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(Loan)6672_storage)": {
+          "t_mapping(t_uint256,t_struct(Loan)9099_storage)": {
             "label": "mapping(uint256 => struct IInsurance.Loan)",
             "numberOfBytes": "32"
           },
@@ -7473,7 +8261,7 @@
             "label": "mapping(uint256 => uint256)",
             "numberOfBytes": "32"
           },
-          "t_struct(Attributes)6663_storage": {
+          "t_struct(Attributes)9092_storage": {
             "label": "struct IInsurance.Attributes",
             "members": [
               {
@@ -7509,7 +8297,7 @@
             ],
             "numberOfBytes": "160"
           },
-          "t_struct(Loan)6672_storage": {
+          "t_struct(Loan)9099_storage": {
             "label": "struct IInsurance.Loan",
             "members": [
               {
@@ -7525,21 +8313,15 @@
                 "slot": "1"
               },
               {
-                "label": "loanTimeCreated",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "2"
-              },
-              {
                 "label": "timeWhenLoaned",
                 "type": "t_uint256",
                 "offset": 0,
-                "slot": "3"
+                "slot": "2"
               }
             ],
-            "numberOfBytes": "128"
+            "numberOfBytes": "96"
           },
-          "t_struct(Metadata)6679_storage": {
+          "t_struct(Metadata)9106_storage": {
             "label": "struct IInsurance.Metadata",
             "members": [
               {
@@ -7570,7 +8352,7 @@
               "contract": "ReentrancyGuardUpgradeable",
               "label": "_status",
               "type": "t_uint256",
-              "src": "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol:40",
+              "src": "@openzeppelin\\contracts-upgradeable\\utils\\ReentrancyGuardUpgradeable.sol:40",
               "offset": 0,
               "slot": "0"
             }
@@ -7580,7 +8362,7 @@
               "contract": "OwnableUpgradeable",
               "label": "_owner",
               "type": "t_address",
-              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:24",
               "offset": 0,
               "slot": "0"
             }
@@ -7590,7 +8372,7 @@
               "contract": "ERC1155Upgradeable",
               "label": "_balances",
               "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
-              "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:27",
+              "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC1155\\ERC1155Upgradeable.sol:27",
               "offset": 0,
               "slot": "0"
             },
@@ -7598,7 +8380,7 @@
               "contract": "ERC1155Upgradeable",
               "label": "_operatorApprovals",
               "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
-              "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:29",
+              "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC1155\\ERC1155Upgradeable.sol:29",
               "offset": 0,
               "slot": "1"
             },
@@ -7606,7 +8388,7 @@
               "contract": "ERC1155Upgradeable",
               "label": "_uri",
               "type": "t_string_storage",
-              "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:32",
+              "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC1155\\ERC1155Upgradeable.sol:32",
               "offset": 0,
               "slot": "2"
             }
@@ -7616,7 +8398,7 @@
               "contract": "Initializable",
               "label": "_initialized",
               "type": "t_uint64",
-              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:69",
               "offset": 0,
               "slot": "0"
             },
@@ -7624,7 +8406,396 @@
               "contract": "Initializable",
               "label": "_initializing",
               "type": "t_bool",
-              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "49cc174f5044c7c370d8b405dcc91559cec207ccd8f85ffe3a3d496a2e9b32b5": {
+      "address": "0xC9bBF88D8950aFae8A36C4AeaB79a3a36247D29c",
+      "txHash": "0x5f46bdae5834d4f745dd534a7a6a23e2232b33512c4f400fdaa98c565942172b",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "system",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_struct(System)11245_storage",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:26"
+          },
+          {
+            "label": "referral",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(Referral)10006",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:27"
+          },
+          {
+            "label": "registry",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_contract(Registry)12487",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:28"
+          },
+          {
+            "label": "life",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_struct(Life)11250_storage",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:29"
+          },
+          {
+            "label": "metadata",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_struct(Metadata)11275_storage",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:30"
+          },
+          {
+            "label": "globalMarker",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_contract(GlobalMarker)12395",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:31"
+          },
+          {
+            "label": "loan",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_mapping(t_uint256,t_struct(Loan)11268_storage)",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:33"
+          },
+          {
+            "label": "attributes",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_mapping(t_uint256,t_struct(Attributes)11261_storage)",
+            "contract": "Savings",
+            "src": "contracts\\cfa\\Savings.sol:34"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+            "label": "mapping(address => mapping(address => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(uint256 => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(ERC1155Storage)156_storage": {
+            "label": "struct ERC1155Upgradeable.ERC1155Storage",
+            "members": [
+              {
+                "label": "_balances",
+                "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_operatorApprovals",
+                "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "_uri",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(InitializableStorage)64_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)14_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(ReentrancyGuardStorage)393_storage": {
+            "label": "struct ReentrancyGuardUpgradeable.ReentrancyGuardStorage",
+            "members": [
+              {
+                "label": "_status",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_contract(GlobalMarker)12395": {
+            "label": "contract GlobalMarker",
+            "numberOfBytes": "20"
+          },
+          "t_contract(Referral)10006": {
+            "label": "contract Referral",
+            "numberOfBytes": "20"
+          },
+          "t_contract(Registry)12487": {
+            "label": "contract Registry",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_uint256,t_struct(Attributes)11261_storage)": {
+            "label": "mapping(uint256 => struct ISavings.Attributes)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Loan)11268_storage)": {
+            "label": "mapping(uint256 => struct ISavings.Loan)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Attributes)11261_storage": {
+            "label": "struct ISavings.Attributes",
+            "members": [
+              {
+                "label": "timeCreated",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "cfaLife",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "effectiveInterestTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "principal",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "interestRate",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(Life)11250_storage": {
+            "label": "struct ISavings.Life",
+            "members": [
+              {
+                "label": "min",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "max",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Loan)11268_storage": {
+            "label": "struct ISavings.Loan",
+            "members": [
+              {
+                "label": "onLoan",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "loanBalance",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "timeWhenLoaned",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(Metadata)11275_storage": {
+            "label": "struct ISavings.Metadata",
+            "members": [
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "description",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "image",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(System)11245_storage": {
+            "label": "struct ISavings.System",
+            "members": [
+              {
+                "label": "idCounter",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "totalActiveCfa",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "totalAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.ReentrancyGuard": [
+            {
+              "contract": "ReentrancyGuardUpgradeable",
+              "label": "_status",
+              "type": "t_uint256",
+              "src": "@openzeppelin\\contracts-upgradeable\\utils\\ReentrancyGuardUpgradeable.sol:40",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.ERC1155": [
+            {
+              "contract": "ERC1155Upgradeable",
+              "label": "_balances",
+              "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
+              "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC1155\\ERC1155Upgradeable.sol:27",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "ERC1155Upgradeable",
+              "label": "_operatorApprovals",
+              "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+              "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC1155\\ERC1155Upgradeable.sol:29",
+              "offset": 0,
+              "slot": "1"
+            },
+            {
+              "contract": "ERC1155Upgradeable",
+              "label": "_uri",
+              "type": "t_string_storage",
+              "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC1155\\ERC1155Upgradeable.sol:32",
+              "offset": 0,
+              "slot": "2"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:73",
               "offset": 8,
               "slot": "0"
             }
