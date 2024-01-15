@@ -1,5 +1,5 @@
 import { ethers, upgrades } from "hardhat";
-import { REGISTRY_SEPOLIA } from "../addresses";
+import { GLOBAL_MARKER_SEPOLIA, REGISTRY_SEPOLIA } from "../addresses";
 import { interests, trueMarkers } from "./data";
 
 const markers = trueMarkers();
@@ -9,6 +9,12 @@ async function main() {
   const globalMarker = await upgrades.deployProxy(GlobalMarker, [
     REGISTRY_SEPOLIA,
   ]);
+
+  // Used only when deployment succeeded, but setup is failed
+  // const globalMarker = await ethers.getContractAt(
+  //   "GlobalMarker",
+  //   GLOBAL_MARKER_SEPOLIA
+  // );
 
   console.log("\nDeploying Global Marker...");
   await globalMarker.waitForDeployment();

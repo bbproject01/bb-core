@@ -97,7 +97,8 @@ contract Income is
     }
 
     function mintIncome(
-        Attributes[] memory _attributes,
+        Attributes memory _attributes,
+        uint256 _qty,
         address _referrer
     ) external {
         if (_referrer != address(0)) {
@@ -106,7 +107,7 @@ contract Income is
                 _referrer
             );
         }
-        for (uint i = 0; i < _attributes.length; i++) {
+        for (uint i = 0; i < _qty; i++) {
             if (
                 (
                     Referral(registry.getContractAddress("Referral"))
@@ -114,12 +115,12 @@ contract Income is
                 )
             ) {
                 Referral(registry.getContractAddress("Referral"))
-                    .rewardForReferrer(msg.sender, _attributes[i].principal);
+                    .rewardForReferrer(msg.sender, _attributes.principal);
                 uint256 discount = Referral(
                     registry.getContractAddress("Referral")
                 ).getReferredDiscount();
-                uint256 amtPayable = _attributes[i].principal -
-                    ((_attributes[i].principal * discount) / 10000);
+                uint256 amtPayable = _attributes.principal -
+                    ((_attributes.principal * discount) / 10000);
                 IERC20(registry.getContractAddress("BbToken")).transferFrom(
                     msg.sender,
                     address(this),
@@ -129,12 +130,12 @@ contract Income is
                 IERC20(registry.getContractAddress("BbToken")).transferFrom(
                     msg.sender,
                     address(this),
-                    _attributes[i].principal
+                    _attributes.principal
                 );
             }
-            _setAttributes(_attributes[i]);
+            _setAttributes(_attributes);
             _mint(msg.sender, system.idCounter, 1, "");
-            system.totalAmount += _attributes[system.idCounter].principal;
+            system.totalAmount += _attributes.principal;
             system.idCounter++;
             system.totalActiveCfa++;
         }
@@ -153,7 +154,7 @@ contract Income is
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
         token.mint(msg.sender, _amount);
         emit MetadataUpdate(_tokenId);
-         system.totalAmount -= _amount;
+        system.totalAmount -= _amount;
     }
 
     function withdrawPrincipal(uint256 _tokenId) external {
