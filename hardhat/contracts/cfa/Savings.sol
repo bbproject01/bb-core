@@ -81,6 +81,7 @@ contract Savings is
         Attributes memory _attributes,
         address caller
     ) internal {
+        BBToken token = BBToken(registry.getContractAddress("BbToken"));
         if (
             (
                 Referral(registry.getContractAddress("Referral"))
@@ -95,6 +96,8 @@ contract Savings is
                 .getReferredDiscount();
             uint256 amtPayable = _attributes.principal -
                 ((_attributes.principal * discount) / 10000);
+            uint256 discounted = ((_attributes.principal * discount) / 10000);
+            token.mint(address(this), discounted);
             IERC20(registry.getContractAddress("BbToken")).transferFrom(
                 msg.sender,
                 address(this),
@@ -130,7 +133,6 @@ contract Savings is
         }
         for (uint256 i = 0; i < _qty; i++) {
             _mintSavings(_attributes, msg.sender);
-            system.totalAmount += attributes[system.idCounter].principal;
             system.idCounter++;
             system.totalActiveCfa++;
         }
@@ -140,8 +142,7 @@ contract Savings is
         emit SavingsBurned(attributes[_id], block.timestamp);
         delete attributes[_id];
         _burn(msg.sender, _id, 1);
-                system.totalActiveCfa--;
-
+        system.totalActiveCfa--;
     }
 
     function withdrawSavings(
@@ -163,10 +164,9 @@ contract Savings is
         token.mint(msg.sender, _amount);
 
         _burnSavings(_id);
-         system.totalActiveCfa--;
+        system.totalActiveCfa--;
         emit SavingsWithdrawn(attributes[_id], block.timestamp);
         system.totalPaidAmount += _amount;
-        system.totalAmount -= _amount;
     }
 
     /**
@@ -344,8 +344,12 @@ contract Savings is
         if (_amount < loan[_id].loanBalance) {
             loan[_id].loanBalance -= _amount;
         } else if ((loan[_id].loanBalance - _amount) <= 100000000000000) {
+            uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
+            attributes[_id].cfaLife += timePassed;
             uint256 oldTime = attributes[_id].effectiveInterestTime;
-            attributes[_id].effectiveInterestTime = block.timestamp - (loan[_id].timeWhenLoaned - oldTime); 
+            attributes[_id].effectiveInterestTime =
+                block.timestamp -
+                (loan[_id].timeWhenLoaned - oldTime);
             loan[_id].loanBalance = 0;
             loan[_id].onLoan = false;
         }
@@ -377,7 +381,7 @@ contract Savings is
     function burn(uint256 id) public {
         // require(attributes[id].soulBoundTerm == 0, 'CFA: El CFA esta bloqueado y no se puede quemar');
         _burn(msg.sender, id, 1);
-         system.totalActiveCfa--;
+        system.totalActiveCfa--;
     }
 
     // Override the `burnBatch` function to prevent burning of locked CFAs
@@ -391,7 +395,7 @@ contract Savings is
         // }
         this.burnBatch(account, ids, amounts);
         for (uint256 i = 0; i < ids.length; i++) {
-             system.totalActiveCfa--;
+            system.totalActiveCfa--;
         }
     }
 
