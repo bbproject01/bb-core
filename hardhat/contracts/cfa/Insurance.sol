@@ -425,9 +425,9 @@ contract Insurance is
         if (_amount < loan[_id].loanBalance) {
             loan[_id].loanBalance -= _amount;
         } else {
-            attributes[_id].effectiveInterestTime = block.timestamp;
             loan[_id].loanBalance = 0;
             loan[_id].onLoan = false;
+
             uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
             attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
             uint256 oldTime = attributes[_id].effectiveInterestTime;
