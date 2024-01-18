@@ -82,6 +82,7 @@ contract Income is
         );
 
         _attributes.timeCreated = block.timestamp;
+        _attributes.beginningTimeForInterest = block.timestamp;
         _attributes.interest = GlobalMarker(
             registry.getContractAddress("GlobalMarker")
         ).getInterestRate();
@@ -169,7 +170,7 @@ contract Income is
         );
         require(
             block.timestamp >=
-                attributes[_tokenId].timeCreated +
+                attributes[_tokenId].beginningTimeForInterest +
                     (attributes[_tokenId].principalLockTime * 365 days),
             "Income:: Principal is locked"
         );
@@ -221,7 +222,7 @@ contract Income is
         if (attributes[_tokenId].lastClaimTime > 0) {
             claimedIndex =
                 (attributes[_tokenId].lastClaimTime -
-                    attributes[_tokenId].timeCreated) /
+                    attributes[_tokenId].beginningTimeForInterest) /
                 (attributes[_tokenId].paymentFrequency * 30 days);
         }
 
@@ -411,6 +412,7 @@ contract Income is
             loan[_id].onLoan = false;
             uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
             attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
+            attributes[_id].beginningTimeForInterest += timePassed; // Extends CFA life to make up for loaned time
             uint256 _lastClaimTime = block.timestamp -
                 loan[_id].timeBeforeNextPayment;
             attributes[_id].lastClaimTime = _lastClaimTime;

@@ -1,6 +1,6 @@
 import { ethers, upgrades } from "hardhat";
 import { BBTOKEN_SEPOLIA, REGISTRY_SEPOLIA } from "../addresses";
-import { interests, periods } from "./data";
+import { interests, periods, metadata, images } from "./data";
 
 async function main() {
   const Insurance = await ethers.getContractFactory("Insurance");
@@ -28,6 +28,14 @@ async function main() {
   console.info("\nApproving Insurance contract to spend BB Token...");
   const token = await ethers.getContractAt("BBToken", BBTOKEN_SEPOLIA);
   await token.approve(await insurance.getAddress(), ethers.MaxUint256);
+  console.info("Done!");
+
+  console.info("\nSetting Up Savings's name and description...");
+  await insurance.setMetadata(metadata[0], metadata[1]);
+  console.info("Done!");
+
+  console.info("\nSetting image...");
+  await insurance.setImage(images);
   console.info("Done!");
 }
 

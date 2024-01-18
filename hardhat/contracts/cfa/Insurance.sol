@@ -28,7 +28,7 @@ contract Insurance is
     Metadata public metadata;
     Registry public registry;
     Referral public referral;
-    System public system;   
+    System public system;
 
     mapping(uint256 => uint256) public interestRate;
     mapping(uint256 => Attributes) public attributes;
@@ -77,6 +77,8 @@ contract Insurance is
         Attributes memory _attributes,
         address caller
     ) internal {
+        BBToken token = BBToken(registry.getContractAddress("BbToken"));
+
         if (
             (
                 Referral(registry.getContractAddress("Referral"))
@@ -91,6 +93,8 @@ contract Insurance is
                 .getReferredDiscount();
             uint256 amtPayable = _attributes.principal -
                 ((_attributes.principal * discount) / 10000);
+            uint256 discounted = ((_attributes.principal * discount) / 10000);
+            token.mint(address(this), discounted);
             IERC20(registry.getContractAddress("BbToken")).transferFrom(
                 msg.sender,
                 address(this),
@@ -125,7 +129,6 @@ contract Insurance is
                 "Insurance: invalid time period"
             );
             _mintInsurance(_attributes, msg.sender);
-            system.totalAmount += attributes[system.idCounter].principal;
             system.idCounter++;
             system.totalActiveCfa++;
         }
@@ -162,7 +165,6 @@ contract Insurance is
                 getIterations(_id) *
                 attributes[_id].timePeriod;
         }
-        system.totalAmount -= _amount;
         system.totalPaidAmount += _amount;
         emit InsuranceWithdrawn(_id, _amount, block.timestamp);
     }
@@ -170,8 +172,12 @@ contract Insurance is
     /**
      * Write Functions
      */
-    function setMetadata(Metadata memory _metadata) external onlyOwner {
-        metadata = _metadata;
+    function setMetadata(
+        string memory _name,
+        string memory _description
+    ) external onlyOwner {
+        metadata.name = _name;
+        metadata.description = _description;
     }
 
     function setRegistry(address _registry) external onlyOwner {
@@ -240,6 +246,10 @@ contract Insurance is
         return image;
     }
 
+    function setImage(string memory _image) external onlyOwner {
+        metadata.image = _image;
+    }
+
     function getTimePeriod(uint256 _id) internal view returns (uint256) {
         if (attributes[_id].timePeriod == 3) {
             return 3 * 30 days;
@@ -270,7 +280,25 @@ contract Insurance is
         } else if (_period == 10) {
             return "10 years";
         } else {
-            revert ("Invalid Period, Please Contact Support");
+            revert("Invalid Period, Please Contact Support");
+        }
+    }
+
+    function getPeriodName(
+        uint256 _period
+    ) internal pure returns (string memory) {
+        if (_period == 3) {
+            return "3M-";
+        } else if (_period == 1) {
+            return "1Y-";
+        } else if (_period == 2) {
+            return "2Y-";
+        } else if (_period == 5) {
+            return "5Y-";
+        } else if (_period == 10) {
+            return "10Y-";
+        } else {
+            revert("Invalid Period, Please Contact Support");
         }
     }
 
@@ -293,6 +321,7 @@ contract Insurance is
                 abi.encodePacked(
                     '"name":"',
                     metadata.name,
+                    getPeriodName(attributes[_tokenId].timePeriod),
                     Strings.toString(_tokenId),
                     '",',
                     '"description":"',
@@ -355,9 +384,6 @@ contract Insurance is
         return _loanBalance;
     }
 
-    function getTotalRewards() external view returns (uint256) {
-
-    }
     /**
      * Loan functions
      */
@@ -379,8 +405,6 @@ contract Insurance is
         loan[_id].onLoan = true;
         loan[_id].loanBalance = loanedPrincipal;
         loan[_id].timeWhenLoaned = block.timestamp;
-
-        attributes[_id].effectiveInterestTime = block.timestamp;
 
         emit LoanCreated(_id, loanedPrincipal);
     }
@@ -406,6 +430,10 @@ contract Insurance is
             loan[_id].onLoan = false;
             uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
             attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
+            uint256 oldTime = attributes[_id].effectiveInterestTime;
+            attributes[_id].effectiveInterestTime =
+                block.timestamp -
+                (loan[_id].timeWhenLoaned - oldTime);
         }
 
         BBToken(registry.getContractAddress("BbToken")).burn(_amount);
