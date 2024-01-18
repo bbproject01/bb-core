@@ -27,7 +27,7 @@ contract Income is
     /**
      * Local variables
      */
-    System system;
+    System public system;
     Registry public registry;
     // GlobalMarker public globalMarker;
     // Referral public referral;
@@ -81,9 +81,7 @@ contract Income is
             "Income:: Invalid principal lock time"
         );
 
-        _attributes.timeCreated =
-            block.timestamp -
-            (365 days * (_attributes.principalLockTime - 1)); // remove - 1 year for mainnet
+        _attributes.timeCreated = block.timestamp;
         _attributes.interest = GlobalMarker(
             registry.getContractAddress("GlobalMarker")
         ).getInterestRate();
@@ -93,6 +91,7 @@ contract Income is
         _attributes.cfaLife =
             _attributes.timeCreated +
             (_attributes.principalLockTime * 365 days);
+        _attributes.lastClaimTime = block.timestamp;
         attributes[system.idCounter] = _attributes;
     }
 
@@ -114,11 +113,15 @@ contract Income is
                         .eligibleForReward(msg.sender)
                 )
             ) {
+                BBToken token = BBToken(registry.getContractAddress("BbToken"));
                 Referral(registry.getContractAddress("Referral"))
                     .rewardForReferrer(msg.sender, _attributes.principal);
                 uint256 discount = Referral(
                     registry.getContractAddress("Referral")
                 ).getReferredDiscount();
+                uint256 discounted = ((_attributes.principal * discount) /
+                    10000);
+                token.mint(address(this), discounted);
                 uint256 amtPayable = _attributes.principal -
                     ((_attributes.principal * discount) / 10000);
                 IERC20(registry.getContractAddress("BbToken")).transferFrom(
@@ -135,7 +138,6 @@ contract Income is
             }
             _setAttributes(_attributes);
             _mint(msg.sender, system.idCounter, 1, "");
-            system.totalAmount += _attributes.principal;
             system.idCounter++;
             system.totalActiveCfa++;
         }
@@ -146,15 +148,18 @@ contract Income is
             balanceOf(msg.sender, _tokenId) >= 1,
             "Income:: Not product owner"
         );
-        if (msg.sender != address(this)) {
-            attributes[_amount].incomePaid += _amount;
-            system.totalPaidAmount += _amount;
-        }
-        attributes[_tokenId].lastClaimTime = block.timestamp;
+        require(!loan[_tokenId].onLoan, "Income: On Loan");
+        uint256 index;
+        system.totalPaidAmount += _amount;
+        attributes[_tokenId].incomePaid += _amount;
+        (index, ) = getIndexes(_tokenId);
+        uint256 _lastClaimTime = block.timestamp -
+            (block.timestamp -
+                (attributes[_tokenId].lastClaimTime + (index * 30 days)));
+        attributes[_tokenId].lastClaimTime = _lastClaimTime;
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
         token.mint(msg.sender, _amount);
         emit MetadataUpdate(_tokenId);
-        system.totalAmount -= _amount;
     }
 
     function withdrawPrincipal(uint256 _tokenId) external {
@@ -168,14 +173,13 @@ contract Income is
                     (attributes[_tokenId].principalLockTime * 365 days),
             "Income:: Principal is locked"
         );
+               require(!loan[_tokenId].onLoan, "Income: On Loan");
 
         IERC20 token = IERC20(registry.getContractAddress("BbToken"));
         token.transfer(msg.sender, attributes[_tokenId].principal);
 
         _burn(msg.sender, _tokenId, 1);
         system.totalActiveCfa--;
-        system.totalPaidAmount += attributes[_tokenId].principal;
-        system.totalAmount -= attributes[_tokenId].principal;
     }
 
     function setRegistry(address _registry) external onlyOwner {
@@ -203,9 +207,9 @@ contract Income is
      */
     function getIndexes(
         uint256 _tokenId
-    ) external view returns (uint256, uint256) {
+    ) public view returns (uint256, uint256) {
         uint256 timeDiff = (block.timestamp -
-            attributes[_tokenId].timeCreated) /
+            attributes[_tokenId].lastClaimTime) /
             ((attributes[_tokenId].paymentFrequency * 30 days));
         uint256 currentIndex = 0;
         uint256 claimedIndex = 0;
@@ -227,27 +231,25 @@ contract Income is
     function getInterest(uint256 _tokenId) external view returns (uint256) {
         uint256 cfaInterest = attributes[_tokenId].interest;
         return cfaInterest;
-
-        // remove if not needed
     }
 
-    function getAccumulatedInterest(
-        uint256 _interest,
-        uint256 _id
-    ) internal view returns (uint256) {
-        if (
-            attributes[_id].lastClaimTime - block.timestamp <
-            attributes[_id].paymentFrequency
-        ) {
-            return 0;
-        } else {
-            uint256 iterations = (attributes[_id].lastClaimTime -
-                block.timestamp) / attributes[_id].paymentFrequency;
-            uint256 computedInterest = iterations *
-                ((_interest * attributes[_id].principal) / 10000);
-            return computedInterest;
-        }
-    }
+    // function getAccumulatedInterest(
+    //     uint256 _interest,
+    //     uint256 _id
+    // ) internal view returns (uint256) {
+    //     if (
+    //         attributes[_id].lastClaimTime - block.timestamp <
+    //         attributes[_id].paymentFrequency
+    //     ) {
+    //         return 0;
+    //     } else {
+    //         uint256 iterations = (attributes[_id].lastClaimTime -
+    //             block.timestamp) / attributes[_id].paymentFrequency;
+    //         uint256 computedInterest = iterations *
+    //             ((_interest * attributes[_id].principal) / 10000);
+    //         return computedInterest;
+    //     }
+    // }
 
     function getMetadata(uint256 _tokenId) public view returns (string memory) {
         string memory basicInfo = getBasicInfo(_tokenId);
@@ -353,6 +355,15 @@ contract Income is
     /**
      * Loan functions
      */
+    function getTimeBeforeNextPayment(
+        uint256 _id
+    ) internal view returns (uint256) {
+        uint256 index;
+        (index, ) = getIndexes(_id);
+        uint256 timeLeft = (block.timestamp - attributes[_id].lastClaimTime) -
+            ((index) * (attributes[_id].paymentFrequency * 30 days));
+        return timeLeft;
+    }
 
     function createLoan(uint256 _id, uint256 _amount) external nonReentrant {
         require(balanceOf(msg.sender, _id) == 1, "Income: invalid id");
@@ -364,11 +375,12 @@ contract Income is
 
         // uint256 interest = getAccumulatedInterest(attributes[_id].interest, _id);
         if (_amount != 0) {
+            loan[_id].timeBeforeNextPayment = getTimeBeforeNextPayment(_id);
             withdrawIncome(_id, _amount);
         }
         uint256 loanedPrincipal = ((attributes[_id].principal) * 25) / 100;
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
-        token.mint(address(this), loanedPrincipal);
+        token.mint(msg.sender, loanedPrincipal);
 
         loan[_id].onLoan = true;
         loan[_id].loanBalance = loanedPrincipal;
@@ -399,11 +411,8 @@ contract Income is
             loan[_id].onLoan = false;
             uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
             attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
-            uint256 _lastClaimTime = (((((block.timestamp -
-                attributes[_id].lastClaimTime) /
-                attributes[_id].paymentFrequency) + 1) *
-                attributes[_id].paymentFrequency) +
-                attributes[_id].lastClaimTime) - block.timestamp;
+            uint256 _lastClaimTime = block.timestamp -
+                loan[_id].timeBeforeNextPayment;
             attributes[_id].lastClaimTime = _lastClaimTime;
         }
         BBToken(registry.getContractAddress("BbToken")).burn(_amount);
