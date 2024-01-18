@@ -17,6 +17,7 @@ interface IIncome {
         bool onLoan;
         uint256 loanBalance;
         uint256 timeWhenLoaned;
+        uint256 timeBeforeNextPayment;
     }
 
     struct System {
