@@ -57,7 +57,7 @@ import { ethers } from "ethers";
 // ];
 
 export const images =
-  "https://magenta-protestant-falcon-171.mypinata.cloud/ipfs/QmdL8nW1NrnmKkvSx7wHC8EBtNyYgHnR24ARaQLXYysnKa";
+  "https://gold-biological-chicken-110.mypinata.cloud/ipfs/QmetB7KZ6y6jNtDJ7BC4Ui9MTbuRB7n4jbZuJVCQEQMEzb";
 
 export const metadata = ["SAV1-", "This CFA is a decentralized version of the traditional Bank Certificate of Deposit. It is designed to accrue compound interest monthly on the Principal amount. As part of the BloomBeans Financial System, the Savings Account CFA is a fully decentralized Crypto Financial Asset. It is tradable, can be used as collateral for a loan, or simply used to obtain profits, just like any other financial product. It's important to note that during the chosen period, withdrawing profits in BEAN currency is not allowed. A Savings Account will release its profits once the compounding period selected is finished, which may vary from 1 to 30 years. The profits received will depend on the Principal invested and the System Interest Rate available at the time of this CFA's creation."];
 
