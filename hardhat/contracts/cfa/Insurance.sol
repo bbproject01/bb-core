@@ -347,7 +347,7 @@ contract Insurance is
                     '{ "trait_type": "Date Finishing", "display_type": "date", "value": "',
                     attributes[_tokenId].cfaLife.toString(),
                     '" },',
-                    '{ "trait_type": "Period", "value": "In ',
+                    '{ "trait_type": "Period", "value": "Every ',
                     getPeriodString(attributes[_tokenId].timePeriod),
                     '" },',
                     '{ "trait_type": "Principal", "value": "',
