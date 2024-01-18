@@ -20,6 +20,10 @@ const config: HardhatUserConfig = {
         "7008c7ceaa8ef18f98f960d15c5becd51a312f3da59aabfb05f293f019f91fa6",
       ],
     },
+    mainnet: {
+      url: "https://eth-mainnet.g.alchemy.com/v2/EZeIyzkcnVq-TTdMMl6d0n-38JSynLwc",
+      accounts: [process.env.TESTNET_PRIV_KEY ?? ""],
+    },
   },
   etherscan: {
     apiKey: {
