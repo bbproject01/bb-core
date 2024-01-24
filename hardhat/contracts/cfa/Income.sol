@@ -376,13 +376,12 @@ contract Income is
 
         // uint256 interest = getAccumulatedInterest(attributes[_id].interest, _id);
         if (_amount != 0) {
-            loan[_id].timeBeforeNextPayment = getTimeBeforeNextPayment(_id);
             withdrawIncome(_id, _amount);
         }
         uint256 loanedPrincipal = ((attributes[_id].principal) * 25) / 100;
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
         token.mint(msg.sender, loanedPrincipal);
-
+        loan[_id].timeBeforeNextPayment = getTimeBeforeNextPayment(_id);
         loan[_id].onLoan = true;
         loan[_id].loanBalance = loanedPrincipal;
         loan[_id].timeWhenLoaned = block.timestamp;
