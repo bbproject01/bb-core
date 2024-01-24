@@ -71,6 +71,7 @@ contract Savings is
         );
         _attributes.timeCreated = block.timestamp;
         _attributes.effectiveInterestTime = block.timestamp;
+        _attributes.cfaLifeTimestamp = block.timestamp + (30 days * 12 * _attributes.cfaLife);
         _attributes.interestRate = GlobalMarker(
             registry.getContractAddress("GlobalMarker")
         ).getInterestRate();
@@ -150,11 +151,7 @@ contract Savings is
         uint256 _amount
     ) external nonReentrant {
         require(
-            block.timestamp >
-                getTotalLife(
-                    attributes[_id].effectiveInterestTime,
-                    attributes[_id].cfaLife
-                ),
+            block.timestamp > attributes[_id].cfaLifeTimestamp,
             "Savings: CFA not yet matured"
         );
         require(!loan[_id].onLoan, "Savings: On Loan");
@@ -198,14 +195,14 @@ contract Savings is
      * Read Function
      */
 
-    function getTotalLife(
-        uint256 _timeCreate,
-        uint256 _cfaLife
-    ) public pure returns (uint256) {
-        uint256 cfaLife = _cfaLife * (12 * 30 days);
-        uint256 totalLife = _timeCreate + cfaLife;
-        return totalLife;
-    }
+    // function getTotalLife(
+    //     uint256 _timeCreate,
+    //     uint256 _cfaLife
+    // ) public pure returns (uint256) {
+    //     uint256 cfaLife = _cfaLife * (12 * 30 days);
+    //     uint256 totalLife = _timeCreate + cfaLife;
+    //     return totalLife;
+    // }
 
     function getImage() public view returns (string memory) {
         string memory image = metadata.image;
@@ -254,10 +251,7 @@ contract Savings is
                     attributes[_tokenId].timeCreated.toString(),
                     '" },',
                     '{ "trait_type": "Date Finishing", "display_type": "date", "value": "',
-                    getTotalLife(
-                        attributes[_tokenId].effectiveInterestTime,
-                        attributes[_tokenId].cfaLife
-                    ).toString(),
+                    attributes[_tokenId].cfaLifeTimestamp.toString(),
                     '" },',
                     '{ "trait_type": "CFA Life", "value": "',
                     attributes[_tokenId].cfaLife.toString(),
@@ -307,11 +301,7 @@ contract Savings is
         require(balanceOf(msg.sender, _id) == 1, "Savings: invalid id");
         require(!loan[_id].onLoan, "Savings: Loan already created");
         require(
-            block.timestamp <
-                getTotalLife(
-                    attributes[_id].effectiveInterestTime,
-                    attributes[_id].cfaLife
-                ),
+            block.timestamp < attributes[_id].cfaLifeTimestamp,
             "Savings: CFA has expired"
         );
 
@@ -345,7 +335,7 @@ contract Savings is
             loan[_id].loanBalance -= _amount;
         } else if ((loan[_id].loanBalance - _amount) <= 100000000000000) {
             uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
-            attributes[_id].cfaLife += timePassed;
+            attributes[_id].cfaLifeTimestamp += timePassed; 
             uint256 oldTime = attributes[_id].effectiveInterestTime;
             attributes[_id].effectiveInterestTime =
                 block.timestamp -
