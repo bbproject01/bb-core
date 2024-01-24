@@ -390,7 +390,10 @@ contract Insurance is
      * Loan functions
      */
 
-    function createLoan(uint256 _id) external nonReentrant {
+    function createLoan(
+        uint256 _id,
+        uint256 _yieldedInterest
+    ) external nonReentrant {
         require(balanceOf(msg.sender, _id) == 1, "Insurance: invalid id");
         require(!loan[_id].onLoan, "Insurance: Loan already created");
         require(
@@ -398,17 +401,16 @@ contract Insurance is
             "Insurance: insurance has expired"
         );
 
-        (uint256 interest, uint256 totalPrincipal) = getInterest(_id);
-        uint256 loanedPrincipal = ((totalPrincipal) * 25) / 100;
+        uint256 loanedPrincipal = ((attributes[_id].principal +
+            _yieldedInterest) * 25) / 100;
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
-        token.mint(address(this), interest);
         token.mint(msg.sender, loanedPrincipal);
 
         loan[_id].onLoan = true;
         loan[_id].loanBalance = loanedPrincipal;
         loan[_id].timeWhenLoaned = block.timestamp;
 
-        emit LoanCreated(_id, loanedPrincipal);
+        emit LoanCreated(_id, (loanedPrincipal * 25) / 100);
         emit MetadataUpdate(_id);
     }
 
@@ -427,16 +429,15 @@ contract Insurance is
 
         if (_amount < loan[_id].loanBalance) {
             loan[_id].loanBalance -= _amount;
-        } else {
-            loan[_id].loanBalance = 0;
-            loan[_id].onLoan = false;
-
+        } else if ((loan[_id].loanBalance - _amount) <= 100000000000000) {
             uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
-            attributes[_id].cfaLife += timePassed; // Extends CFA life to make up for loaned time
+            attributes[_id].cfaLife += timePassed;
             uint256 oldTime = attributes[_id].effectiveInterestTime;
             attributes[_id].effectiveInterestTime =
                 block.timestamp -
                 (loan[_id].timeWhenLoaned - oldTime);
+            loan[_id].loanBalance = 0;
+            loan[_id].onLoan = false;
         }
 
         BBToken(registry.getContractAddress("BbToken")).burn(_amount);
