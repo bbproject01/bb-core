@@ -46,6 +46,7 @@ contract Insurance is
     event InsuranceBurned(Attributes _attributes, uint256 _time);
     event LoanCreated(uint256 _id, uint256 _totalLoan);
     event LoanRepaid(uint256 _id);
+    event MetadataUpdate(uint256 _tokenId);
 
     /**
      * Constructor
@@ -167,6 +168,7 @@ contract Insurance is
         }
         system.totalPaidAmount += _amount;
         emit InsuranceWithdrawn(_id, _amount, block.timestamp);
+        emit MetadataUpdate(_id);
     }
 
     /**
@@ -407,6 +409,7 @@ contract Insurance is
         loan[_id].timeWhenLoaned = block.timestamp;
 
         emit LoanCreated(_id, loanedPrincipal);
+        emit MetadataUpdate(_id);
     }
 
     function repayLoan(uint256 _id, uint256 _amount) external nonReentrant {
@@ -439,6 +442,7 @@ contract Insurance is
         BBToken(registry.getContractAddress("BbToken")).burn(_amount);
 
         emit LoanRepaid(_id);
+        emit MetadataUpdate(_id);
     }
 
     /**
