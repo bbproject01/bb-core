@@ -71,7 +71,9 @@ contract Savings is
         );
         _attributes.timeCreated = block.timestamp;
         _attributes.effectiveInterestTime = block.timestamp;
-        _attributes.cfaLifeTimestamp = block.timestamp + (30 days * 12 * _attributes.cfaLife);
+        _attributes.cfaLifeTimestamp =
+            block.timestamp +
+            (30 days * 12 * _attributes.cfaLife);
         _attributes.interestRate = GlobalMarker(
             registry.getContractAddress("GlobalMarker")
         ).getInterestRate();
@@ -160,10 +162,9 @@ contract Savings is
         token.transfer(msg.sender, attributes[_id].principal);
         token.mint(msg.sender, _amount);
 
-        _burnSavings(_id);
-        system.totalActiveCfa--;
         emit SavingsWithdrawn(attributes[_id], block.timestamp);
         system.totalPaidAmount += _amount;
+        _burnSavings(_id);
     }
 
     /**
@@ -314,7 +315,7 @@ contract Savings is
         loan[_id].loanBalance = loanedPrincipal;
         loan[_id].timeWhenLoaned = block.timestamp;
 
-        emit LoanCreated(_id, (loanedPrincipal * 25) / 100);
+        emit LoanCreated(_id, loanedPrincipal);
         emit MetadataUpdate(_id);
     }
 
@@ -335,7 +336,7 @@ contract Savings is
             loan[_id].loanBalance -= _amount;
         } else if ((loan[_id].loanBalance - _amount) <= 100000000000000) {
             uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
-            attributes[_id].cfaLifeTimestamp += timePassed; 
+            attributes[_id].cfaLifeTimestamp += timePassed;
             uint256 oldTime = attributes[_id].effectiveInterestTime;
             attributes[_id].effectiveInterestTime =
                 block.timestamp -
