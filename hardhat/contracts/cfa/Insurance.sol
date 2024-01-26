@@ -166,7 +166,7 @@ contract Insurance is
                 getIterations(_id) *
                 attributes[_id].timePeriod;
         }
-        system.totalPaidAmount += _amount;
+        system.totalPaidAmount += _interest;
         emit InsuranceWithdrawn(_id, _amount, block.timestamp);
         emit MetadataUpdate(_id);
     }
@@ -410,7 +410,7 @@ contract Insurance is
         loan[_id].loanBalance = loanedPrincipal;
         loan[_id].timeWhenLoaned = block.timestamp;
 
-        emit LoanCreated(_id, (loanedPrincipal * 25) / 100);
+        emit LoanCreated(_id, loanedPrincipal);
         emit MetadataUpdate(_id);
     }
 
