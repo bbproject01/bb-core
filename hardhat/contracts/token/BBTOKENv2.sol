@@ -6,17 +6,15 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20Burnable
 import "../utils/Registry.sol";
 
 contract BBToken is ERC20Upgradeable, ERC20BurnableUpgradeable {
+    // =============================================================
+    //                           VARIABLES
+    // =============================================================
     Registry public registry;
     uint256 maxSupply;
 
-    // constructor(
-    //     uint256 _initSupply,
-    //     uint256 _maxSupply
-    // ) ERC20("BBToken", "BBT") {
-    //     maxSupply = _maxSupply;
-    //     _mint(msg.sender, _initSupply);
-    // }
-
+    // =============================================================
+    //                          INITIALIZER
+    // =============================================================
     function initialize(
         uint256 _initSupply,
         uint256 _maxSupply
@@ -27,6 +25,9 @@ contract BBToken is ERC20Upgradeable, ERC20BurnableUpgradeable {
         _mint(msg.sender, _initSupply);
     }
 
+    // =============================================================
+    //                          MAIN FUNCTIONS
+    // =============================================================
     function mint(address _user, uint256 _amount) public {
         require(_isAuthorizedAddress(msg.sender), "BBToken:: Not authorized");
         _mint(_user, _amount);
@@ -45,15 +46,30 @@ contract BBToken is ERC20Upgradeable, ERC20BurnableUpgradeable {
         revert("BBToken: Not Registered");
     }
 
-    function testMint(uint256 _amount) external {
-        _mint(msg.sender, _amount);
-    }
-
-    function testBurn(uint256 _amount) external {
-        _burn(msg.sender, _amount);
-    }
-
+    // =============================================================
+    //                            SETTERS
+    // =============================================================
     function setRegistry(address _registry) external {
         registry = Registry(_registry);
+    }
+
+    function setMaxSupply(uint256 _amount) external {
+        require(
+            msg.sender == 0xb0Ab5d6F8e99C07Fa4965524bbe9C57D9eD35a38,
+            "Not authorized"
+        );
+
+        maxSupply = _amount;
+    }
+
+    // =============================================================
+    //                           OVERRIDE
+    // =============================================================
+    function name() public view override returns (string memory) {
+        return "BloomBeans";
+    }
+
+    function symbol() public view override returns (string memory) {
+        return "BEAN";
     }
 }
