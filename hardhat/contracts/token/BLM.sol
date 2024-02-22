@@ -8,6 +8,7 @@ contract BLMToken is ERC20Upgradeable, OwnableUpgradeable {
     function initialize() external initializer {
         __Ownable_init(msg.sender);
         __ERC20_init("BLM", "BLM");
+        _mint(msg.sender, 20000000000 * 10 ** decimals());
     }
 
     function mint(address _receiver, uint256 _amount) external onlyOwner {
