@@ -8,6 +8,7 @@ interface IInsurance {
         uint256 principal;
         uint256 effectiveInterestTime;
         uint256 cfaLife;
+        uint256 interest;
     }
 
     struct Loan {
