@@ -28,7 +28,6 @@ contract Savings is
     Registry public registry; // The registry contract
     Life public life; // max and minimum life of Savings CFA
     Metadata public metadata; // The metadata of the Savings CFA
-    GlobalMarker public globalMarker; // the supply and Interest marker
 
     mapping(uint256 => Loan) public loan;
     mapping(uint256 => Attributes) public attributes;
@@ -402,5 +401,23 @@ contract Savings is
                     Base64.encode(_metadata)
                 )
             );
+    }
+
+    /**
+     * Testing functions DELETE BEFORE DEPELOYMENT
+     */
+
+    function changeTimeToEndOfProduct(uint256 _id) external {
+        /* WORKS ONLY IF:
+         * The product has never been loaned
+         * The product has never been withdrawn once
+         */
+        require(
+            balanceOf(msg.sender, _id) >= 1,
+            "Income:: You are not the owner of this product!"
+        );
+        uint256 timeadjustment = 30 days * 12 * attributes[_id].cfaLife;
+        attributes[_id].effectiveInterestTime -= timeadjustment;
+        attributes[_id].cfaLifeTimestamp = block.timestamp;
     }
 }

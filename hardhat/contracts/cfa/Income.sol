@@ -154,6 +154,7 @@ contract Income is
         system.totalPaidAmount += _amount;
         attributes[_tokenId].incomePaid += _amount;
         (index, ) = getIndexes(_tokenId);
+        index += attributes[_tokenId].claimedIndex;
         uint256 _lastClaimTime = block.timestamp -
             (block.timestamp -
                 (attributes[_tokenId].lastClaimTime + (index * 30 days)));
@@ -174,7 +175,7 @@ contract Income is
                     (attributes[_tokenId].principalLockTime * 365 days),
             "Income:: Principal is locked"
         );
-               require(!loan[_tokenId].onLoan, "Income: On Loan");
+        require(!loan[_tokenId].onLoan, "Income: On Loan");
 
         IERC20 token = IERC20(registry.getContractAddress("BbToken"));
         token.transfer(msg.sender, attributes[_tokenId].principal);
@@ -213,25 +214,36 @@ contract Income is
             attributes[_tokenId].lastClaimTime) /
             ((attributes[_tokenId].paymentFrequency * 30 days));
         uint256 currentIndex = 0;
-        uint256 claimedIndex = 0;
 
         if (timeDiff > 0) {
             currentIndex = timeDiff;
         }
 
-        if (attributes[_tokenId].lastClaimTime > 0) {
-            claimedIndex =
-                (attributes[_tokenId].lastClaimTime -
-                    attributes[_tokenId].beginningTimeForInterest) /
-                (attributes[_tokenId].paymentFrequency * 30 days);
+        if (
+            currentIndex + attributes[_tokenId].claimedIndex >
+            getTotalPossibleIndex(_tokenId)
+        ) {
+            return (
+                getTotalPossibleIndex(_tokenId) -
+                    attributes[_tokenId].claimedIndex,
+                attributes[_tokenId].claimedIndex
+            );
+        } else {
+            return (currentIndex, attributes[_tokenId].claimedIndex);
         }
-
-        return (currentIndex, claimedIndex);
     }
 
     function getInterest(uint256 _tokenId) external view returns (uint256) {
         uint256 cfaInterest = attributes[_tokenId].interest;
         return cfaInterest;
+    }
+
+    function getTotalPossibleIndex(
+        uint256 _tokenId
+    ) internal view returns (uint256) {
+        uint256 index = (attributes[_tokenId].principalLockTime * 365 days) /
+            (attributes[_tokenId].paymentFrequency * 30 days);
+        return index;
     }
 
     // function getAccumulatedInterest(
@@ -438,5 +450,35 @@ contract Income is
                     Base64.encode(_metadata)
                 )
             );
+    }
+
+    /**
+     * Testing functions DELETE BEFORE DEPELOYMENT
+     */
+
+    function changeTimeToEndOfProduct(uint256 _id) external {
+        /* WORKS ONLY IF:
+         * The product has never been loaned
+         * The product has never been withdrawn once
+         */
+        require(
+            balanceOf(msg.sender, _id) >= 1,
+            "Income:: You are not the owner of this product!"
+        );
+        uint256 timeadjustment = (attributes[_id].principalLockTime * 365 days);
+        attributes[_id].lastClaimTime -= timeadjustment;
+        attributes[_id].beginningTimeForInterest -= timeadjustment;
+        attributes[_id].cfaLife = block.timestamp;
+    }
+
+    function changeTimeManually(uint256 _id, uint256 _timeAdjustment) external {
+        // Same as changeTimeToEndOfProduct but with manual timeadjustments
+        require(
+            balanceOf(msg.sender, _id) >= 1,
+            "Income:: You are not the owner of this product!"
+        );
+        uint256 timeadjustment = _timeAdjustment;
+        attributes[_id].beginningTimeForInterest -= timeadjustment;
+        attributes[_id].lastClaimTime -= timeadjustment;
     }
 }
