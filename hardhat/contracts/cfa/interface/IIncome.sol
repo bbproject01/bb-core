@@ -3,15 +3,16 @@ pragma solidity 0.8.20;
 
 interface IIncome {
     struct Attributes {
-        uint256 timeCreated;
-        uint256 principal;
+        uint256 timeCreated; // The time the CFA was minted
+        uint256 principal; // The amount of B&B tokens locked
         uint256 paymentFrequency; // in months
         uint256 principalLockTime; // in years
-        uint256 lastClaimTime;
-        uint256 interest;
-        uint256 cfaLife;
+        uint256 lastClaimTime;  // the last time the user claimed the income
+        uint256 interest; // The interest rate of the CFA
+        uint256 cfaLife; // The time the CFA will lock
         uint256 incomePaid; // paid income in total
-        uint256 beginningTimeForInterest;
+        uint256 beginningTimeForInterest; // the time when the interest starts to count
+        uint256 claimedIndex; // the index of the last claimed income
     }
 
     struct Loan {
