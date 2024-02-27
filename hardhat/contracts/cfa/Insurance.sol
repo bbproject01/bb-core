@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
+import "../utils/GlobalMarker.sol";
 import "../utils/Registry.sol";
 import "./interface/IInsurance.sol";
 import "./Referral.sol";
@@ -71,6 +72,9 @@ contract Insurance is
         _attributes.timeCreated = block.timestamp;
         _attributes.cfaLife = block.timestamp + (30 days * 12 * 30); // 30 Years of CFA Life
         _attributes.effectiveInterestTime = _attributes.timeCreated;
+        _attributes.interest = GlobalMarker(
+            registry.getContractAddress("GlobalMarker")
+        ).getInterestRate();
         attributes[system.idCounter] = _attributes;
     }
 
@@ -462,5 +466,34 @@ contract Insurance is
                     Base64.encode(_metadata)
                 )
             );
+    }
+
+    /**
+     * Testing functions DELETE BEFORE DEPELOYMENT
+     */
+
+    function changeTimeToEndOfProduct(uint256 _id) external {
+        /* WORKS ONLY IF:
+         * The product has never been loaned
+         * The product has never been withdrawn once
+         */
+        require(
+            balanceOf(msg.sender, _id) >= 1,
+            "Income:: You are not the owner of this product!"
+        );
+        uint256 timeadjustment = 30 days * 12 * 30;
+        attributes[_id].effectiveInterestTime -= timeadjustment;
+        attributes[_id].cfaLife = block.timestamp;
+
+    }
+
+    function changeTimeManually(uint256 _id, uint256 _timeAdjustment) external {
+        // Same as changeTimeToEndOfProduct but with manual timeadjustments
+        require(
+            balanceOf(msg.sender, _id) >= 1,
+            "Income:: You are not the owner of this product!"
+        );
+        uint256 timeadjustment = _timeAdjustment;
+        attributes[_id].effectiveInterestTime -= timeadjustment;
     }
 }
