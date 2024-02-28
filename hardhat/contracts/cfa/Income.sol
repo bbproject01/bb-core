@@ -88,10 +88,10 @@ contract Income is
         ).getInterestRate();
         // commented because those time will be saved as is and not in unix
         // _attributes.paymentFrequency *= 30 days;
-        // _attributes.principalLockTime *= 365 days;
+        // _attributes.principalLockTime *= 360 days;
         _attributes.cfaLife =
             _attributes.timeCreated +
-            (_attributes.principalLockTime * 365 days);
+            (_attributes.principalLockTime * 360 days);
         _attributes.lastClaimTime = block.timestamp;
         attributes[system.idCounter] = _attributes;
     }
@@ -172,7 +172,7 @@ contract Income is
         require(
             block.timestamp >=
                 attributes[_tokenId].beginningTimeForInterest +
-                    (attributes[_tokenId].principalLockTime * 365 days),
+                    (attributes[_tokenId].principalLockTime * 360 days),
             "Income:: Principal is locked"
         );
         require(!loan[_tokenId].onLoan, "Income: On Loan");
@@ -241,7 +241,7 @@ contract Income is
     function getTotalPossibleIndex(
         uint256 _tokenId
     ) internal view returns (uint256) {
-        uint256 index = (attributes[_tokenId].principalLockTime * 365 days) /
+        uint256 index = (attributes[_tokenId].principalLockTime * 360 days) /
             (attributes[_tokenId].paymentFrequency * 30 days);
         return index;
     }
@@ -465,7 +465,7 @@ contract Income is
             balanceOf(msg.sender, _id) >= 1,
             "Income:: You are not the owner of this product!"
         );
-        uint256 timeadjustment = (attributes[_id].principalLockTime * 365 days);
+        uint256 timeadjustment = (attributes[_id].principalLockTime * 360 days);
         attributes[_id].lastClaimTime -= timeadjustment;
         attributes[_id].beginningTimeForInterest -= timeadjustment;
         attributes[_id].cfaLife = block.timestamp;
