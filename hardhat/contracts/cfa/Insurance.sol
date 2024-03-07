@@ -450,6 +450,12 @@ contract Insurance is
         emit MetadataUpdate(_id);
     }
 
+    function newExpiry(uint256 _id) external view returns (uint256) {
+        uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
+        uint256 _newExpiry = attributes[_id].cfaLife + timePassed;
+        return _newExpiry;
+    }
+
     /**
      * Override Functions
      */
@@ -484,7 +490,6 @@ contract Insurance is
         uint256 timeadjustment = 30 days * 12 * 30;
         attributes[_id].effectiveInterestTime -= timeadjustment;
         attributes[_id].cfaLife = block.timestamp;
-
     }
 
     function changeTimeManually(uint256 _id, uint256 _timeAdjustment) external {

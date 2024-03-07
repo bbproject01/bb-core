@@ -350,6 +350,12 @@ contract Savings is
         emit MetadataUpdate(_id);
     }
 
+    function newExpiry(uint256 _id) external view returns (uint256) {
+        uint256 timePassed = block.timestamp - loan[_id].timeWhenLoaned;
+        uint256 _newExpiry = attributes[_id].cfaLifeTimestamp + timePassed;
+        return _newExpiry;
+    }
+
     /**
      * Override Functions
      */
