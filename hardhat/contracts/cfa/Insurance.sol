@@ -124,9 +124,9 @@ contract Insurance is
 
     function mintInsurance(
         Attributes memory _attributes,
+        uint256 _totalReward,
         uint256 _qty,
-        address _referrer,
-        uint256 _totalReward
+        address _referrer
     ) external {
         if (_referrer != address(0)) {
             Referral(registry.getContractAddress("Referral")).addReferrer(

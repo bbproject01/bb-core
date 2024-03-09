@@ -102,8 +102,8 @@ contract Income is
 
     function mintIncome(
         Attributes memory _attributes,
-        uint256 _qty,
         uint256 _totalReward,
+        uint256 _qty,
         address _referrer
     ) external {
         if (_referrer != address(0)) {
