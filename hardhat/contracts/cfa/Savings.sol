@@ -63,7 +63,10 @@ contract Savings is
      * Main Function
      */
 
-    function _saveAttributes(Attributes memory _attributes) internal {
+    function _saveAttributes(
+        Attributes memory _attributes,
+        uint256 _totalReward
+    ) internal {
         require(
             _attributes.cfaLife >= life.min && life.max >= _attributes.cfaLife,
             "Savings: Invalid CFA life duration"
@@ -76,12 +79,14 @@ contract Savings is
         _attributes.interestRate = GlobalMarker(
             registry.getContractAddress("GlobalMarker")
         ).getInterestRate();
+        _attributes.totalPossibleReward = _totalReward;
         attributes[system.idCounter] = _attributes;
     }
 
     function _mintSavings(
         Attributes memory _attributes,
-        address caller
+        address caller,
+        uint256 _totalReward
     ) internal {
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
         if (
@@ -113,13 +118,14 @@ contract Savings is
             );
         }
         _mint(msg.sender, system.idCounter, 1, "");
-        _saveAttributes(_attributes);
+        _saveAttributes(_attributes, _totalReward);
         emit SavingsCreated(_attributes);
     }
 
     function mintSavings(
         Attributes memory _attributes,
         uint256 _qty,
+        uint256 _totalReward,
         address _referrer
     ) external nonReentrant {
         require(
@@ -134,9 +140,10 @@ contract Savings is
             );
         }
         for (uint256 i = 0; i < _qty; i++) {
-            _mintSavings(_attributes, msg.sender);
+            _mintSavings(_attributes, msg.sender, _totalReward);
             system.idCounter++;
             system.totalActiveCfa++;
+            system.totalRewardsToBeGiven += _totalReward;
         }
     }
 
@@ -147,10 +154,7 @@ contract Savings is
         system.totalActiveCfa--;
     }
 
-    function withdrawSavings(
-        uint256 _id,
-        uint256 _amount
-    ) external nonReentrant {
+    function withdrawSavings(uint256 _id) external nonReentrant {
         require(
             block.timestamp > attributes[_id].cfaLifeTimestamp,
             "Savings: CFA not yet matured"
@@ -159,10 +163,11 @@ contract Savings is
 
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
         token.transfer(msg.sender, attributes[_id].principal);
-        token.mint(msg.sender, _amount);
+        token.mint(msg.sender, attributes[_id].totalPossibleReward);
 
         emit SavingsWithdrawn(attributes[_id], block.timestamp);
-        system.totalPaidAmount += _amount;
+        system.totalPaidAmount += attributes[_id].totalPossibleReward;
+        system.totalRewardsToBeGiven -= attributes[_id].totalPossibleReward;
         _burnSavings(_id);
     }
 

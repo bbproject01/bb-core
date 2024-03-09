@@ -63,7 +63,10 @@ contract Insurance is
     /**
      * Main Functions
      */
-    function _saveAttributes(Attributes memory _attributes) internal {
+    function _saveAttributes(
+        Attributes memory _attributes,
+        uint256 _totalReward
+    ) internal {
         require(
             interestRate[_attributes.timePeriod] != 0,
             "Insurance: invalid time period"
@@ -75,12 +78,14 @@ contract Insurance is
         _attributes.interest = GlobalMarker(
             registry.getContractAddress("GlobalMarker")
         ).getInterestRate();
+        _attributes.totalPossibleReward = _totalReward;
         attributes[system.idCounter] = _attributes;
     }
 
     function _mintInsurance(
         Attributes memory _attributes,
-        address caller
+        address caller,
+        uint256 _totalReward
     ) internal {
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
 
@@ -113,14 +118,15 @@ contract Insurance is
             );
         }
         _mint(msg.sender, system.idCounter, 1, "");
-        _saveAttributes(_attributes);
+        _saveAttributes(_attributes, _totalReward);
         emit InsuranceCreated(_attributes);
     }
 
     function mintInsurance(
         Attributes memory _attributes,
         uint256 _qty,
-        address _referrer
+        address _referrer,
+        uint256 _totalReward
     ) external {
         if (_referrer != address(0)) {
             Referral(registry.getContractAddress("Referral")).addReferrer(
@@ -133,9 +139,10 @@ contract Insurance is
                 interestRate[_attributes.timePeriod] != 0,
                 "Insurance: invalid time period"
             );
-            _mintInsurance(_attributes, msg.sender);
+            _mintInsurance(_attributes, msg.sender, _totalReward);
             system.idCounter++;
             system.totalActiveCfa++;
+            system.totalRewardsToBeGiven += _totalReward;
         }
     }
 
@@ -155,6 +162,7 @@ contract Insurance is
 
         attributes[_id].principal += _interest;
         attributes[_id].principal -= _amount;
+        attributes[_id].totalPossibleReward -= _interest;
 
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
         token.mint(address(this), _interest);
@@ -170,6 +178,7 @@ contract Insurance is
                 getIterations(_id) *
                 attributes[_id].timePeriod;
         }
+        system.totalRewardsToBeGiven -= _interest;
         system.totalPaidAmount += _interest;
         emit InsuranceWithdrawn(_id, _amount, block.timestamp);
         emit MetadataUpdate(_id);

@@ -71,7 +71,10 @@ contract Income is
     /**
      * Write function
      */
-    function _setAttributes(Attributes memory _attributes) internal {
+    function _setAttributes(
+        Attributes memory _attributes,
+        uint256 _totalReward
+    ) internal {
         require(
             _attributes.paymentFrequency <= system.maxPaymentFrequency,
             "Income:: Invalid payment frequency"
@@ -89,6 +92,7 @@ contract Income is
         // commented because those time will be saved as is and not in unix
         // _attributes.paymentFrequency *= 30 days;
         // _attributes.principalLockTime *= 360 days;
+        _attributes.totalPossibleReward = _totalReward;
         _attributes.cfaLife =
             _attributes.timeCreated +
             (_attributes.principalLockTime * 360 days);
@@ -99,6 +103,7 @@ contract Income is
     function mintIncome(
         Attributes memory _attributes,
         uint256 _qty,
+        uint256 _totalReward,
         address _referrer
     ) external {
         if (_referrer != address(0)) {
@@ -137,10 +142,11 @@ contract Income is
                     _attributes.principal
                 );
             }
-            _setAttributes(_attributes);
+            _setAttributes(_attributes, _totalReward);
             _mint(msg.sender, system.idCounter, 1, "");
             system.idCounter++;
             system.totalActiveCfa++;
+            system.totalRewardsToBeGiven += _totalReward;
         }
     }
 
@@ -152,6 +158,7 @@ contract Income is
         require(!loan[_tokenId].onLoan, "Income: On Loan");
         uint256 index;
         system.totalPaidAmount += _amount;
+        system.totalRewardsToBeGiven -= _amount;
         attributes[_tokenId].incomePaid += _amount;
         (index, ) = getIndexes(_tokenId);
         index += attributes[_tokenId].claimedIndex;

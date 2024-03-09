@@ -13,6 +13,7 @@ interface IIncome {
         uint256 incomePaid; // paid income in total
         uint256 beginningTimeForInterest; // the time when the interest starts to count
         uint256 claimedIndex; // the index of the last claimed income
+        uint256 totalPossibleReward; // the total reward the user has earned
     }
 
     struct Loan {
@@ -28,6 +29,7 @@ interface IIncome {
         uint256 idCounter; // The total number of CFAs minted
         uint256 totalActiveCfa; // The total number of CFAs active in the contract
         uint256 totalPaidAmount; //total amount rewarded to users
+        uint256 totalRewardsToBeGiven; //total amount of rewards to be given, subtracted every time a reward is given
     }
 
     struct Metadata {

@@ -9,6 +9,7 @@ interface IInsurance {
         uint256 effectiveInterestTime;
         uint256 cfaLife;
         uint256 interest;
+        uint256 totalPossibleReward; // the total reward the user has earned
     }
 
     struct Loan {
@@ -27,6 +28,6 @@ interface IInsurance {
         uint256 idCounter; // The total number of CFAs minted
         uint256 totalActiveCfa; // The total number of CFAs active in the contract
         uint256 totalPaidAmount; //total amount rewarded to users
+        uint256 totalRewardsToBeGiven; //total amount of rewards to be given, subtracted every time a reward is given
     }
-
 }
