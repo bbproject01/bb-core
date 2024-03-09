@@ -63,10 +63,7 @@ contract Insurance is
     /**
      * Main Functions
      */
-    function _saveAttributes(
-        Attributes memory _attributes,
-        uint256 _totalReward
-    ) internal {
+    function _saveAttributes(Attributes memory _attributes) internal {
         require(
             interestRate[_attributes.timePeriod] != 0,
             "Insurance: invalid time period"
@@ -78,14 +75,12 @@ contract Insurance is
         _attributes.interest = GlobalMarker(
             registry.getContractAddress("GlobalMarker")
         ).getInterestRate();
-        _attributes.totalPossibleReward = _totalReward;
         attributes[system.idCounter] = _attributes;
     }
 
     function _mintInsurance(
         Attributes memory _attributes,
-        address caller,
-        uint256 _totalReward
+        address caller
     ) internal {
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
 
@@ -118,13 +113,12 @@ contract Insurance is
             );
         }
         _mint(msg.sender, system.idCounter, 1, "");
-        _saveAttributes(_attributes, _totalReward);
+        _saveAttributes(_attributes);
         emit InsuranceCreated(_attributes);
     }
 
     function mintInsurance(
         Attributes memory _attributes,
-        uint256 _totalReward,
         uint256 _qty,
         address _referrer
     ) external {
@@ -139,10 +133,10 @@ contract Insurance is
                 interestRate[_attributes.timePeriod] != 0,
                 "Insurance: invalid time period"
             );
-            _mintInsurance(_attributes, msg.sender, _totalReward);
+            _mintInsurance(_attributes, msg.sender);
             system.idCounter++;
             system.totalActiveCfa++;
-            system.totalRewardsToBeGiven += _totalReward;
+            system.totalRewardsToBeGiven += _attributes.totalPossibleReward;
         }
     }
 

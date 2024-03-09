@@ -72,8 +72,7 @@ contract Income is
      * Write function
      */
     function _setAttributes(
-        Attributes memory _attributes,
-        uint256 _totalReward
+        Attributes memory _attributes
     ) internal {
         require(
             _attributes.paymentFrequency <= system.maxPaymentFrequency,
@@ -91,8 +90,7 @@ contract Income is
         ).getInterestRate();
         // commented because those time will be saved as is and not in unix
         // _attributes.paymentFrequency *= 30 days;
-        // _attributes.principalLockTime *= 360 days;
-        _attributes.totalPossibleReward = _totalReward;
+        // _attributes.principalLockTime *= 360 days;;
         _attributes.cfaLife =
             _attributes.timeCreated +
             (_attributes.principalLockTime * 360 days);
@@ -102,7 +100,6 @@ contract Income is
 
     function mintIncome(
         Attributes memory _attributes,
-        uint256 _totalReward,
         uint256 _qty,
         address _referrer
     ) external {
@@ -142,11 +139,11 @@ contract Income is
                     _attributes.principal
                 );
             }
-            _setAttributes(_attributes, _totalReward);
+            _setAttributes(_attributes);
             _mint(msg.sender, system.idCounter, 1, "");
             system.idCounter++;
             system.totalActiveCfa++;
-            system.totalRewardsToBeGiven += _totalReward;
+            system.totalRewardsToBeGiven += _attributes.totalPossibleReward;
         }
     }
 

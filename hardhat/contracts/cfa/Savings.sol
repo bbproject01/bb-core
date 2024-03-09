@@ -63,10 +63,7 @@ contract Savings is
      * Main Function
      */
 
-    function _saveAttributes(
-        Attributes memory _attributes,
-        uint256 _totalReward
-    ) internal {
+    function _saveAttributes(Attributes memory _attributes) internal {
         require(
             _attributes.cfaLife >= life.min && life.max >= _attributes.cfaLife,
             "Savings: Invalid CFA life duration"
@@ -79,14 +76,12 @@ contract Savings is
         _attributes.interestRate = GlobalMarker(
             registry.getContractAddress("GlobalMarker")
         ).getInterestRate();
-        _attributes.totalPossibleReward = _totalReward;
         attributes[system.idCounter] = _attributes;
     }
 
     function _mintSavings(
         Attributes memory _attributes,
-        address caller,
-        uint256 _totalReward
+        address caller
     ) internal {
         BBToken token = BBToken(registry.getContractAddress("BbToken"));
         if (
@@ -118,13 +113,12 @@ contract Savings is
             );
         }
         _mint(msg.sender, system.idCounter, 1, "");
-        _saveAttributes(_attributes, _totalReward);
+        _saveAttributes(_attributes);
         emit SavingsCreated(_attributes);
     }
 
     function mintSavings(
         Attributes memory _attributes,
-        uint256 _totalReward,
         uint256 _qty,
         address _referrer
     ) external nonReentrant {
@@ -140,10 +134,10 @@ contract Savings is
             );
         }
         for (uint256 i = 0; i < _qty; i++) {
-            _mintSavings(_attributes, msg.sender, _totalReward);
+            _mintSavings(_attributes, msg.sender);
             system.idCounter++;
             system.totalActiveCfa++;
-            system.totalRewardsToBeGiven += _totalReward;
+            system.totalRewardsToBeGiven += _attributes.totalPossibleReward;
         }
     }
 
