@@ -71,9 +71,7 @@ contract Income is
     /**
      * Write function
      */
-    function _setAttributes(
-        Attributes memory _attributes
-    ) internal {
+    function _setAttributes(Attributes memory _attributes) internal {
         require(
             _attributes.paymentFrequency <= system.maxPaymentFrequency,
             "Income:: Invalid payment frequency"
@@ -158,7 +156,7 @@ contract Income is
         system.totalRewardsToBeGiven -= _amount;
         attributes[_tokenId].incomePaid += _amount;
         (index, ) = getIndexes(_tokenId);
-        index += attributes[_tokenId].claimedIndex;
+        attributes[_tokenId].claimedIndex += index;
         uint256 _lastClaimTime = block.timestamp -
             (block.timestamp -
                 (attributes[_tokenId].lastClaimTime + (index * 30 days)));
