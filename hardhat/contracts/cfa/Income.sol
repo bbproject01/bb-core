@@ -155,6 +155,7 @@ contract Income is
         system.totalPaidAmount += _amount;
         system.totalRewardsToBeGiven -= _amount;
         attributes[_tokenId].incomePaid += _amount;
+        attributes[_tokenId].totalPossibleReward -= _amount;
         (index, ) = getIndexes(_tokenId);
         attributes[_tokenId].claimedIndex += index;
         uint256 _lastClaimTime = block.timestamp -
